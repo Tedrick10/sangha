@@ -1,0 +1,49 @@
+@extends('admin.layout')
+
+@section('title', 'Edit Exam Type')
+
+@section('content')
+<div class="admin-form-page-header">
+    <a href="{{ route('admin.exam-types.index') }}" class="admin-back-link">@include('partials.icon', ['name' => 'arrow-left', 'class' => 'w-4 h-4 shrink-0']) Exam Types</a>
+    <h1 class="admin-page-title">Edit Exam Type</h1>
+</div>
+
+<form action="{{ route('admin.exam-types.update', $examType) }}" method="POST" enctype="multipart/form-data" class="admin-form-card">
+    @csrf
+    @method('PUT')
+    <div class="space-y-5">
+        <div class="admin-form-group">
+            <label for="name" class="admin-form-label">Name *</label>
+            <input type="text" name="name" id="name" value="{{ old('name', $examType->name) }}" required class="admin-input" placeholder="e.g. Pathamabyan, Dhammacariya">
+            @error('name')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
+        @if($customFields->isNotEmpty())
+            <div class="admin-form-section">
+                <h3 class="admin-form-section-title">Custom Fields</h3>
+                <div class="space-y-5">
+                    @include('admin.partials.custom-fields-form', ['customFields' => $customFields, 'values' => $customFieldValues])
+                </div>
+            </div>
+        @endif
+        <div class="admin-form-group">
+            <label for="description" class="admin-form-label">Description</label>
+            <textarea name="description" id="description" rows="3" class="admin-textarea" placeholder="Brief description of the exam type">{{ old('description', $examType->description) }}</textarea>
+            @error('description')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
+        <div class="flex items-center gap-6 pt-2">
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $examType->is_active) ? 'checked' : '' }} class="admin-checkbox">
+                <span class="text-sm font-medium text-slate-700">Active</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="approved" id="approved" value="1" {{ old('approved', $examType->approved) ? 'checked' : '' }} class="admin-checkbox">
+                <span class="text-sm font-medium text-slate-700">Approved</span>
+            </label>
+        </div>
+    </div>
+    <div class="admin-form-actions">
+        <button type="submit" class="admin-btn-primary">Update Exam Type</button>
+        <a href="{{ route('admin.exam-types.index') }}" class="admin-btn-secondary">Cancel</a>
+    </div>
+</form>
+@endsection
