@@ -1,5 +1,52 @@
 import './bootstrap';
 import './column-visibility';
+import { initCrossTabPreferenceSync, broadcastAppTheme, broadcastAppLocale } from './preferences-sync';
+
+initCrossTabPreferenceSync();
+window.sanghaBroadcastAppTheme = broadcastAppTheme;
+window.sanghaBroadcastAppLocale = broadcastAppLocale;
+
+function csrfToken() {
+    const m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.getAttribute('content') : '';
+}
+
+function bodyDatasetUrl(camelKey) {
+    return document.body?.dataset?.[camelKey] || '';
+}
+
+document.addEventListener(
+    'click',
+    (e) => {
+        const btn = e.target.closest('.js-app-locale-choice');
+        if (!btn) return;
+        e.preventDefault();
+        const url = bodyDatasetUrl('appLocaleUrl');
+        if (!url) return;
+        const code = btn.getAttribute('data-locale');
+        if (!code) return;
+        const body = new URLSearchParams();
+        body.set('_token', csrfToken());
+        body.set('locale', code);
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+            body: body.toString(),
+            credentials: 'same-origin',
+        })
+            .then(() => {
+                if (window.sanghaBroadcastAppLocale) window.sanghaBroadcastAppLocale(code);
+                window.location.reload();
+            })
+            .catch(() => window.location.reload());
+    },
+    true
+);
 
 function initPasswordVisibilityToggles() {
     const passwordInputs = document.querySelectorAll('input[type="password"]');

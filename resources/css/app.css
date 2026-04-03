@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Class-based dark mode (session / data-theme on <html>) — must match inline script in layouts */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -8,6 +11,102 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Public website: subtle entrance motion (respect reduced motion) */
+@keyframes website-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.website-fade-up {
+    animation: website-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .website-fade-up {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.website-stagger > * {
+    animation: website-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.website-stagger > *:nth-child(1) {
+    animation-delay: 0.04s;
+}
+.website-stagger > *:nth-child(2) {
+    animation-delay: 0.1s;
+}
+.website-stagger > *:nth-child(3) {
+    animation-delay: 0.16s;
+}
+.website-stagger > *:nth-child(4) {
+    animation-delay: 0.22s;
+}
+.website-stagger > *:nth-child(5) {
+    animation-delay: 0.28s;
+}
+.website-stagger > *:nth-child(6) {
+    animation-delay: 0.34s;
+}
+.website-stagger > *:nth-child(7) {
+    animation-delay: 0.4s;
+}
+.website-stagger > *:nth-child(8) {
+    animation-delay: 0.46s;
+}
+.website-stagger > *:nth-child(9) {
+    animation-delay: 0.52s;
+}
+.website-stagger > *:nth-child(10) {
+    animation-delay: 0.58s;
+}
+.website-stagger > *:nth-child(11) {
+    animation-delay: 0.64s;
+}
+.website-stagger > *:nth-child(12) {
+    animation-delay: 0.7s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .website-stagger > * {
+        animation: none;
+        animation-delay: 0s !important;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.website-card-hover {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.website-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px -12px rgba(251, 191, 36, 0.18);
+}
+
+.dark .website-card-hover:hover {
+    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .website-card-hover:hover {
+        transform: none;
+    }
 }
 
 /* Admin design system */
@@ -295,6 +394,12 @@
                focus:outline-none focus:ring-2 focus:ring-amber-400/50
                transition-all duration-200;
     }
+    /* Public site header: match warm stone palette + readable contrast */
+    .website-header-toolbar .admin-dropdown-trigger {
+        @apply rounded-lg border-stone-200/90 dark:border-slate-600 bg-white dark:bg-slate-900
+               text-stone-800 dark:text-slate-100 px-2.5 py-1.5 text-sm font-medium
+               hover:bg-stone-50 dark:hover:bg-slate-800 hover:border-stone-300 dark:hover:border-slate-500;
+    }
     /* Responsive filter bar - ensure wrapping on small screens (except .admin-filter-bar-inline) */
     @media (max-width: 639px) {
         .admin-filter-bar:not(.admin-filter-bar-inline) {
@@ -319,5 +424,123 @@
     .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
+    }
+}
+
+/* Admin mobile drawer overlay — smooth fade */
+#admin-sidebar-overlay.admin-sidebar-overlay {
+    transition: opacity 0.32s cubic-bezier(0.33, 1, 0.68, 1);
+    background-color: transparent;
+}
+#admin-sidebar-overlay.admin-sidebar-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    background-color: rgb(28 25 23 / 0.42);
+}
+.dark #admin-sidebar-overlay.admin-sidebar-overlay.is-open {
+    background-color: rgb(2 6 23 / 0.58);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #admin-sidebar-overlay.admin-sidebar-overlay {
+        transition-duration: 0.01ms;
+    }
+}
+
+/*
+ * Mobile off-canvas drawer: own transform (not Tailwind translate utilities — v4 uses `translate:`
+ * which fights transition and varies by browser). Open = .admin-mobile-drawer-open on #admin-sidebar.
+ */
+#admin-sidebar.admin-sidebar-drawer {
+    transform: translate3d(-100%, 0, 0);
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    backface-visibility: hidden;
+    overflow-x: hidden;
+}
+
+#admin-sidebar.admin-sidebar-drawer.admin-mobile-drawer-open {
+    transform: translate3d(0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #admin-sidebar.admin-sidebar-drawer {
+        transition-duration: 0.12s;
+    }
+}
+
+/* Admin sidebar nav: smooth accordion (grid 0fr → 1fr) */
+.admin-sidebar-nav .sidebar-group-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.28s cubic-bezier(0.33, 1, 0.68, 1);
+}
+.admin-sidebar-nav .sidebar-group-content.is-expanded {
+    grid-template-rows: 1fr;
+}
+.admin-sidebar-nav .sidebar-group-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-sidebar-nav .sidebar-group-content {
+        transition-duration: 0.01ms;
+    }
+}
+
+/* Desktop: no off-canvas transform; collapse rail animates width only */
+@media (min-width: 1024px) {
+    #admin-sidebar.admin-sidebar-drawer {
+        transform: translate3d(0, 0, 0) !important;
+        transition:
+            width 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+            min-width 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+            max-width 0.38s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    html.admin-sidebar-collapsed #admin-sidebar {
+        width: 4.25rem !important;
+        min-width: 4.25rem !important;
+        max-width: 4.25rem !important;
+        overflow-x: hidden;
+        overflow-y: auto;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    /*
+     * Defer display:none until .admin-sidebar-collapse-done (set after width transition).
+     * Hiding labels the same frame as width change caused layout thrash / stutter.
+     */
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-brand-full,
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-user-text,
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-label,
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .sidebar-group-chevron,
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .sidebar-group-content,
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-logout-label {
+        display: none !important;
+    }
+
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-top {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-user {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar nav > a,
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .sidebar-group-btn {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-logout-btn {
+        justify-content: center;
     }
 }

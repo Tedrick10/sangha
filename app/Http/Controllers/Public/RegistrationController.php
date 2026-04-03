@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomField;
+use App\Models\Monastery;
 use App\Models\Sangha;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -110,7 +111,7 @@ class RegistrationController extends Controller
         $rules = [];
 
         foreach ($fields as $field) {
-            $key = 'custom_fields.' . $field->slug;
+            $key = 'custom_fields.'.$field->slug;
             $fieldRules = $field->required ? ['required'] : ['nullable'];
 
             switch ($field->type) {
@@ -173,4 +174,3 @@ class RegistrationController extends Controller
         return $rules;
     }
 }
-

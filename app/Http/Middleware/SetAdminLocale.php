@@ -10,8 +10,11 @@ class SetAdminLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->routeIs('admin.*') && session()->has('admin_locale')) {
-            app()->setLocale(session('admin_locale'));
+        if ($request->routeIs('admin.*')) {
+            $locale = session('app_locale') ?? session('admin_locale');
+            if ($locale) {
+                app()->setLocale($locale);
+            }
         }
 
         return $next($request);

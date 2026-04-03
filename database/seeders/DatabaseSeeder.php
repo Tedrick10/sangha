@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Exam;
-use Database\Seeders\LanguageSeeder;
 use App\Models\ExamType;
 use App\Models\Monastery;
 use App\Models\Role;
@@ -74,8 +73,8 @@ class DatabaseSeeder extends Seeder
         $roles = [$adminRole, $editorRole, $viewerRole];
         for ($i = 0; $i < 15; $i++) {
             User::updateOrCreate(
-                ['email' => 'staff' . ($i + 1) . '@sanghaexam.org'],
-                ['name' => 'Staff User ' . ($i + 1), 'password' => Hash::make('password123'), 'role_id' => $roles[$i % 3]->id]
+                ['email' => 'staff'.($i + 1).'@sanghaexam.org'],
+                ['name' => 'Staff User '.($i + 1), 'password' => Hash::make('password123'), 'role_id' => $roles[$i % 3]->id]
             );
         }
 
@@ -84,68 +83,68 @@ class DatabaseSeeder extends Seeder
             Monastery::updateOrCreate(
                 ['username' => 'shwegu'],
                 [
-                'name' => 'Shwegu Monastery',
-                'password' => Hash::make('password123'),
-                'region' => 'Mandalay',
-                'city' => 'Mandalay',
-                'address' => '123 Pagoda Road',
-                'phone' => '09-123456789',
-                'description' => 'A leading monastery in Mandalay.',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'name' => 'Shwegu Monastery',
+                    'password' => Hash::make('password123'),
+                    'region' => 'Mandalay',
+                    'city' => 'Mandalay',
+                    'address' => '123 Pagoda Road',
+                    'phone' => '09-123456789',
+                    'description' => 'A leading monastery in Mandalay.',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Monastery::updateOrCreate(
                 ['username' => 'maha_aungmye'],
                 [
-                'name' => 'Maha Aungmye Monastery',
-                'password' => Hash::make('password123'),
-                'region' => 'Yangon',
-                'city' => 'Yangon',
-                'address' => '456 Bahan Street',
-                'phone' => '09-987654321',
-                'description' => 'Historic monastery in Yangon.',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'name' => 'Maha Aungmye Monastery',
+                    'password' => Hash::make('password123'),
+                    'region' => 'Yangon',
+                    'city' => 'Yangon',
+                    'address' => '456 Bahan Street',
+                    'phone' => '09-987654321',
+                    'description' => 'Historic monastery in Yangon.',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Monastery::updateOrCreate(
                 ['username' => 'thamanya'],
                 [
-                'name' => 'Thamanya Monastery',
-                'password' => Hash::make('password123'),
-                'region' => 'Kayin',
-                'city' => 'Hpa-an',
-                'address' => 'Thamanya Hill',
-                'phone' => '09-555555555',
-                'description' => 'Peaceful hillside monastery.',
-                'is_active' => true,
-                'approved' => false,
-            ]),
+                    'name' => 'Thamanya Monastery',
+                    'password' => Hash::make('password123'),
+                    'region' => 'Kayin',
+                    'city' => 'Hpa-an',
+                    'address' => 'Thamanya Hill',
+                    'phone' => '09-555555555',
+                    'description' => 'Peaceful hillside monastery.',
+                    'is_active' => true,
+                    'approved' => false,
+                ]),
             Monastery::updateOrCreate(
                 ['username' => 'saddhamma'],
                 [
-                'name' => 'Saddhamma Monastery',
-                'password' => Hash::make('password123'),
-                'region' => 'Sagaing',
-                'city' => 'Sagaing',
-                'address' => 'Sagaing Hill',
-                'phone' => '09-111222333',
-                'description' => 'Renowned for Pali studies.',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'name' => 'Saddhamma Monastery',
+                    'password' => Hash::make('password123'),
+                    'region' => 'Sagaing',
+                    'city' => 'Sagaing',
+                    'address' => 'Sagaing Hill',
+                    'phone' => '09-111222333',
+                    'description' => 'Renowned for Pali studies.',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Monastery::updateOrCreate(
                 ['username' => 'chanthagon'],
                 [
-                'name' => 'Chanthagon Monastery',
-                'password' => Hash::make('password123'),
-                'region' => 'Bago',
-                'city' => 'Bago',
-                'address' => '78 Shwemawdaw Road',
-                'phone' => '09-444666888',
-                'description' => 'Traditional teaching monastery.',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'name' => 'Chanthagon Monastery',
+                    'password' => Hash::make('password123'),
+                    'region' => 'Bago',
+                    'city' => 'Bago',
+                    'address' => '78 Shwemawdaw Road',
+                    'phone' => '09-444666888',
+                    'description' => 'Traditional teaching monastery.',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
         ];
 
         // More monasteries (so table has multiple pages)
@@ -172,20 +171,20 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Magway Monastery', 'region' => 'Magway', 'city' => 'Magway'],
         ];
         foreach ($moreMonasteryNames as $i => $m) {
-            $username = Str::slug($m['name']) . '_' . ($i + 10);
+            $username = Str::slug($m['name']).'_'.($i + 10);
             $monasteries[] = Monastery::updateOrCreate(
                 ['username' => $username],
                 [
-                'name' => $m['name'],
-                'password' => Hash::make('password123'),
-                'region' => $m['region'],
-                'city' => $m['city'],
-                'address' => 'Address ' . $m['city'],
-                'phone' => '09-' . str_pad((string) (100000000 + $i), 9, '0'),
-                'description' => 'Monastery in ' . $m['city'] . '.',
-                'is_active' => $i % 5 !== 0,
-                'approved' => $i % 4 !== 0,
-            ]);
+                    'name' => $m['name'],
+                    'password' => Hash::make('password123'),
+                    'region' => $m['region'],
+                    'city' => $m['city'],
+                    'address' => 'Address '.$m['city'],
+                    'phone' => '09-'.str_pad((string) (100000000 + $i), 9, '0'),
+                    'description' => 'Monastery in '.$m['city'].'.',
+                    'is_active' => $i % 5 !== 0,
+                    'approved' => $i % 4 !== 0,
+                ]);
         }
 
         // Exam Types
@@ -198,7 +197,7 @@ class DatabaseSeeder extends Seeder
         ];
         $moreExamTypeNames = ['Pali Level 4', 'Pali Level 5', 'Abhidhamma Exam', 'Suttanta Exam', 'Tipitaka Exam', 'Memorization Exam', 'Writing Exam', 'Oral Exam', 'Preliminary Exam', 'Final Exam'];
         foreach ($moreExamTypeNames as $i => $name) {
-            $examTypes[] = ExamType::updateOrCreate(['name' => $name], ['description' => $name . ' description', 'is_active' => true, 'approved' => $i % 3 !== 0]);
+            $examTypes[] = ExamType::updateOrCreate(['name' => $name], ['description' => $name.' description', 'is_active' => true, 'approved' => $i % 3 !== 0]);
         }
 
         // Subjects
@@ -212,7 +211,7 @@ class DatabaseSeeder extends Seeder
         ];
         $moreSubjectNames = ['Pali Prosody', 'Pali Phonetics', 'Buddhist History', 'Meditation Theory', 'Ethics', 'Logic', 'Pali Translation', 'Commentary Studies', 'Pali Poetry', 'Pali Prose'];
         foreach ($moreSubjectNames as $i => $name) {
-            $subjects[] = Subject::updateOrCreate(['name' => $name], ['description' => $name . ' subject', 'moderation_mark' => 35 + ($i % 5), 'is_active' => true]);
+            $subjects[] = Subject::updateOrCreate(['name' => $name], ['description' => $name.' subject', 'moderation_mark' => 35 + ($i % 5), 'is_active' => true]);
         }
 
         // Exams
@@ -245,10 +244,10 @@ class DatabaseSeeder extends Seeder
         for ($i = 0; $i < 18; $i++) {
             $mon = $monasteries[array_rand($monasteries)];
             $et = $examTypes[array_rand($examTypes)];
-            $examName = 'Exam ' . ($i + 7) . ' - ' . $mon->city . ' ' . now()->addMonths($i)->format('M Y');
+            $examName = 'Exam '.($i + 7).' - '.$mon->city.' '.now()->addMonths($i)->format('M Y');
             $exams[] = Exam::updateOrCreate(
                 ['name' => $examName, 'monastery_id' => $mon->id],
-                ['description' => 'Scheduled examination', 'exam_date' => now()->addMonths($i % 12)->addDays($i * 2), 'exam_type_id' => $et->id, 'location' => $mon->name . ' Hall', 'is_active' => true, 'approved' => $i % 3 !== 0]
+                ['description' => 'Scheduled examination', 'exam_date' => now()->addMonths($i % 12)->addDays($i * 2), 'exam_type_id' => $et->id, 'location' => $mon->name.' Hall', 'is_active' => true, 'approved' => $i % 3 !== 0]
             );
         }
 
@@ -270,130 +269,130 @@ class DatabaseSeeder extends Seeder
             Sangha::updateOrCreate(
                 ['username' => 'u_agga'],
                 [
-                'monastery_id' => $monasteries[0]->id,
-                'exam_id' => $exams[0]->id,
-                'name' => 'U Agga',
-                'password' => Hash::make('password123'),
-                'description' => 'Senior student',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[0]->id,
+                    'exam_id' => $exams[0]->id,
+                    'name' => 'U Agga',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Senior student',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_bodhi'],
                 [
-                'monastery_id' => $monasteries[0]->id,
-                'exam_id' => $exams[0]->id,
-                'name' => 'U Bodhi',
-                'password' => Hash::make('password123'),
-                'description' => 'Intermediate student',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[0]->id,
+                    'exam_id' => $exams[0]->id,
+                    'name' => 'U Bodhi',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Intermediate student',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_metta'],
                 [
-                'monastery_id' => $monasteries[0]->id,
-                'exam_id' => $exams[0]->id,
-                'name' => 'U Metta',
-                'password' => Hash::make('password123'),
-                'description' => 'Level 1 candidate',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[0]->id,
+                    'exam_id' => $exams[0]->id,
+                    'name' => 'U Metta',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Level 1 candidate',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_citta'],
                 [
-                'monastery_id' => $monasteries[0]->id,
-                'exam_id' => $exams[1]->id,
-                'name' => 'U Citta',
-                'password' => Hash::make('password123'),
-                'description' => 'Level 2 candidate',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[0]->id,
+                    'exam_id' => $exams[1]->id,
+                    'name' => 'U Citta',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Level 2 candidate',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_sila'],
                 [
-                'monastery_id' => $monasteries[0]->id,
-                'exam_id' => $exams[1]->id,
-                'name' => 'U Sila',
-                'password' => Hash::make('password123'),
-                'description' => 'Level 2 candidate',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[0]->id,
+                    'exam_id' => $exams[1]->id,
+                    'name' => 'U Sila',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Level 2 candidate',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_dhamma'],
                 [
-                'monastery_id' => $monasteries[1]->id,
-                'exam_id' => $exams[2]->id,
-                'name' => 'U Dhamma',
-                'password' => Hash::make('password123'),
-                'description' => 'Dhamma student',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[1]->id,
+                    'exam_id' => $exams[2]->id,
+                    'name' => 'U Dhamma',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Dhamma student',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_pannya'],
                 [
-                'monastery_id' => $monasteries[1]->id,
-                'exam_id' => $exams[2]->id,
-                'name' => 'U Pannya',
-                'password' => Hash::make('password123'),
-                'description' => 'Dhamma student',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[1]->id,
+                    'exam_id' => $exams[2]->id,
+                    'name' => 'U Pannya',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Dhamma student',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_saddha'],
                 [
-                'monastery_id' => $monasteries[3]->id,
-                'exam_id' => $exams[3]->id,
-                'name' => 'U Saddha',
-                'password' => Hash::make('password123'),
-                'description' => 'Advanced Pali student',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[3]->id,
+                    'exam_id' => $exams[3]->id,
+                    'name' => 'U Saddha',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Advanced Pali student',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_viriya'],
                 [
-                'monastery_id' => $monasteries[3]->id,
-                'exam_id' => $exams[5]->id,
-                'name' => 'U Viriya',
-                'password' => Hash::make('password123'),
-                'description' => 'Level 1 candidate',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[3]->id,
+                    'exam_id' => $exams[5]->id,
+                    'name' => 'U Viriya',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Level 1 candidate',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
             Sangha::updateOrCreate(
                 ['username' => 'u_samadhi'],
                 [
-                'monastery_id' => $monasteries[4]->id,
-                'exam_id' => $exams[4]->id,
-                'name' => 'U Samadhi',
-                'password' => Hash::make('password123'),
-                'description' => 'Vinaya student',
-                'is_active' => true,
-                'approved' => true,
-            ]),
+                    'monastery_id' => $monasteries[4]->id,
+                    'exam_id' => $exams[4]->id,
+                    'name' => 'U Samadhi',
+                    'password' => Hash::make('password123'),
+                    'description' => 'Vinaya student',
+                    'is_active' => true,
+                    'approved' => true,
+                ]),
         ];
         $sanghaNames = ['U Khemaka', 'U Rahula', 'U Ananda', 'U Kassapa', 'U Moggallana', 'U Sariputta', 'U Upali', 'U Mahakassapa', 'U Punna', 'U Revata', 'U Sobhita', 'U Kondanna', 'U Assaji', 'U Bhaddiya', 'U Vappa', 'U Kimila', 'U Yasa', 'U Nanda', 'U Kimbila', 'U Devadatta', 'U Kokalika', 'U Katyayana', 'U Subhuti', 'U Purna', 'U Gavampati', 'U Bakula', 'U Sivali', 'U Angulimala', 'U Pilindavaccha', 'U Mahakaccana'];
         foreach ($sanghaNames as $i => $name) {
             $mon = $monasteries[$i % count($monasteries)];
             $exam = $exams[$i % count($exams)];
-            $username = 'sangha_extra_' . ($i + 10);
+            $username = 'sangha_extra_'.($i + 10);
             $sanghas[] = Sangha::updateOrCreate(
                 ['username' => $username],
                 [
-                'monastery_id' => $mon->id,
-                'exam_id' => $exam->id,
-                'name' => $name,
-                'password' => Hash::make('password123'),
-                'description' => 'Student',
-                'is_active' => $i % 5 !== 0,
-                'approved' => true,
-            ]);
+                    'monastery_id' => $mon->id,
+                    'exam_id' => $exam->id,
+                    'name' => $name,
+                    'password' => Hash::make('password123'),
+                    'description' => 'Student',
+                    'is_active' => $i % 5 !== 0,
+                    'approved' => true,
+                ]);
         }
 
         // Scores
@@ -423,9 +422,13 @@ class DatabaseSeeder extends Seeder
         }
         foreach (array_slice($sanghas, 10) as $sangha) {
             $exam = $sangha->exam;
-            if (!$exam) continue;
+            if (! $exam) {
+                continue;
+            }
             $examSubjects = $exam->subjects;
-            if ($examSubjects->isEmpty()) $examSubjects = collect($subjects)->take(2);
+            if ($examSubjects->isEmpty()) {
+                $examSubjects = collect($subjects)->take(2);
+            }
             foreach ($examSubjects as $subj) {
                 Score::updateOrCreate(
                     ['sangha_id' => $sangha->id, 'subject_id' => $subj->id, 'exam_id' => $exam->id],
@@ -438,126 +441,142 @@ class DatabaseSeeder extends Seeder
         Website::updateOrCreate(
             ['slug' => 'home'],
             [
-            'title' => 'Home',
-            'content' => '<h1>Welcome to Sangha Exam</h1><p>This is the home page content.</p>',
-            'type' => 'page',
-            'is_published' => true,
-            'sort_order' => 0,
-        ]);
+                'title' => 'Home',
+                'content' => '',
+                'type' => 'page',
+                'is_published' => true,
+                'sort_order' => 0,
+            ]);
         Website::updateOrCreate(
             ['slug' => 'about'],
             [
-            'title' => 'About Us',
-            'content' => '<h1>About Sangha Exam</h1><p>We organize Buddhist monastic examinations.</p>',
-            'type' => 'page',
-            'is_published' => true,
-            'sort_order' => 1,
-        ]);
+                'title' => 'About Us',
+                'content' => '<h2>Our mission</h2><p>Sangha Exam is a dedicated platform for organizing <strong>Pali</strong>, <strong>Vinaya</strong>, and <strong>Dhamma</strong> examinations for monastic communities. We help monasteries register candidates, publish schedules, record scores, and share results with clarity and respect.</p><h2>What we offer</h2><ul><li>Secure portals for monasteries and Sangha members</li><li>Centralized exam types, subjects, and score management</li><li>Public pages for schedules, policies, and pass lists</li><li>Multilingual interface options for regional use</li></ul><h2>Who we serve</h2><p>Partner monasteries, examination boards, and candidates use the system for end-to-end exam cycles—from registration to publication of outcomes.</p>',
+                'type' => 'page',
+                'is_published' => true,
+                'sort_order' => 1,
+            ]);
         Website::updateOrCreate(
             ['slug' => 'contact'],
             [
-            'title' => 'Contact',
-            'content' => '<h1>Contact Us</h1><p>Email: contact@sanghaexam.org</p><p>Phone: +95 9 123 456 789</p>',
-            'type' => 'page',
-            'is_published' => true,
-            'sort_order' => 2,
-        ]);
+                'title' => 'Contact',
+                'content' => '<h2>Contact the secretariat</h2><p>For registration support, technical issues, or examination enquiries, reach us through the channels below. Typical response time is <strong>1–2 business days</strong>.</p><div class="not-prose my-6 grid gap-4 sm:grid-cols-2"><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5"><p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">Email</p><a href="mailto:contact@sanghaexam.org" class="text-amber-700 dark:text-amber-400 font-medium">contact@sanghaexam.org</a></div><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5"><p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">Phone</p><p class="font-medium text-stone-900 dark:text-slate-100">+95 9 123 456 789</p></div></div><h2>Office hours</h2><p>Monday–Friday, 09:00–17:00 (local time). During examination periods, extended support may be announced on the home page.</p>',
+                'type' => 'page',
+                'is_published' => true,
+                'sort_order' => 2,
+            ]);
         Website::updateOrCreate(
             ['slug' => 'exam-schedule'],
             [
-            'title' => 'Examination Schedule',
-            'content' => '<h1>Examination Schedule</h1><p>View upcoming examination dates and venues.</p>',
-            'type' => 'page',
-            'is_published' => true,
-            'sort_order' => 3,
-        ]);
+                'title' => 'Examination Schedule',
+                'content' => '<p>The <strong>table below</strong> is generated automatically from approved, active examinations in the database. Use it in demos to show real venues, monasteries, and dates. Static notes can still be edited here in the admin panel.</p><p>Monastery coordinators should confirm final hall assignments before the exam date.</p>',
+                'type' => 'page',
+                'is_published' => true,
+                'sort_order' => 3,
+            ]);
         Website::updateOrCreate(
             ['slug' => 'privacy'],
             [
-            'title' => 'Privacy Policy',
-            'content' => '<h1>Privacy Policy</h1><p>We respect your privacy. This page explains how we collect, use, and protect your personal information.</p>',
-            'type' => 'page',
-            'is_published' => true,
-            'sort_order' => 4,
-        ]);
+                'title' => 'Privacy Policy',
+                'content' => '<h2>Summary</h2><p>We collect only the information needed to run examinations and portals (names, monastery affiliation, scores, and contact details). Data is stored securely and accessed by authorized staff.</p><h2>Your rights</h2><ul><li>Request correction of personal data</li><li>Ask how your information is used</li><li>Withdraw consent where applicable, subject to exam rules</li></ul><h2>Cookies & sessions</h2><p>The site uses essential cookies and session storage for login, language, and theme preferences. We do not use third-party advertising trackers on the public site.</p>',
+                'type' => 'page',
+                'is_published' => true,
+                'sort_order' => 4,
+            ]);
         Website::updateOrCreate(
             ['slug' => 'faq'],
             [
-            'title' => 'FAQ',
-            'content' => '<h1>Frequently Asked Questions</h1><p>Find answers to common questions about Sangha Exam registration, exams, and results.</p>',
-            'type' => 'page',
-            'is_published' => true,
-            'sort_order' => 5,
-        ]);
+                'title' => 'FAQ',
+                'content' => '<h2>Registration</h2><p><strong>How do monasteries register?</strong> Use the <em>Register monastery</em> option on the home page, then sign in after approval.</p><p><strong>How do Sangha candidates register?</strong> Choose <em>Register Sangha</em>, select your monastery, and complete the form.</p><h2>Examinations</h2><p><strong>Where is the schedule?</strong> Open <strong>Examination Schedule</strong> under Examinations—the list is pulled from the database.</p><p><strong>When are results published?</strong> After moderation in the admin panel; candidates see marks in the Sangha portal.</p><h2>Technical</h2><p><strong>Light or dark theme not updating?</strong> The header theme control updates instantly without a full page reload; your choice is saved for the next visit—ensure cookies are enabled for this domain.</p>',
+                'type' => 'page',
+                'is_published' => true,
+                'sort_order' => 5,
+            ]);
         Website::updateOrCreate(
             ['slug' => 'footer'],
             [
-            'title' => 'Footer',
-            'content' => '<p>© 2025 Sangha Exam. All rights reserved.</p>',
-            'type' => 'section',
-            'is_published' => true,
-            'sort_order' => 10,
-        ]);
-        $morePages = ['Results', 'Registration', 'Guidelines', 'Syllabus', 'Past Papers', 'Resources', 'News', 'Events', 'Gallery', 'Donate', 'Volunteer', 'Partners', 'Terms of Use', 'Sitemap', 'Accessibility'];
-        foreach ($morePages as $i => $title) {
-            $slug = Str::slug($title);
-            Website::updateOrCreate(
-                ['slug' => $slug],
-                [
-                'title' => $title,
-                'content' => '<h1>' . $title . '</h1><p>Content for ' . $title . ' page.</p>',
-                'type' => 'page',
-                'is_published' => $i % 4 !== 0,
-                'sort_order' => 20 + $i,
+                'title' => 'Footer',
+                'content' => '<p>© '.date('Y').' Sangha Exam. Examination services for monastic communities.</p><p class="text-sm opacity-90">Demo deployment — content and figures illustrate typical usage.</p>',
+                'type' => 'section',
+                'is_published' => true,
+                'sort_order' => 10,
             ]);
+        $demoExtraPages = [
+            ['slug' => 'results', 'title' => 'Results', 'sort' => 12, 'body' => '<h2>Examination results</h2><p>Official results are published after moderation. In this demo, open the <strong>admin panel</strong> to manage scores and use a <strong>Sangha login</strong> to view the student dashboard.</p><h2>Public pass lists</h2><p>Published pass lists appear under <strong>Pass Sangha List</strong> when enabled by administrators.</p>'],
+            ['slug' => 'registration', 'title' => 'Registration', 'sort' => 13, 'body' => '<h2>Who can register</h2><p><strong>Monasteries</strong> create an account to manage candidates and exams. <strong>Sangha members</strong> register under their monastery to sit examinations and view results.</p><h2>How to start</h2><p>From the <strong>home page</strong>, use <em>Register monastery</em> or <em>Register Sangha</em>. After submission, monasteries may require admin approval before login is enabled.</p>'],
+            ['slug' => 'guidelines', 'title' => 'Exam Guidelines', 'sort' => 14, 'body' => '<h2>Before examination day</h2><ul><li>Confirm your registration status with your monastery coordinator.</li><li>Bring a valid photo ID and admission slip (if issued).</li><li>Arrive at least <strong>30 minutes</strong> before the published start time.</li></ul><h2>During the exam</h2><p>Mobile phones and smart watches should be switched off and stored as directed. Raise your hand for invigilator assistance; do not communicate with other candidates.</p><h2>Conduct & dress</h2><p>Follow monastery dress and comportment standards. Invigilators may dismiss anyone who disrupts the hall.</p><p><em>Demo text—replace with your official regulations PDF link when available.</em></p>'],
+            ['slug' => 'syllabus', 'title' => 'Syllabus', 'sort' => 15, 'body' => '<h2>Structure</h2><p>Examinations are organised by <strong>level</strong> and <strong>subject group</strong>. Typical papers include Pali grammar and composition, Vinaya case studies, and Dhamma (doctrinal) essays.</p><h2>Sample weighting (demo)</h2><div class="not-prose my-4 overflow-x-auto rounded-xl border border-stone-200 dark:border-slate-600"><table class="min-w-full text-sm text-left"><thead class="bg-stone-100 dark:bg-slate-800"><tr><th class="px-4 py-2">Component</th><th class="px-4 py-2">Focus</th></tr></thead><tbody><tr class="border-t border-stone-200 dark:border-slate-600"><td class="px-4 py-2">Pali</td><td class="px-4 py-2">Translation, parsing, prescribed texts</td></tr><tr class="border-t border-stone-200 dark:border-slate-600"><td class="px-4 py-2">Vinaya</td><td class="px-4 py-2">Khandhaka summaries, offence classes</td></tr><tr class="border-t border-stone-200 dark:border-slate-600"><td class="px-4 py-2">Dhamma</td><td class="px-4 py-2">Sutta themes, Abhidhamma basics</td></tr></tbody></table></div><h2>Official syllabi</h2><p>Topic outlines are distributed per cycle by the examination board. Contact your monastery for the PDF matching your sitting.</p>'],
+            ['slug' => 'past-papers', 'title' => 'Past Papers', 'sort' => 16, 'body' => '<h2>Past papers</h2><p>Representative questions from previous cycles help candidates prepare. Contact your monastery coordinator for access.</p>'],
+            ['slug' => 'news', 'title' => 'News', 'sort' => 17, 'body' => '<h2>Latest updates</h2><article class="not-prose my-6 space-y-4"><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50/80 dark:bg-slate-800/50 p-5"><p class="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">'.date('M j, Y', strtotime('first day of -1 month')).'</p><h3 class="font-heading text-lg text-stone-900 dark:text-slate-100 mt-1">Spring Pali Level 1 — registration window</h3><p class="text-sm text-stone-600 dark:text-slate-400 mt-2">Monasteries may begin submitting candidate lists. Closing date will be announced on the schedule page.</p></div><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50/80 dark:bg-slate-800/50 p-5"><p class="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">'.date('M j, Y', strtotime('first day of -2 month')).'</p><h3 class="font-heading text-lg text-stone-900 dark:text-slate-100 mt-1">Yangon region — venue confirmations</h3><p class="text-sm text-stone-600 dark:text-slate-400 mt-2">Several halls have been confirmed; coordinators received email summaries (demo narrative).</p></div></article>'],
+            ['slug' => 'events', 'title' => 'Events', 'sort' => 18, 'body' => '<h2>Calendar highlights</h2><div class="not-prose grid gap-4 sm:grid-cols-2 my-6"><div class="rounded-2xl border border-stone-200 dark:border-slate-600 p-5"><p class="text-amber-700 dark:text-amber-400 text-sm font-semibold">Briefing</p><p class="font-medium text-stone-900 dark:text-slate-100 mt-1">Pre-exam orientation</p><p class="text-sm text-stone-600 dark:text-slate-400 mt-2">For registered candidates; times vary by monastery.</p></div><div class="rounded-2xl border border-stone-200 dark:border-slate-600 p-5"><p class="text-amber-700 dark:text-amber-400 text-sm font-semibold">Results</p><p class="font-medium text-stone-900 dark:text-slate-100 mt-1">Publication ceremony</p><p class="text-sm text-stone-600 dark:text-slate-400 mt-2">Public pass lists may follow on the website after moderation.</p></div></div><p>See <strong>Examination Schedule</strong> for exact dates tied to your database.</p>'],
+            ['slug' => 'gallery', 'title' => 'Gallery', 'sort' => 19, 'body' => '<h2>Gallery</h2><p>Photo highlights from recent ceremonies and examination days will appear here.</p>'],
+            ['slug' => 'terms-of-use', 'title' => 'Terms of Use', 'sort' => 90, 'body' => '<h2>Terms of use</h2><p>Use of this platform is subject to fair use and respect for monastic privacy. Administrative accounts are issued to authorized staff only.</p>'],
+            ['slug' => 'accessibility', 'title' => 'Accessibility', 'sort' => 91, 'body' => '<h2>Our commitment</h2><p>We strive for readable type sizes, sufficient colour contrast in <strong>light</strong> and <strong>dark</strong> themes, and keyboard-accessible navigation across public pages.</p><h2>Features</h2><ul><li>Semantic headings and landmark regions</li><li>Focus-visible styles on interactive controls</li><li>Reduced-motion friendly animations where applicable</li></ul><h2>Feedback</h2><p>If you encounter a barrier, please contact us via the <strong>Contact</strong> page with the page URL and your browser or assistive technology (demo process).</p>'],
+            ['slug' => 'donate', 'title' => 'Donate', 'sort' => 92, 'body' => '<h2>Support the program</h2><p>Donations help cover examination materials, hall costs, and platform maintenance. This is <strong>demo copy</strong>—replace with your official donation channels.</p><ul><li><strong>Bank transfer:</strong> Demo Bank — Account name: Sangha Exam Trust — Reference: DONATION</li><li><strong>Contact:</strong> Use the Contact page for receipts and enquiries.</li></ul>'],
+            ['slug' => 'resources', 'title' => 'Resources', 'sort' => 93, 'body' => '<h2>Downloads & links</h2><ul><li>Candidate handbook (PDF) — available from your monastery coordinator</li><li>Sample timetable template for hall supervisors</li><li>Regional contact list — issued per examination cycle</li></ul><p>Administrators can attach real files through custom fields or future media modules.</p>'],
+            ['slug' => 'volunteer', 'title' => 'Volunteer', 'sort' => 94, 'body' => '<h2>Volunteer with us</h2><p>We welcome lay supporters for registration desks, timekeeping, and hall setup. Training is provided before each examination season.</p><p><strong>To apply:</strong> email volunteer@sanghaexam.org with your city and availability (demo address).</p>'],
+            ['slug' => 'partners', 'title' => 'Partners', 'sort' => 95, 'body' => '<h2>Partner monasteries</h2><p>Partner institutions host sittings, nominate invigilators, and validate candidate lists. The map and directory below can be replaced with your real partner list.</p><p>Current demo data includes monasteries across Yangon, Mandalay, and Mon regions.</p>'],
+            ['slug' => 'sitemap', 'title' => 'Sitemap', 'sort' => 96, 'body' => '<h2>Site overview</h2><p>Use the navigation menus for the full structure. Quick entry points: <strong>Home</strong>, <strong>Examination Schedule</strong>, <strong>FAQ</strong>, <strong>Contact</strong>, and <strong>Log in</strong> for portals.</p>'],
+        ];
+        foreach ($demoExtraPages as $row) {
+            Website::updateOrCreate(
+                ['slug' => $row['slug']],
+                [
+                    'title' => $row['title'],
+                    'content' => $row['body'],
+                    'type' => 'page',
+                    'is_published' => true,
+                    'sort_order' => $row['sort'],
+                ]
+            );
         }
 
         // Custom fields (non-built-in) - sync will add built-ins on first visit
         CustomField::updateOrCreate(
             ['entity_type' => 'monastery', 'slug' => 'founded_year'],
             [
-            'name' => 'Founded Year',
-            'type' => 'number',
-            'required' => false,
-            'sort_order' => 100,
-            'is_built_in' => false,
-        ]);
+                'name' => 'Founded Year',
+                'type' => 'number',
+                'required' => false,
+                'sort_order' => 100,
+                'is_built_in' => false,
+            ]);
         CustomField::updateOrCreate(
             ['entity_type' => 'monastery', 'slug' => 'student_capacity'],
             [
-            'name' => 'Student Capacity',
-            'type' => 'number',
-            'required' => false,
-            'sort_order' => 101,
-            'is_built_in' => false,
-        ]);
+                'name' => 'Student Capacity',
+                'type' => 'number',
+                'required' => false,
+                'sort_order' => 101,
+                'is_built_in' => false,
+            ]);
         CustomField::updateOrCreate(
             ['entity_type' => 'sangha', 'slug' => 'ordination_date'],
             [
-            'name' => 'Ordination Date',
-            'type' => 'date',
-            'required' => false,
-            'sort_order' => 100,
-            'is_built_in' => false,
-        ]);
+                'name' => 'Ordination Date',
+                'type' => 'date',
+                'required' => false,
+                'sort_order' => 100,
+                'is_built_in' => false,
+            ]);
         CustomField::updateOrCreate(
             ['entity_type' => 'sangha', 'slug' => 'teacher_name'],
             [
-            'name' => 'Teacher Name',
-            'type' => 'text',
-            'required' => false,
-            'sort_order' => 101,
-            'is_built_in' => false,
-        ]);
+                'name' => 'Teacher Name',
+                'type' => 'text',
+                'required' => false,
+                'sort_order' => 101,
+                'is_built_in' => false,
+            ]);
         CustomField::updateOrCreate(
             ['entity_type' => 'exam', 'slug' => 'max_participants'],
             [
-            'name' => 'Max Participants',
-            'type' => 'number',
-            'required' => false,
-            'sort_order' => 100,
-            'is_built_in' => false,
-        ]);
+                'name' => 'Max Participants',
+                'type' => 'number',
+                'required' => false,
+                'sort_order' => 100,
+                'is_built_in' => false,
+            ]);
         $moreCustomFields = [
             ['entity_type' => 'monastery', 'name' => 'Contact Person', 'slug' => 'contact_person', 'type' => 'text'],
             ['entity_type' => 'monastery', 'name' => 'Website', 'slug' => 'website_url', 'type' => 'text'],

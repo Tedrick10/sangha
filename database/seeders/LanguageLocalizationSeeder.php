@@ -13,7 +13,27 @@ class LanguageLocalizationSeeder extends Seeder
             'my' => [
                 'home' => 'ပင်မ',
                 'menu_examinations' => 'စာမေးပွဲများ',
+                'menu_about' => 'အကြောင်း',
+                'menu_help' => 'အကူအညီ',
                 'menu_more' => 'အခြား',
+                'main_navigation' => 'မီနူးအဓိက',
+                'footer_tagline' => 'ကျောင်းတိုက် စာမေးပွဲများ၊ စာရင်းသွင်းခြင်းနှင့် ရလဒ်များ—ရှင်းလင်းစွာ ပြသထားသည်။',
+                'register' => 'စာရင်းသွင်းမည်',
+                'home_hero_badge' => 'တရားဝင် စာမေးပွဲ ပလက်ဖောင်း',
+                'home_hero_title' => 'ကျောင်းတိုက်နှင့် သံဃာအတွက် ပါဠိ၊ တရားတော်စာမေးပွဲများ',
+                'home_hero_subtitle' => 'ကျောင်းတိုက် စာရင်းသွင်းပါ၊ သင်တန်းသားများ မှတ်ပုံတင်ပါ၊ အချိန်ဇယားနှင့် ရလဒ်များကို တစ်နေရာတည်းတွင် ရယူပါ။',
+                'home_hero_login' => 'အကောင့်ရှိပြီးသား လား? ဝင်မည်',
+                'home_stats_label' => 'တစ်ချက်ကြည့်',
+                'home_stat_monasteries_hint' => 'လက်တွဲကျောင်းတိုက် အသင်းဝင်များ',
+                'home_stat_sanghas_hint' => 'မှတ်ပုံတင်ထားသော သင်တန်းသား',
+                'home_stat_exams_hint' => 'ထုတ်ဝေထားသော စာမေးပွဲအစီအစဉ်များ',
+                'home_upcoming_exams' => 'လာမည့် စာမေးပွဲများ',
+                'home_upcoming_exams_sub' => 'ဒေတာဘေ့စ်မှ နမူနာ အချိန်ဇယား—ဒမိုပြသရန် အဆင်ပြေသည်။',
+                'home_view_schedule' => 'အချိန်ဇယား အပြည့်အစုံ',
+                'home_exam_date' => 'ရက်စွဲ',
+                'home_exam_venue' => 'နေရာ',
+                'home_explore_title' => 'ဝက်ဘ်ဆိုက် လေ့လာရန်',
+                'home_explore_sub' => 'မူဝါဒများ၊ အချိန်ဇယားနှင့် အကူအညီ—ဖုန်း၊ တက်ဘလက်နှင့် ကွန်ပျူတာအားလုံးတွင် အသုံးဝင်အောင်။',
                 'login' => 'ဝင်မည်',
                 'register' => 'စာရင်းသွင်းမည်',
                 'admin_panel' => 'အက်မင်ပင်နယ်',
@@ -113,4 +133,3 @@ class LanguageLocalizationSeeder extends Seeder
         }
     }
 }
-

@@ -10,8 +10,11 @@ class SetWebsiteLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->routeIs('admin.*') && session()->has('website_locale')) {
-            app()->setLocale(session('website_locale'));
+        if (! $request->routeIs('admin.*')) {
+            $locale = session('app_locale') ?? session('website_locale');
+            if ($locale) {
+                app()->setLocale($locale);
+            }
         }
 
         return $next($request);

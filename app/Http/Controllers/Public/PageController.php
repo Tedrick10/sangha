@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomField;
 use App\Models\Exam;
 use App\Models\Monastery;
+use App\Models\Sangha;
 use App\Models\Website;
+use App\Support\WebsitePagePresentation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -15,8 +17,45 @@ class PageController extends Controller
 {
     public function home(): View
     {
-        $page = Website::getPageBySlug('home');
-        return view('website.home', ['page' => $page]);
+        $upcomingExams = Exam::query()
+            ->where('is_active', true)
+            ->where('approved', true)
+            ->whereNotNull('exam_date')
+            ->whereDate('exam_date', '>=', now()->toDateString())
+            ->orderBy('exam_date')
+            ->with(['monastery', 'examType'])
+            ->take(6)
+            ->get();
+
+        if ($upcomingExams->isEmpty()) {
+            $upcomingExams = Exam::query()
+                ->where('is_active', true)
+                ->where('approved', true)
+                ->orderByDesc('exam_date')
+                ->with(['monastery', 'examType'])
+                ->take(6)
+                ->get();
+        }
+
+        $stats = [
+            'monasteries' => Monastery::where('is_active', true)->count(),
+            'sanghas' => Sangha::where('is_active', true)->count(),
+            'exams' => Exam::where('is_active', true)->where('approved', true)->count(),
+        ];
+
+        $featuredPages = Website::query()
+            ->where('type', 'page')
+            ->where('is_published', true)
+            ->whereNotIn('slug', ['home', 'login', 'footer', 'registration'])
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
+
+        return view('website.home', compact(
+            'upcomingExams',
+            'stats',
+            'featuredPages'
+        ));
     }
 
     public function login(): View|RedirectResponse
@@ -52,9 +91,29 @@ class PageController extends Controller
         }
 
         $page = Website::getPageBySlug($slug);
-        if (!$page) {
+        if (! $page) {
             abort(404);
         }
-        return view('website.page', ['page' => $page]);
+
+        $scheduleExams = null;
+        if ($slug === 'exam-schedule') {
+            $scheduleExams = Exam::query()
+                ->where('is_active', true)
+                ->where('approved', true)
+                ->orderByRaw('CASE WHEN exam_date IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('exam_date')
+                ->orderBy('name')
+                ->with(['monastery', 'examType'])
+                ->get();
+        }
+
+        $pageTheme = WebsitePagePresentation::theme($slug);
+        $pageAccentBar = WebsitePagePresentation::accentBarClasses($slug);
+        $useFallbackContent = WebsitePagePresentation::isPlaceholderContent($page->content, $page->title);
+
+        return view('website.page', array_merge(
+            compact('page', 'scheduleExams', 'pageTheme', 'pageAccentBar', 'useFallbackContent'),
+            WebsitePagePresentation::extras($slug)
+        ));
     }
 }

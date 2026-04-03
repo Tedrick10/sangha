@@ -40,10 +40,7 @@
                 $isActive = strtolower($currentLocale) === $langCode;
                 $langFlag = $flagFromValue($lang->flag, $lang->code);
             @endphp
-            <form action="{{ route('admin.set-locale') }}" method="POST">
-                @csrf
-                <input type="hidden" name="locale" value="{{ $lang->code }}">
-                <button type="submit" class="flex items-center justify-between w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 active:bg-slate-100 dark:active:bg-slate-600/50 transition-colors text-left {{ $isActive ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : '' }}">
+            <button type="button" data-locale="{{ $lang->code }}" class="js-app-locale-choice flex items-center justify-between w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 active:bg-slate-100 dark:active:bg-slate-600/50 transition-colors text-left {{ $isActive ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : '' }}">
                     <span class="flex items-center gap-2">
                         <span class="text-lg leading-none">{{ $langFlag }}</span>
                         <span class="{{ $isActive ? 'font-medium' : '' }}">{{ $lang->name }}</span>
@@ -51,8 +48,7 @@
                     @if($isActive)
                         <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                     @endif
-                </button>
-            </form>
+            </button>
         @endforeach
     </div>
 </div>

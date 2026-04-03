@@ -1,8 +1,7 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CustomFieldController;
-use App\Http\Controllers\Public\PageController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\ExamTypeController;
 use App\Http\Controllers\Admin\LanguageController;
@@ -11,21 +10,50 @@ use App\Http\Controllers\Admin\MonasteryMessageController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanghaController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\SiteImagesController;
 use App\Http\Controllers\Admin\ScoreController;
+use App\Http\Controllers\Admin\SiteImagesController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WebsiteController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\MonasteryLoginController;
 use App\Http\Controllers\Auth\StudentLoginController;
-use App\Http\Controllers\Public\RegistrationController;
-use App\Http\Controllers\Public\PassSanghaController;
 use App\Http\Controllers\Monastery\DashboardController as MonasteryDashboardController;
+use App\Http\Controllers\Public\PageController;
+use App\Http\Controllers\Public\PassSanghaController;
+use App\Http\Controllers\Public\RegistrationController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Models\Language;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/preferences/theme', function (Request $request) {
+    $theme = $request->input('theme', 'system');
+    if (in_array($theme, ['light', 'dark', 'system'], true)) {
+        sync_app_theme($theme);
+    }
+    if ($request->wantsJson() || $request->ajax()) {
+        return response()->json(['ok' => true, 'theme' => resolved_app_theme()]);
+    }
+
+    return redirect()->back();
+})->name('app.set-theme');
+
+Route::post('/preferences/locale', function (Request $request) {
+    $code = $request->input('locale', 'en');
+    if ($code === 'en' || Language::where('code', $code)->where('is_active', true)->exists()) {
+        sync_app_locale($code);
+        app()->setLocale($code);
+    }
+    if ($request->wantsJson() || $request->ajax()) {
+        return response()->json(['ok' => true, 'locale' => app()->getLocale()]);
+    }
+
+    return redirect()->back();
+})->name('app.set-locale');
 
 // Admin login (guest only)
 Route::middleware('admin.locale')->group(function () {
@@ -35,7 +63,7 @@ Route::middleware('admin.locale')->group(function () {
 
 // Admin panel - must be before website catch-all /{slug}
 Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'])->group(function () {
-    Route::bind('user', fn (string $value) => \App\Models\User::findOrFail($value));
+    Route::bind('user', fn (string $value) => User::findOrFail($value));
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('monasteries', MonasteryController::class);
     Route::get('monastery-requests', [MonasteryMessageController::class, 'index'])->name('monastery-requests.index');
@@ -60,20 +88,6 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'
     Route::resource('users', UserController::class);
     Route::get('languages/{language}/translations', [TranslationController::class, 'edit'])->name('translations.edit');
     Route::put('languages/{language}/translations', [TranslationController::class, 'update'])->name('translations.update');
-    Route::post('set-locale', function () {
-        $code = request('locale', 'en');
-        if ($code === 'en' || \App\Models\Language::where('code', $code)->where('is_active', true)->exists()) {
-            session(['admin_locale' => $code]);
-        }
-        return redirect()->back();
-    })->name('set-locale');
-    Route::post('set-theme', function () {
-        $theme = request('theme', 'system');
-        if (in_array($theme, ['light', 'dark', 'system'])) {
-            session(['admin_theme' => $theme]);
-        }
-        return redirect()->back();
-    })->name('set-theme');
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('site-images', [SiteImagesController::class, 'edit'])->name('site-images.edit');
@@ -83,6 +97,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'
         Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
+
         return redirect()->route('admin.login');
     })->name('logout');
 });
@@ -110,22 +125,11 @@ Route::middleware('website.locale')->group(function () {
     Route::get('/', [PageController::class, 'home'])->name('website.home');
     Route::get('/login', [PageController::class, 'login'])->name('website.login');
     Route::get('/register', [RegistrationController::class, 'show'])->name('website.register');
+    Route::get('/register/monastery', function () {
+        return redirect()->route('website.login', ['type' => 'monastery', 'mode' => 'register']);
+    });
     Route::get('/pass-sanghas', [PassSanghaController::class, 'index'])->name('website.pass-sanghas');
     Route::post('/register/monastery', [RegistrationController::class, 'storeMonastery'])->name('website.register.monastery');
     Route::post('/register/sangha', [RegistrationController::class, 'storeSangha'])->name('website.register.sangha');
     Route::get('/{slug}', [PageController::class, 'show'])->where('slug', '[a-z0-9\-]+')->name('website.page');
-    Route::post('set-locale', function () {
-        $code = request('locale', 'en');
-        if ($code === 'en' || \App\Models\Language::where('code', $code)->where('is_active', true)->exists()) {
-            session(['website_locale' => $code]);
-        }
-        return redirect()->back();
-    })->name('website.set-locale');
-    Route::post('set-theme', function () {
-        $theme = request('theme', 'system');
-        if (in_array($theme, ['light', 'dark', 'system'])) {
-            session(['website_theme' => $theme]);
-        }
-        return redirect()->back();
-    })->name('website.set-theme');
 });

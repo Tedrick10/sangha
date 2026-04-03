@@ -78,8 +78,12 @@ class LanguageController extends Controller
     public function destroy(Language $language): RedirectResponse
     {
         $language->delete();
-        if (session('admin_locale') === $language->code) {
-            session()->forget('admin_locale');
+        if (
+            session('app_locale') === $language->code
+            || session('admin_locale') === $language->code
+            || session('website_locale') === $language->code
+        ) {
+            session()->forget(['app_locale', 'admin_locale', 'website_locale']);
         }
         return redirect()->route('admin.languages.index')->with('success', 'Language deleted successfully.');
     }
