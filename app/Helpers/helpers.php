@@ -63,6 +63,32 @@ if (! function_exists('resolved_app_theme')) {
     }
 }
 
+if (! function_exists('format_number_display')) {
+    /**
+     * Format a numeric score/mark for display: whole numbers without ".00", decimals without trailing zeros.
+     */
+    function format_number_display(mixed $value, ?string $emptyDisplay = null): string
+    {
+        if ($value === null || $value === '') {
+            return $emptyDisplay ?? '';
+        }
+        if (! is_numeric($value)) {
+            return (string) $value;
+        }
+        $f = (float) $value;
+        if (! is_finite($f)) {
+            return $emptyDisplay ?? '';
+        }
+        if (abs($f - round($f)) < 1e-9) {
+            return (string) (int) round($f);
+        }
+
+        $s = rtrim(rtrim(number_format($f, 10, '.', ''), '0'), '.');
+
+        return $s === '-0' ? '0' : $s;
+    }
+}
+
 if (! function_exists('admin_per_page')) {
     /**
      * Valid per-page value for admin tables (from request or default).

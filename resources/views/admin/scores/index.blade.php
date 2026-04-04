@@ -96,8 +96,8 @@
                         <td class="text-slate-400">⋮⋮</td>
                         <td><span class="font-semibold text-slate-900 dark:text-slate-100">{{ $sangha->name }}</span></td>
                         <td>{{ $sangha->monastery->name ?? '—' }}</td>
-                        <td><span class="font-semibold text-slate-900 dark:text-slate-100">{{ number_format((float) $sangha->total_score, 2) }}</span></td>
-                        <td>{{ number_format((float) $sangha->average_score, 2) }}</td>
+                        <td><span class="font-semibold text-slate-900 dark:text-slate-100">{{ format_number_display($sangha->total_score) }}</span></td>
+                        <td>{{ format_number_display($sangha->average_score) }}</td>
                         <td>{{ $sangha->score_count }}</td>
                     </tr>
                 @empty
@@ -142,7 +142,7 @@
                         <td data-column="subject">{{ $score->subject->name }}</td>
                         <td data-column="exam">{{ $score->exam?->name ?: '—' }}</td>
                         <td data-column="value">
-                            <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $score->value }}</span>
+                            <span class="font-semibold text-slate-900 dark:text-slate-100">{{ format_number_display($score->value) }}</span>
                             @if($screen === 'moderation')
                                 <span class="block text-xs text-amber-600 dark:text-amber-300">between moderation and pass</span>
                             @elseif($screen === 'pass')

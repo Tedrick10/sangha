@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 /* Class-based dark mode (session / data-theme on <html>) — must match inline script in layouts */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -488,8 +489,22 @@
     }
 }
 
-/* Desktop: no off-canvas transform; collapse rail animates width only */
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+    .admin-main {
+        transition-duration: 0.01ms;
+    }
+}
+
+/* Desktop: sidebar fixed + main padding animates in sync — avoids flex sibling width reflow (stutter). */
 @media (min-width: 1024px) {
+    .admin-main {
+        transition: padding-left 0.38s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    html.admin-sidebar-collapsed .admin-main {
+        padding-left: 4.25rem;
+    }
+
     #admin-sidebar.admin-sidebar-drawer {
         transform: translate3d(0, 0, 0) !important;
         transition:
@@ -509,38 +524,69 @@
     }
 
     /*
-     * Defer display:none until .admin-sidebar-collapse-done (set after width transition).
-     * Hiding labels the same frame as width change caused layout thrash / stutter.
+     * Icon rail: apply as soon as collapsed (not after a delayed class).
+     * Chevrons + labels were still visible during width transition, so justify-between
+     * stacked chevrons on icons; sr-only keeps text for a11y without layout width.
      */
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-brand-full,
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-user-text,
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-label,
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .sidebar-group-chevron,
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .sidebar-group-content,
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-logout-label {
+    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-brand-full {
         display: none !important;
     }
 
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-top {
+    html.admin-sidebar-collapsed #admin-sidebar .sidebar-group-chevron {
+        display: none !important;
+    }
+
+    html.admin-sidebar-collapsed #admin-sidebar .sidebar-group-content {
+        display: none !important;
+    }
+
+    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-label,
+    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-user-text,
+    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-logout-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-top {
         justify-content: center;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
 
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-user {
+    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-user {
+        position: relative;
         justify-content: center;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
 
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar nav > a,
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .sidebar-group-btn {
+    html.admin-sidebar-collapsed #admin-sidebar nav > a,
+    html.admin-sidebar-collapsed #admin-sidebar .sidebar-group-btn {
+        position: relative;
         justify-content: center;
+        gap: 0;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
 
-    html.admin-sidebar-collapsed.admin-sidebar-collapse-done #admin-sidebar .admin-sidebar-logout-btn {
+    html.admin-sidebar-collapsed #admin-sidebar .sidebar-group-btn > span:first-child {
+        flex: 0 0 auto !important;
+        min-width: 0;
         justify-content: center;
+    }
+
+    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-logout-btn {
+        position: relative;
+        justify-content: center;
+        gap: 0;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
     }
 }

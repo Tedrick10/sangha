@@ -10,7 +10,6 @@
         'faq' => 'question-mark-circle',
         'privacy' => 'shield-check',
         'exam-schedule' => 'calendar',
-        'results' => 'chart-bar',
         'guidelines' => 'clipboard-list',
         'syllabus' => 'academic-cap',
         'past-papers' => 'book-open',

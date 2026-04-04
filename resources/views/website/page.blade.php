@@ -6,10 +6,11 @@
 @php
     $maxW = match ($pageTheme ?? 'standard') {
         'utility' => 'max-w-2xl',
-        'magazine', 'syllabus', 'directory', 'sitemap', 'split', 'contact', 'legal' => 'max-w-6xl',
+        'faq' => 'max-w-5xl',
+        'magazine', 'syllabus', 'directory', 'sitemap', 'split', 'contact' => 'max-w-6xl',
         default => 'max-w-5xl',
     };
-    $blocksAboveCard = in_array($pageTheme ?? 'standard', ['gallery', 'resources', 'results', 'timeline', 'papers'], true);
+    $blocksAboveCard = in_array($pageTheme ?? 'standard', ['gallery', 'resources', 'timeline', 'papers'], true);
 @endphp
 
 @if(($pageTheme ?? '') === 'sitemap')
@@ -138,22 +139,34 @@
     </section>
 @elseif(($pageTheme ?? '') === 'legal')
     <section class="py-8 sm:py-12 lg:py-16">
-        <div class="w-full {{ $maxW }} mx-auto px-0 sm:px-2">
-            <div class="grid lg:grid-cols-5 gap-8 items-start">
-                <aside class="lg:col-span-2 website-fade-up lg:sticky lg:top-24 space-y-4">
-                    <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 p-6">
-                        <p class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">{{ t('legal_aside_label', 'Reading guide') }}</p>
-                        <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{{ t('legal_aside_p', 'Policies are written for clarity. Replace demo paragraphs with counsel-reviewed text before production.') }}</p>
-                    </div>
-                </aside>
-                <div class="lg:col-span-3 website-fade-up rounded-3xl border border-stone-200/80 dark:border-slate-700/90 bg-white/90 dark:bg-slate-900/85 overflow-hidden shadow-lg shadow-stone-200/25 dark:shadow-none">
-                    <div class="h-1 w-full bg-gradient-to-r {{ $pageAccentBar }}" aria-hidden="true"></div>
-                    <header class="px-5 sm:px-8 pt-7 sm:pt-9 pb-6 border-b border-stone-200/80 dark:border-slate-700/80">
-                        <h1 class="font-heading text-3xl sm:text-4xl font-semibold text-stone-900 dark:text-slate-100 tracking-tight">{{ $page->title }}</h1>
-                    </header>
-                    <div class="px-5 sm:px-8 lg:px-10 py-8 sm:py-10">
-                        @include('website.partials.public-page-body')
-                    </div>
+        <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="website-fade-up rounded-2xl sm:rounded-3xl border border-stone-200/80 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/90 overflow-hidden shadow-xl shadow-stone-200/20 dark:shadow-none ring-1 ring-stone-200/40 dark:ring-slate-700/50">
+                <div class="h-1 w-full bg-gradient-to-r {{ $pageAccentBar }}" aria-hidden="true"></div>
+                <header class="px-6 sm:px-10 lg:px-12 pt-9 sm:pt-11 pb-7 border-b border-stone-200/80 dark:border-slate-700/80 bg-stone-50/60 dark:bg-slate-800/40">
+                    <h1 class="font-heading text-3xl sm:text-4xl lg:text-[2.5rem] font-semibold text-stone-900 dark:text-slate-50 tracking-tight">{{ $page->title }}</h1>
+                    <p class="mt-4 text-base text-stone-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+                        {{ t('legal_page_intro', 'The following is demo policy text for evaluation environments. Replace every section with wording reviewed by your legal counsel before production use.') }}
+                    </p>
+                </header>
+                <div class="px-6 sm:px-10 lg:px-12 py-10 sm:py-12 bg-white dark:bg-slate-900/80">
+                    @include('website.partials.public-page-body')
+                </div>
+            </div>
+        </div>
+    </section>
+@elseif(($pageTheme ?? '') === 'faq')
+    <section class="py-8 sm:py-12 lg:py-16">
+        <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="website-fade-up rounded-2xl sm:rounded-3xl border border-stone-200/80 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/90 overflow-hidden shadow-xl shadow-stone-200/20 dark:shadow-none ring-1 ring-stone-200/40 dark:ring-slate-700/50">
+                <div class="h-1 w-full bg-gradient-to-r {{ $pageAccentBar }}" aria-hidden="true"></div>
+                <header class="px-6 sm:px-10 lg:px-12 pt-9 sm:pt-11 pb-7 border-b border-stone-200/80 dark:border-slate-700/80 bg-stone-50/60 dark:bg-slate-800/40 text-left">
+                    <h1 class="font-heading text-3xl sm:text-4xl lg:text-[2.5rem] font-semibold text-stone-900 dark:text-slate-50 tracking-tight">{{ $page->title }}</h1>
+                    <p class="mt-4 text-base text-stone-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+                        {{ t('faq_page_intro', 'Straight answers about registration, examinations, portals, and common technical issues. For anything not covered here, use the Contact page.') }}
+                    </p>
+                </header>
+                <div class="px-6 sm:px-10 lg:px-12 py-10 sm:py-12 bg-white dark:bg-slate-900/80">
+                    @include('website.partials.public-page-body')
                 </div>
             </div>
         </div>
@@ -230,9 +243,6 @@
             @if($blocksAboveCard)
                 <header class="website-fade-up mb-8">
                     <h1 class="font-heading text-3xl sm:text-4xl lg:text-[2.5rem] font-semibold text-stone-900 dark:text-slate-100 tracking-tight">{{ $page->title }}</h1>
-                    @if(($pageTheme ?? '') === 'results')
-                        <p class="mt-2 text-stone-600 dark:text-slate-400 max-w-2xl">{{ t('results_page_intro', 'Live counts from your database; narrative copy sits below for policies and process.') }}</p>
-                    @endif
                 </header>
                 @include('website.partials.public-page-blocks')
             @endif

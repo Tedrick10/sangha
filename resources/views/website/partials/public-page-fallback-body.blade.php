@@ -32,11 +32,6 @@
             <li>{{ t('fallback_privacy_r2', 'Ask how your information is used') }}</li>
         </ul>
         @break
-    @case('faq')
-        <h2>{{ t('fallback_faq_reg', 'Registration') }}</h2>
-        <p><strong>{{ t('fallback_faq_q1', 'How do monasteries register?') }}</strong> {{ t('fallback_faq_a1', 'Use Register monastery on the home page, then sign in after approval.') }}</p>
-        <p><strong>{{ t('fallback_faq_q2', 'Where is the schedule?') }}</strong> {{ t('fallback_faq_a2', 'Open Examination Schedule—the table is built from your database.') }}</p>
-        @break
     @case('accessibility')
         <h2>{{ t('fallback_a11y_h', 'Our commitment') }}</h2>
         <p>{{ t('fallback_a11y_p', 'We aim for readable typography, solid contrast in light and dark themes, and keyboard-friendly navigation on public pages.') }}</p>
@@ -102,10 +97,6 @@
     @case('terms-of-use')
         <h2>{{ t('fallback_terms_h', 'Fair use') }}</h2>
         <p>{{ t('fallback_terms_p', 'Use this platform respectfully. Administrative access is limited to authorized staff.') }}</p>
-        @break
-    @case('results')
-        <h2>{{ t('fallback_res_page_h', 'Examination results') }}</h2>
-        <p>{{ t('fallback_res_page_p', 'Official outcomes are published after moderation. Sangha members review subject marks in their portal.') }}</p>
         @break
     @case('past-papers')
         <h2>{{ t('fallback_papers_h', 'Past papers') }}</h2>

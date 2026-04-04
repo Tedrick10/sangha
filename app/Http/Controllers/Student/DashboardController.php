@@ -17,7 +17,7 @@ class DashboardController extends Controller
         $subjectsCount = $scores->count();
         $numericScores = $scores->filter(fn ($s) => is_numeric($s->value));
         $averageScore = $numericScores->isNotEmpty()
-            ? round($numericScores->avg('value'), 2)
+            ? (float) $numericScores->avg('value')
             : null;
 
         return view('student.dashboard', compact('sangha', 'scores', 'subjectsCount', 'averageScore'));

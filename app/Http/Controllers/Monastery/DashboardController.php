@@ -6,14 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomField;
 use App\Models\Exam;
 use App\Models\MonasteryMessage;
-use App\Models\Score;
 use App\Models\Sangha;
+use App\Models\Score;
+use App\Notifications\Admin\NewMonasteryRequestNotification;
+use App\Notifications\Admin\NewPendingSanghaNotification;
+use App\Support\AdminNotifications;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\In;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -87,7 +93,7 @@ class DashboardController extends Controller
         $messages = $monastery->messages()
             ->with('user:id,name')
             ->latest()
-            ->limit(30)
+            ->limit(100)
             ->get()
             ->reverse()
             ->values();
@@ -156,6 +162,39 @@ class DashboardController extends Controller
         ));
     }
 
+    public function pollMessages(): JsonResponse
+    {
+        $monastery = Auth::guard('monastery')->user();
+
+        MonasteryMessage::where('monastery_id', $monastery->id)
+            ->where('sender_type', 'admin')
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        $messages = $monastery->messages()
+            ->with('user:id,name')
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $revision = $messages->isEmpty()
+            ? '0-0-0'
+            : (($messages->max('id') ?? 0).'-'.$messages->count().'-'.(optional($messages->last())->updated_at?->timestamp ?? 0));
+
+        $html = view('partials.monastery-message-thread-items', [
+            'messages' => $messages,
+            'monastery' => $monastery,
+            'variant' => 'portal',
+        ])->render();
+
+        return response()->json([
+            'revision' => $revision,
+            'html' => $html,
+        ]);
+    }
+
     public function storeSangha(Request $request): RedirectResponse
     {
         $monastery = Auth::guard('monastery')->user();
@@ -184,6 +223,13 @@ class DashboardController extends Controller
 
         $sangha->setCustomFieldValues($request->input('custom_fields', []), $request);
 
+        AdminNotifications::notifyAll(new NewPendingSanghaNotification(
+            $sangha->name,
+            $monastery->name,
+            t('notif_source_monastery_portal', 'Monastery portal'),
+            route('admin.sanghas.edit', $sangha),
+        ));
+
         return redirect()
             ->route('monastery.dashboard', ['tab' => 'main', 'screen' => 'pending'])
             ->with('success', 'Sangha application submitted successfully.');
@@ -202,12 +248,12 @@ class DashboardController extends Controller
 
         $customPayload = [];
         foreach ($requestCustomFields as $field) {
-            $value = $request->input('custom_fields.' . $field->slug);
+            $value = $request->input('custom_fields.'.$field->slug);
 
             if (in_array($field->type, ['media', 'document', 'video'], true)) {
-                $file = $request->file('custom_fields.' . $field->slug);
+                $file = $request->file('custom_fields.'.$field->slug);
                 if ($file?->isValid()) {
-                    $value = $file->store('monastery-requests/' . $monastery->id, 'public');
+                    $value = $file->store('monastery-requests/'.$monastery->id, 'public');
                 }
             }
 
@@ -241,12 +287,25 @@ class DashboardController extends Controller
                 ->with('error', 'Please fill at least one request field or message.');
         }
 
+        $storedMessage = $messageText === '' ? 'Request form submitted.' : $messageText;
+
         MonasteryMessage::create([
             'monastery_id' => $monastery->id,
             'sender_type' => 'monastery',
-            'message' => $messageText === '' ? 'Request form submitted.' : $messageText,
+            'message' => $storedMessage,
             'payload_json' => empty($customPayload) ? null : $customPayload,
         ]);
+
+        $preview = Str::limit($storedMessage, 140);
+        if ($messageText === '' && ! empty($customPayload)) {
+            $preview = t('notif_request_with_attachments', 'Request with attachments');
+        }
+
+        AdminNotifications::notifyAll(new NewMonasteryRequestNotification(
+            $monastery->name,
+            $preview,
+            route('admin.monastery-requests.show', $monastery),
+        ));
 
         return redirect()
             ->route('monastery.dashboard', ['tab' => 'main', 'screen' => 'request'])
@@ -254,14 +313,14 @@ class DashboardController extends Controller
     }
 
     /**
-     * @return array<string, array<int, string|\Illuminate\Validation\Rules\In>>
+     * @return array<string, array<int, string|In>>
      */
     private function customFieldRules(Collection $fields): array
     {
         $rules = [];
 
         foreach ($fields as $field) {
-            $key = 'custom_fields.' . $field->slug;
+            $key = 'custom_fields.'.$field->slug;
             $fieldRules = $field->required ? ['required'] : ['nullable'];
 
             switch ($field->type) {

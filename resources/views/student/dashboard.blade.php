@@ -35,7 +35,7 @@
         @if($averageScore !== null)
             <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm">
                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ t('average_score') }}</p>
-                <p class="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{{ $averageScore }}</p>
+                <p class="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{{ format_number_display($averageScore) }}</p>
                 <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ t('numeric_scores_only') }}</p>
             </div>
         @endif
@@ -60,7 +60,7 @@
                 @forelse($scores as $score)
                     <tr>
                         <td class="px-6 py-4 text-slate-900 dark:text-slate-100">{{ $score->subject?->name ?? '—' }}</td>
-                        <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{{ $score->value ?? '—' }}</td>
+                        <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{{ format_number_display($score->value, '—') }}</td>
                     </tr>
                 @empty
                     <tr>

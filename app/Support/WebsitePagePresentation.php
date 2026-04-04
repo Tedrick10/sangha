@@ -15,7 +15,8 @@ class WebsitePagePresentation
             'about' => 'split',
             'contact' => 'contact',
             'privacy', 'terms-of-use' => 'legal',
-            'faq', 'accessibility' => 'utility',
+            'faq' => 'faq',
+            'accessibility' => 'utility',
             'guidelines' => 'timeline',
             'syllabus' => 'syllabus',
             'news', 'events' => 'magazine',
@@ -24,7 +25,6 @@ class WebsitePagePresentation
             'sitemap' => 'sitemap',
             'gallery' => 'gallery',
             'resources' => 'resources',
-            'results' => 'results',
             'past-papers' => 'papers',
             'exam-schedule' => 'schedule',
             default => 'standard',
@@ -43,7 +43,7 @@ class WebsitePagePresentation
             'donate' => 'from-rose-400 via-amber-500 to-amber-600 dark:from-rose-500 dark:via-amber-500 dark:to-amber-400',
             'news', 'events' => 'from-violet-400 via-fuchsia-500 to-purple-600 dark:from-violet-500 dark:via-fuchsia-500 dark:to-purple-500',
             'partners', 'sitemap' => 'from-cyan-400 via-sky-500 to-blue-600 dark:from-cyan-500 dark:via-sky-500 dark:to-blue-500',
-            'results', 'past-papers' => 'from-indigo-400 via-indigo-500 to-violet-600 dark:from-indigo-500 dark:via-violet-500 dark:to-indigo-400',
+            'past-papers' => 'from-indigo-400 via-indigo-500 to-violet-600 dark:from-indigo-500 dark:via-violet-500 dark:to-indigo-400',
             'resources' => 'from-amber-400 via-orange-500 to-rose-500 dark:from-amber-500 dark:via-orange-500 dark:to-rose-500',
             'gallery' => 'from-stone-400 via-amber-500 to-stone-600 dark:from-stone-500 dark:via-amber-600 dark:to-stone-500',
             default => 'from-amber-400 via-amber-500 to-amber-600 dark:from-amber-600 dark:via-amber-500 dark:to-amber-400',
@@ -93,14 +93,6 @@ class WebsitePagePresentation
                 ->get(['name', 'city', 'region', 'address', 'phone']);
         }
 
-        if ($slug === 'results') {
-            $e['resultsStats'] = [
-                'exams' => Exam::query()->where('is_active', true)->where('approved', true)->count(),
-                'monasteries' => Monastery::query()->where('is_active', true)->count(),
-                'sittings' => Exam::query()->where('is_active', true)->where('approved', true)->whereNotNull('exam_date')->count(),
-            ];
-        }
-
         if ($slug === 'events') {
             $e['eventsExams'] = Exam::query()
                 ->where('is_active', true)
@@ -133,7 +125,7 @@ class WebsitePagePresentation
             [
                 'label_key' => 'sitemap_section_exams',
                 'label_default' => 'Examinations',
-                'slugs' => ['exam-schedule', 'guidelines', 'syllabus', 'past-papers', 'results'],
+                'slugs' => ['exam-schedule', 'guidelines', 'syllabus', 'past-papers'],
             ],
             [
                 'label_key' => 'sitemap_section_about',

@@ -46,6 +46,7 @@
                 <p class="text-xs text-slate-500 dark:text-slate-400">{{ t('monastery_portal') }}</p>
             </div>
             <div class="flex items-center gap-2">
+                @include('partials.notifications-bell', ['notifiable' => auth()->guard('monastery')->user(), 'goRouteName' => 'monastery.notifications.go', 'readAllRouteName' => 'monastery.notifications.read-all', 'jsonRouteName' => 'monastery.notifications.recent'])
                 @include('website.partials.appbar-language')
                 @include('website.partials.appbar-theme')
                 <form action="{{ route('monastery.logout') }}" method="POST">
@@ -69,5 +70,18 @@
         @endif
         @yield('content')
     </main>
+    @if(session('success'))
+        <script>
+            (function () {
+                function fire() {
+                    setTimeout(function () {
+                        window.dispatchEvent(new CustomEvent('sangha-notifications-refresh'));
+                    }, 400);
+                }
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fire);
+                else fire();
+            })();
+        </script>
+    @endif
 </body>
 </html>

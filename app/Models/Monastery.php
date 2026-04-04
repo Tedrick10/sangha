@@ -8,10 +8,11 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 
 class Monastery extends Model implements AuthenticatableContract
 {
-    use Authenticatable, HasFactory, HasCustomFields;
+    use Authenticatable, HasCustomFields, HasFactory, Notifiable;
 
     protected function getCustomFieldEntityType(): string
     {

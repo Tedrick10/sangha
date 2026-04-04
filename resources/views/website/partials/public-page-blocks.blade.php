@@ -6,7 +6,7 @@
         $otherPages = $sitemapPages->filter(fn ($p) => ! $allGroupedSlugs->contains($p->slug));
         $sitemapIcons = [
             'exam-schedule' => 'calendar', 'guidelines' => 'clipboard-list', 'syllabus' => 'academic-cap',
-            'past-papers' => 'book-open', 'results' => 'chart-bar', 'about' => 'information-circle',
+            'past-papers' => 'book-open', 'about' => 'information-circle',
             'contact' => 'envelope', 'partners' => 'users', 'news' => 'newspaper', 'events' => 'megaphone',
             'gallery' => 'photograph', 'privacy' => 'shield-check', 'terms-of-use' => 'scale',
             'faq' => 'question-mark-circle', 'accessibility' => 'sparkles', 'resources' => 'folder',
@@ -88,23 +88,6 @@
             {{ t('partners_empty', 'No active monasteries in the database yet—seed demo data or publish partners from the admin panel.') }}
         </div>
     @endif
-@endisset
-
-@isset($resultsStats)
-    <div class="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="rounded-2xl border border-indigo-200/80 dark:border-indigo-800/50 bg-indigo-50/90 dark:bg-indigo-950/40 px-5 py-6 text-center">
-            <p class="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">{{ t('exams', 'Exams') }}</p>
-            <p class="font-heading text-3xl font-semibold text-indigo-950 dark:text-indigo-100 tabular-nums mt-1">{{ number_format($resultsStats['exams']) }}</p>
-        </div>
-        <div class="rounded-2xl border border-violet-200/80 dark:border-violet-800/50 bg-violet-50/90 dark:bg-violet-950/40 px-5 py-6 text-center">
-            <p class="text-xs font-bold uppercase tracking-wider text-violet-700 dark:text-violet-300">{{ t('monastery', 'Monastery') }}</p>
-            <p class="font-heading text-3xl font-semibold text-violet-950 dark:text-violet-100 tabular-nums mt-1">{{ number_format($resultsStats['monasteries']) }}</p>
-        </div>
-        <div class="rounded-2xl border border-sky-200/80 dark:border-sky-800/50 bg-sky-50/90 dark:bg-sky-950/40 px-5 py-6 text-center">
-            <p class="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">{{ t('results_stat_dated', 'Dated sittings') }}</p>
-            <p class="font-heading text-3xl font-semibold text-sky-950 dark:text-sky-100 tabular-nums mt-1">{{ number_format($resultsStats['sittings']) }}</p>
-        </div>
-    </div>
 @endisset
 
 @isset($eventsExams)

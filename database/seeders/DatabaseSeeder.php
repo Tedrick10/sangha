@@ -478,7 +478,56 @@ class DatabaseSeeder extends Seeder
             ['slug' => 'privacy'],
             [
                 'title' => 'Privacy Policy',
-                'content' => '<h2>Summary</h2><p>We collect only the information needed to run examinations and portals (names, monastery affiliation, scores, and contact details). Data is stored securely and accessed by authorized staff.</p><h2>Your rights</h2><ul><li>Request correction of personal data</li><li>Ask how your information is used</li><li>Withdraw consent where applicable, subject to exam rules</li></ul><h2>Cookies & sessions</h2><p>The site uses essential cookies and session storage for login, language, and theme preferences. We do not use third-party advertising trackers on the public site.</p>',
+                'content' => <<<'HTML'
+<h2>Summary</h2>
+<p>This Privacy Policy describes how Sangha Exam (the &ldquo;platform&rdquo;) handles personal information when monasteries and Sangha members use registration, examination, and results features. It applies to the public website and the monastery and Sangha portals unless a separate notice says otherwise.</p>
+<p><strong>Demo notice:</strong> Replace this entire document with counsel-approved text before relying on it in production.</p>
+
+<h2>Who we are</h2>
+<p>The data controller for the platform is the organisation operating this deployment (for example, your examination secretariat or trust). Authorised monastery staff and platform administrators may process data under instructions from that controller.</p>
+
+<h2>Information we collect</h2>
+<p>We collect only what is reasonably needed to run examinations and portals. Categories may include:</p>
+<ul>
+<li>Identity and contact details (such as names, email addresses, and phone numbers)</li>
+<li>Monastery affiliation, registration status, and approval workflow records</li>
+<li>Examination data (sittings, subjects, scores, and moderation notes)</li>
+<li>Technical data (such as IP address, browser type, and session identifiers) when you use the site</li>
+<li>Content of messages you send through contact or support channels</li>
+</ul>
+
+<h2>How we use your information</h2>
+<p>We use personal data to register candidates and monasteries, publish schedules, administer exams, record and moderate results, operate secure logins, maintain audit trails, improve reliability and security, and respond to enquiries. We do not sell personal data. We do not use it for third-party behavioural advertising on the public site in this demo configuration.</p>
+
+<h2>Legal bases and retention</h2>
+<p>Depending on your jurisdiction, processing may rely on contract, legitimate interests, legal obligation, or consent. Retention periods should reflect regulatory or institutional requirements, dispute resolution, and operational needs; define them clearly in your final policy.</p>
+
+<h2>Your rights</h2>
+<p>Where applicable law provides them, you may have the right to:</p>
+<ul>
+<li>Request access to or a copy of your personal data</li>
+<li>Request correction of inaccurate or incomplete information</li>
+<li>Ask how your information is used and with whom it is shared</li>
+<li>Withdraw consent where processing is based on consent, subject to examination rules and the legitimate needs of the programme</li>
+<li>Lodge a complaint with a supervisory authority</li>
+</ul>
+<p>To exercise these rights, contact the secretariat using the process published on the <strong>Contact</strong> page (replace with your real workflow).</p>
+
+<h2>Cookies and similar technologies</h2>
+<p>The site uses essential cookies and session storage for authentication, language preference, and theme choice (light or dark). These are needed for the service to operate. This demo does not load third-party advertising trackers on public pages.</p>
+
+<h2>Security</h2>
+<p>We apply administrative, technical, and organisational measures suited to the sensitivity of examination and identity data. No online service is perfectly secure; use strong passwords and protect your credentials.</p>
+
+<h2>International transfers</h2>
+<p>If data is processed across borders or by providers in other countries, describe the legal mechanism (for example standard contractual clauses) in your production policy. This demo text does not specify a jurisdiction.</p>
+
+<h2>Changes to this policy</h2>
+<p>We may update this policy when features or requirements change. Your organisation should decide how to notify users of material changes (website notice, email, or both).</p>
+
+<h2>Contact</h2>
+<p>For privacy-related questions, use the channel published on the <strong>Contact</strong> page.</p>
+HTML,
                 'type' => 'page',
                 'is_published' => true,
                 'sort_order' => 4,
@@ -502,7 +551,6 @@ class DatabaseSeeder extends Seeder
                 'sort_order' => 10,
             ]);
         $demoExtraPages = [
-            ['slug' => 'results', 'title' => 'Results', 'sort' => 12, 'body' => '<h2>Examination results</h2><p>Official results are published after moderation. In this demo, open the <strong>admin panel</strong> to manage scores and use a <strong>Sangha login</strong> to view the student dashboard.</p><h2>Public pass lists</h2><p>Published pass lists appear under <strong>Pass Sangha List</strong> when enabled by administrators.</p>'],
             ['slug' => 'registration', 'title' => 'Registration', 'sort' => 13, 'body' => '<h2>Who can register</h2><p><strong>Monasteries</strong> create an account to manage candidates and exams. <strong>Sangha members</strong> register under their monastery to sit examinations and view results.</p><h2>How to start</h2><p>From the <strong>home page</strong>, use <em>Register monastery</em> or <em>Register Sangha</em>. After submission, monasteries may require admin approval before login is enabled.</p>'],
             ['slug' => 'guidelines', 'title' => 'Exam Guidelines', 'sort' => 14, 'body' => '<h2>Before examination day</h2><ul><li>Confirm your registration status with your monastery coordinator.</li><li>Bring a valid photo ID and admission slip (if issued).</li><li>Arrive at least <strong>30 minutes</strong> before the published start time.</li></ul><h2>During the exam</h2><p>Mobile phones and smart watches should be switched off and stored as directed. Raise your hand for invigilator assistance; do not communicate with other candidates.</p><h2>Conduct & dress</h2><p>Follow monastery dress and comportment standards. Invigilators may dismiss anyone who disrupts the hall.</p><p><em>Demo text—replace with your official regulations PDF link when available.</em></p>'],
             ['slug' => 'syllabus', 'title' => 'Syllabus', 'sort' => 15, 'body' => '<h2>Structure</h2><p>Examinations are organised by <strong>level</strong> and <strong>subject group</strong>. Typical papers include Pali grammar and composition, Vinaya case studies, and Dhamma (doctrinal) essays.</p><h2>Sample weighting (demo)</h2><div class="not-prose my-4 overflow-x-auto rounded-xl border border-stone-200 dark:border-slate-600"><table class="min-w-full text-sm text-left"><thead class="bg-stone-100 dark:bg-slate-800"><tr><th class="px-4 py-2">Component</th><th class="px-4 py-2">Focus</th></tr></thead><tbody><tr class="border-t border-stone-200 dark:border-slate-600"><td class="px-4 py-2">Pali</td><td class="px-4 py-2">Translation, parsing, prescribed texts</td></tr><tr class="border-t border-stone-200 dark:border-slate-600"><td class="px-4 py-2">Vinaya</td><td class="px-4 py-2">Khandhaka summaries, offence classes</td></tr><tr class="border-t border-stone-200 dark:border-slate-600"><td class="px-4 py-2">Dhamma</td><td class="px-4 py-2">Sutta themes, Abhidhamma basics</td></tr></tbody></table></div><h2>Official syllabi</h2><p>Topic outlines are distributed per cycle by the examination board. Contact your monastery for the PDF matching your sitting.</p>'],

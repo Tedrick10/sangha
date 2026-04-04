@@ -24,9 +24,9 @@ class Subject extends Model
     {
         return [
             'is_active' => 'boolean',
-            'moderation_mark' => 'decimal:2',
-            'full_mark' => 'decimal:2',
-            'pass_mark' => 'decimal:2',
+            'moderation_mark' => 'float',
+            'full_mark' => 'float',
+            'pass_mark' => 'float',
         ];
     }
 

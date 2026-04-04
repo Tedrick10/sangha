@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ExamTypeController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\MonasteryController;
 use App\Http\Controllers\Admin\MonasteryMessageController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanghaController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\MonasteryLoginController;
 use App\Http\Controllers\Auth\StudentLoginController;
 use App\Http\Controllers\Monastery\DashboardController as MonasteryDashboardController;
+use App\Http\Controllers\Monastery\NotificationController as MonasteryNotificationController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\PassSanghaController;
 use App\Http\Controllers\Public\RegistrationController;
@@ -65,9 +67,13 @@ Route::middleware('admin.locale')->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'])->group(function () {
     Route::bind('user', fn (string $value) => User::findOrFail($value));
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('notifications/recent', [AdminNotificationController::class, 'recent'])->name('notifications.recent');
+    Route::get('notifications/{notification}/go', [AdminNotificationController::class, 'go'])->name('notifications.go');
+    Route::post('notifications/read-all', [AdminNotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::resource('monasteries', MonasteryController::class);
     Route::get('monastery-requests', [MonasteryMessageController::class, 'index'])->name('monastery-requests.index');
     Route::get('monastery-requests/{monastery}', [MonasteryMessageController::class, 'show'])->name('monastery-requests.show');
+    Route::get('monastery-requests/{monastery}/thread/messages', [MonasteryMessageController::class, 'pollThread'])->name('monastery-requests.thread-messages');
     Route::post('monastery-requests/{monastery}/reply', [MonasteryMessageController::class, 'reply'])->name('monastery-requests.reply');
     Route::get('sanghas/{sangha}/exams/{exam}', [SanghaController::class, 'examScores'])->name('sanghas.exam-scores');
     Route::resource('sanghas', SanghaController::class);
@@ -108,8 +114,12 @@ Route::post('monastery/login', [MonasteryLoginController::class, 'login']);
 Route::post('monastery/logout', [MonasteryLoginController::class, 'logout'])->name('monastery.logout');
 Route::middleware(['website.locale', 'auth:monastery'])->prefix('monastery')->name('monastery.')->group(function () {
     Route::get('/', MonasteryDashboardController::class)->name('dashboard');
+    Route::get('notifications/recent', [MonasteryNotificationController::class, 'recent'])->name('notifications.recent');
+    Route::get('notifications/{notification}/go', [MonasteryNotificationController::class, 'go'])->name('notifications.go');
+    Route::post('notifications/read-all', [MonasteryNotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('/sanghas', [MonasteryDashboardController::class, 'storeSangha'])->name('sanghas.store');
     Route::post('/messages', [MonasteryDashboardController::class, 'storeMessage'])->name('messages.store');
+    Route::get('/thread/messages', [MonasteryDashboardController::class, 'pollMessages'])->name('messages.poll');
 });
 
 // Sangha login & dashboard

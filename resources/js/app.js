@@ -1,6 +1,8 @@
 import './bootstrap';
 import './column-visibility';
 import { initCrossTabPreferenceSync, broadcastAppTheme, broadcastAppLocale } from './preferences-sync';
+import { initNotificationsPoll } from './notifications-poll';
+import { initMessageThreadPoll } from './message-thread-poll';
 
 initCrossTabPreferenceSync();
 window.sanghaBroadcastAppTheme = broadcastAppTheme;
@@ -102,4 +104,16 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPasswordVisibilityToggles);
 } else {
     initPasswordVisibilityToggles();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNotificationsPoll);
+} else {
+    initNotificationsPoll();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMessageThreadPoll);
+} else {
+    initMessageThreadPoll();
 }

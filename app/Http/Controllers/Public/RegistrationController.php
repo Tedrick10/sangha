@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomField;
 use App\Models\Monastery;
 use App\Models\Sangha;
+use App\Notifications\Admin\NewMonasteryRegistrationNotification;
+use App\Notifications\Admin\NewPendingSanghaNotification;
+use App\Support\AdminNotifications;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -62,6 +65,11 @@ class RegistrationController extends Controller
 
         $monastery->setCustomFieldValues($request->input('custom_fields', []), $request);
 
+        AdminNotifications::notifyAll(new NewMonasteryRegistrationNotification(
+            $monastery->name,
+            route('admin.monasteries.edit', $monastery),
+        ));
+
         return redirect()
             ->route('website.login', ['type' => 'monastery'])
             ->with('success', 'Monastery registration submitted successfully. You can now log in.');
@@ -97,6 +105,14 @@ class RegistrationController extends Controller
         ]);
 
         $sangha->setCustomFieldValues($request->input('custom_fields', []), $request);
+
+        $sangha->load('monastery');
+        AdminNotifications::notifyAll(new NewPendingSanghaNotification(
+            $sangha->name,
+            $sangha->monastery->name,
+            t('notif_source_public_site', 'Public registration'),
+            route('admin.sanghas.edit', $sangha),
+        ));
 
         return redirect()
             ->route('website.login', ['type' => 'sangha'])

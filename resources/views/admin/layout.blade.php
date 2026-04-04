@@ -9,7 +9,7 @@
     <script>
         try {
             if (localStorage.getItem('admin_sidebar_collapsed') === '1' && window.matchMedia('(min-width: 1024px)').matches) {
-                document.documentElement.classList.add('admin-sidebar-collapsed', 'admin-sidebar-collapse-done');
+                document.documentElement.classList.add('admin-sidebar-collapsed');
             }
         } catch (e) {}
     </script>
@@ -48,9 +48,9 @@
 <body class="min-h-screen bg-stone-50 text-stone-900 dark:bg-slate-900 dark:text-slate-100 font-sans" data-app-locale-url="{{ route('app.set-locale') }}" data-app-theme-url="{{ route('app.set-theme') }}">
     {{-- Mobile overlay: opacity transition (no display:none) for smooth fade --}}
     <div id="admin-sidebar-overlay" class="admin-sidebar-overlay fixed inset-0 z-30 pointer-events-none opacity-0 lg:hidden" aria-hidden="true"></div>
-    <div class="flex min-h-screen min-w-0">
-        {{-- Sidebar: drawer on mobile; desktop = full nav or icon rail --}}
-        <aside id="admin-sidebar" class="admin-sidebar-drawer fixed inset-y-0 left-0 z-40 flex min-h-screen w-64 max-w-[85vw] shrink-0 flex-col border-r border-stone-200/90 bg-gradient-to-b from-stone-50 via-white to-stone-50/95 text-stone-800 shadow-xl shadow-stone-300/25 dark:border-slate-800/90 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100 dark:shadow-black/30 lg:static lg:max-w-none lg:shadow-none">
+    {{-- Sidebar is fixed (mobile + desktop) so width animation does not flex-reflow the main column (major jank source). Main uses matching padding-left transition. --}}
+    <div class="relative min-h-screen min-w-0">
+        <aside id="admin-sidebar" class="admin-sidebar-drawer fixed inset-y-0 left-0 z-40 flex min-h-screen w-64 max-w-[85vw] flex-col border-r border-stone-200/90 bg-gradient-to-b from-stone-50 via-white to-stone-50/95 text-stone-800 shadow-xl shadow-stone-300/25 dark:border-slate-800/90 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100 dark:shadow-black/30 lg:max-w-none lg:shadow-none">
             <div class="admin-sidebar-top flex h-[3.25rem] shrink-0 items-center gap-2 border-b border-stone-200/80 px-3 dark:border-slate-700/50">
                 <button type="button" class="js-admin-sidebar-toggle hidden h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white lg:inline-flex" aria-label="{{ t('toggle_sidebar', 'Toggle sidebar') }}" aria-expanded="true">
                     <svg class="js-as-menu h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -90,8 +90,8 @@
             </div>
         </aside>
 
-        {{-- Header + Main content --}}
-        <div class="flex-1 flex flex-col min-w-0">
+        {{-- Header + Main: lg padding tracks sidebar width (see app.css .admin-main) --}}
+        <div class="admin-main flex min-h-screen flex-col min-w-0 lg:pl-64">
             <header class="admin-header relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-200/90 bg-white/95 px-4 backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 sm:gap-3 sm:px-6 lg:px-8">
                 <button type="button" id="admin-sidebar-toggle" aria-label="{{ t('toggle_sidebar', 'Toggle sidebar') }}" aria-expanded="false" class="js-admin-sidebar-toggle relative -ml-2 inline-flex shrink-0 items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:hidden">
                     <svg class="js-as-menu h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -103,6 +103,9 @@
                 <a href="{{ url('/') }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">@include('partials.icon', ['name' => 'external-link', 'class' => 'w-4 h-4']) {{ t('view_site') }}</a>
                 @include('admin.partials.appbar-language')
                 @include('admin.partials.appbar-theme')
+                @if($adminUser)
+                    @include('partials.notifications-bell', ['notifiable' => $adminUser, 'goRouteName' => 'admin.notifications.go', 'readAllRouteName' => 'admin.notifications.read-all', 'jsonRouteName' => 'admin.notifications.recent'])
+                @endif
                 @include('admin.partials.appbar-avatar')
                 </div>
             </header>
@@ -122,6 +125,19 @@
         </div>
     </div>
     @stack('scripts')
+    @if(session('success'))
+        <script>
+            (function () {
+                function fire() {
+                    setTimeout(function () {
+                        window.dispatchEvent(new CustomEvent('sangha-notifications-refresh'));
+                    }, 400);
+                }
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fire);
+                else fire();
+            })();
+        </script>
+    @endif
     <script>
         (function() {
             var toggles = function () { return document.querySelectorAll('.js-admin-sidebar-toggle'); };
@@ -129,46 +145,17 @@
             var overlay = document.getElementById('admin-sidebar-overlay');
             var mqLg = window.matchMedia('(min-width: 1024px)');
             var drawerBodyUnlockTimer = null;
-            var desktopCollapseDoneTimer = null;
+            var mobileDrawerCloseHandlerRef = null;
 
-            function clearDesktopCollapseTimers() {
-                if (desktopCollapseDoneTimer) {
-                    clearTimeout(desktopCollapseDoneTimer);
-                    desktopCollapseDoneTimer = null;
+            function clearMobileDrawerCloseListener() {
+                if (sidebar && mobileDrawerCloseHandlerRef) {
+                    sidebar.removeEventListener('transitionend', mobileDrawerCloseHandlerRef);
+                    mobileDrawerCloseHandlerRef = null;
                 }
-            }
-
-            function onSidebarWidthTransitionEnd(e) {
-                if (!sidebar || e.target !== sidebar) return;
-                if (e.propertyName !== 'width' && e.propertyName !== 'min-width' && e.propertyName !== 'max-width') return;
-                if (!document.documentElement.classList.contains('admin-sidebar-collapsed')) return;
-                sidebar.removeEventListener('transitionend', onSidebarWidthTransitionEnd);
-                clearDesktopCollapseTimers();
-                document.documentElement.classList.add('admin-sidebar-collapse-done');
-            }
-
-            function beginDesktopCollapse() {
-                var root = document.documentElement;
-                root.classList.remove('admin-sidebar-collapse-done');
-                clearDesktopCollapseTimers();
-                if (sidebar) {
-                    sidebar.removeEventListener('transitionend', onSidebarWidthTransitionEnd);
-                    sidebar.addEventListener('transitionend', onSidebarWidthTransitionEnd);
-                }
-                desktopCollapseDoneTimer = setTimeout(function () {
-                    desktopCollapseDoneTimer = null;
-                    if (sidebar) sidebar.removeEventListener('transitionend', onSidebarWidthTransitionEnd);
-                    if (root.classList.contains('admin-sidebar-collapsed')) {
-                        root.classList.add('admin-sidebar-collapse-done');
-                    }
-                }, 450);
             }
 
             function expandDesktopSidebar() {
-                var root = document.documentElement;
-                clearDesktopCollapseTimers();
-                if (sidebar) sidebar.removeEventListener('transitionend', onSidebarWidthTransitionEnd);
-                root.classList.remove('admin-sidebar-collapse-done', 'admin-sidebar-collapsed');
+                document.documentElement.classList.remove('admin-sidebar-collapsed');
             }
 
             function isLg() {
@@ -199,6 +186,7 @@
 
             function openSidebar() {
                 if (!sidebar) return;
+                clearMobileDrawerCloseListener();
                 if (drawerBodyUnlockTimer) {
                     clearTimeout(drawerBodyUnlockTimer);
                     drawerBodyUnlockTimer = null;
@@ -214,6 +202,7 @@
 
             function closeSidebar() {
                 if (!sidebar) return;
+                clearMobileDrawerCloseListener();
                 sidebar.classList.remove('admin-mobile-drawer-open');
                 if (overlay) {
                     overlay.classList.remove('is-open');
@@ -221,21 +210,37 @@
                 }
                 if (drawerBodyUnlockTimer) {
                     clearTimeout(drawerBodyUnlockTimer);
+                    drawerBodyUnlockTimer = null;
                 }
                 var delayMs = 0;
                 try {
-                    delayMs = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400;
+                    delayMs = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420;
                 } catch (e) {
-                    delayMs = 400;
+                    delayMs = 420;
                 }
-                drawerBodyUnlockTimer = setTimeout(function () {
-                    drawerBodyUnlockTimer = null;
+                var mobileCloseDone = false;
+                function finishMobileCloseOnce() {
+                    if (mobileCloseDone) return;
+                    mobileCloseDone = true;
+                    clearMobileDrawerCloseListener();
+                    if (drawerBodyUnlockTimer) {
+                        clearTimeout(drawerBodyUnlockTimer);
+                        drawerBodyUnlockTimer = null;
+                    }
                     document.body.style.overflow = '';
-                }, delayMs);
-                syncToggleIcons();
+                    syncToggleIcons();
+                }
+                function onMobileDrawerTransitionEnd(e) {
+                    if (e.target !== sidebar || e.propertyName !== 'transform') return;
+                    finishMobileCloseOnce();
+                }
+                mobileDrawerCloseHandlerRef = onMobileDrawerTransitionEnd;
+                sidebar.addEventListener('transitionend', onMobileDrawerTransitionEnd);
+                drawerBodyUnlockTimer = setTimeout(finishMobileCloseOnce, delayMs + 80);
             }
 
             function resetMobileDrawerForDesktop() {
+                clearMobileDrawerCloseListener();
                 if (drawerBodyUnlockTimer) {
                     clearTimeout(drawerBodyUnlockTimer);
                     drawerBodyUnlockTimer = null;
@@ -256,7 +261,6 @@
                         expandDesktopSidebar();
                     } else {
                         root.classList.add('admin-sidebar-collapsed');
-                        beginDesktopCollapse();
                     }
                     try {
                         localStorage.setItem('admin_sidebar_collapsed', root.classList.contains('admin-sidebar-collapsed') ? '1' : '0');
@@ -279,7 +283,7 @@
                     resetMobileDrawerForDesktop();
                     try {
                         if (localStorage.getItem('admin_sidebar_collapsed') === '1') {
-                            document.documentElement.classList.add('admin-sidebar-collapsed', 'admin-sidebar-collapse-done');
+                            document.documentElement.classList.add('admin-sidebar-collapsed');
                         }
                     } catch (err) {}
                 } else {

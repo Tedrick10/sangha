@@ -127,7 +127,7 @@
             @forelse($recentScores ?? [] as $score)
                 <div class="px-6 py-3 flex items-center justify-between gap-4">
                     <span class="font-medium text-slate-900 dark:text-slate-100 truncate">{{ $score->sangha?->name ?? '—' }}</span>
-                    <span class="text-sm text-slate-500 dark:text-slate-400 shrink-0">{{ $score->subject?->name ?? '—' }} · {{ $score->value ?? '—' }}</span>
+                    <span class="text-sm text-slate-500 dark:text-slate-400 shrink-0">{{ $score->subject?->name ?? '—' }} · {{ format_number_display($score->value, '—') }}</span>
                 </div>
             @empty
                 <div class="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">{{ t('no_scores') }}</div>

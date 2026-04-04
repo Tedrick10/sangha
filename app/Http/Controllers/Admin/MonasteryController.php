@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CustomField;
 use App\Models\Monastery;
+use App\Notifications\Monastery\MonasteryAccountDecidedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MonasteryController extends Controller
@@ -51,12 +53,14 @@ class MonasteryController extends Controller
             $query->latest();
         }
         $monasteries = $query->paginate(admin_per_page(10))->withQueryString();
+
         return view('admin.monasteries.index', compact('monasteries'));
     }
 
     public function create(): View
     {
         $customFields = CustomField::forEntity('monastery')->where('is_built_in', false)->get();
+
         return view('admin.monasteries.create', compact('customFields'));
     }
 
@@ -81,6 +85,7 @@ class MonasteryController extends Controller
 
         $monastery = Monastery::create($validated);
         $monastery->setCustomFieldValues($request->input('custom_fields', []), $request);
+
         return redirect()->route('admin.monasteries.index')->with('success', 'Monastery created successfully.');
     }
 
@@ -88,6 +93,7 @@ class MonasteryController extends Controller
     {
         $customFields = CustomField::forEntity('monastery')->where('is_built_in', false)->get();
         $customFieldValues = $monastery->getCustomFieldValuesArray();
+
         return view('admin.monasteries.edit', compact('monastery', 'customFields', 'customFieldValues'));
     }
 
@@ -95,7 +101,7 @@ class MonasteryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:monasteries,username,' . $monastery->id,
+            'username' => 'required|string|max:255|unique:monasteries,username,'.$monastery->id,
             'password' => 'nullable|string|min:8|confirmed',
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
@@ -113,14 +119,31 @@ class MonasteryController extends Controller
             unset($validated['password']);
         }
 
+        $beforeStatus = $monastery->moderationStatus();
         $monastery->update($validated);
+        $monastery->refresh();
+        $afterStatus = $monastery->moderationStatus();
+        if ($beforeStatus !== $afterStatus && in_array($afterStatus, ['approved', 'rejected'], true)) {
+            $actionUrl = route('monastery.dashboard', ['tab' => 'main', 'screen' => 'main-home']);
+            $preview = $afterStatus === 'rejected' && filled($monastery->rejection_reason)
+                ? Str::limit($monastery->rejection_reason, 160)
+                : null;
+            $monastery->notify(new MonasteryAccountDecidedNotification(
+                $afterStatus,
+                $preview,
+                $actionUrl,
+            ));
+        }
+
         $monastery->setCustomFieldValues($request->input('custom_fields', []), $request);
+
         return redirect()->route('admin.monasteries.index')->with('success', 'Monastery updated successfully.');
     }
 
     public function destroy(Monastery $monastery): RedirectResponse
     {
         $monastery->delete();
+
         return redirect()->route('admin.monasteries.index')->with('success', 'Monastery deleted successfully.');
     }
 

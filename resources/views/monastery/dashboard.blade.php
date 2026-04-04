@@ -10,63 +10,78 @@
 
 @if($tab === 'main')
     @if($screen === 'main-home')
+        @php
+            $mpTile = 'group relative flex aspect-square min-h-[5.5rem] flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white via-white to-slate-50/95 p-3 shadow-md shadow-slate-200/40 ring-1 ring-slate-200/70 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-amber-400/55 hover:shadow-lg hover:shadow-amber-500/10 hover:ring-amber-400/25 active:translate-y-0 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 dark:border-slate-700/90 dark:from-slate-800 dark:via-slate-800/95 dark:to-slate-900/90 dark:shadow-black/30 dark:ring-slate-700/60 dark:hover:border-amber-500/45 dark:hover:shadow-amber-900/20 dark:hover:ring-amber-500/20 dark:focus-visible:ring-offset-slate-900 sm:min-h-0 sm:p-4';
+        @endphp
         <section class="mb-8">
-            <div class="grid grid-cols-3 gap-3 sm:gap-4">
-                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'total']) }}" class="aspect-square rounded-2xl border p-3.5 shadow-sm flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800/70 dark:to-slate-900/60 hover:border-amber-300 hover:shadow-md transition-all">
-                    <div class="inline-flex items-center gap-2">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M6 7V5h12v2M6 11h12v8H6z" /></svg>
+            <div class="grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:gap-4">
+                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'total']) }}" class="{{ $mpTile }}">
+                    <span class="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500/[0.06] via-transparent to-transparent opacity-80 dark:from-blue-400/[0.08]"></span>
+                    <div class="relative flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700 shadow-sm ring-1 ring-blue-200/60 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-500/20">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M6 7V5h12v2M6 11h12v8H6z" /></svg>
                         </span>
-                        <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ t('total', 'Total') }}</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ t('total', 'Total') }}</p>
+                        <p class="text-2xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-slate-50">{{ $totalApplications }}</p>
                     </div>
-                    <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ $totalApplications }}</p>
+                    <span class="absolute bottom-2.5 right-2.5 text-slate-400 transition duration-200 group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400" aria-hidden="true">@include('partials.icon', ['name' => 'chevron-right', 'class' => 'h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all'])</span>
                 </a>
-                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'register']) }}" class="aspect-square rounded-2xl border p-3.5 shadow-sm flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800/70 dark:to-slate-900/60 hover:border-amber-300 hover:shadow-md transition-all">
-                    <div class="inline-flex items-center gap-2">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'register']) }}" class="{{ $mpTile }}">
+                    <span class="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/[0.06] via-transparent to-transparent opacity-80 dark:from-indigo-400/[0.08]"></span>
+                    <div class="relative flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 shadow-sm ring-1 ring-indigo-200/60 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-500/20">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         </span>
-                        <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ t('register', 'Register') }}</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ t('register', 'Register') }}</p>
+                        <p class="text-sm font-bold leading-snug text-slate-900 dark:text-slate-100">{{ t('new_sangha', 'New Sangha') }}</p>
                     </div>
-                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ t('new_sangha', 'New Sangha') }}</p>
+                    <span class="absolute bottom-2.5 right-2.5 text-slate-400 transition duration-200 group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400" aria-hidden="true">@include('partials.icon', ['name' => 'chevron-right', 'class' => 'h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all'])</span>
                 </a>
-                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'pending']) }}" class="aspect-square rounded-2xl border p-3.5 shadow-sm flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800/70 dark:to-slate-900/60 hover:border-amber-300 hover:shadow-md transition-all">
-                    <div class="inline-flex items-center gap-2">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 22a10 10 0 100-20 10 10 0 000 20z" /></svg>
+                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'pending']) }}" class="{{ $mpTile }}">
+                    <span class="pointer-events-none absolute inset-0 bg-gradient-to-br from-amber-500/[0.08] via-transparent to-transparent opacity-80 dark:from-amber-400/[0.1]"></span>
+                    <div class="relative flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700 shadow-sm ring-1 ring-amber-200/60 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-500/25">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 22a10 10 0 100-20 10 10 0 000 20z" /></svg>
                         </span>
-                        <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ t('pending', 'Pending') }}</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ t('pending', 'Pending') }}</p>
+                        <p class="text-2xl font-bold tabular-nums tracking-tight text-amber-600 dark:text-amber-300">{{ $pendingCount }}</p>
                     </div>
-                    <p class="text-2xl font-bold text-amber-600 dark:text-amber-300">{{ $pendingCount }}</p>
+                    <span class="absolute bottom-2.5 right-2.5 text-slate-400 transition duration-200 group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400" aria-hidden="true">@include('partials.icon', ['name' => 'chevron-right', 'class' => 'h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all'])</span>
                 </a>
-                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'approved']) }}" class="aspect-square rounded-2xl border p-3.5 shadow-sm flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800/70 dark:to-slate-900/60 hover:border-amber-300 hover:shadow-md transition-all">
-                    <div class="inline-flex items-center gap-2">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'approved']) }}" class="{{ $mpTile }}">
+                    <span class="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-500/[0.06] via-transparent to-transparent opacity-80 dark:from-emerald-400/[0.08]"></span>
+                    <div class="relative flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shadow-sm ring-1 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-500/20">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         </span>
-                        <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Approved</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ t('approved', 'Approved') }}</p>
+                        <p class="text-2xl font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-300">{{ $approvedCount }}</p>
                     </div>
-                    <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{{ $approvedCount }}</p>
+                    <span class="absolute bottom-2.5 right-2.5 text-slate-400 transition duration-200 group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400" aria-hidden="true">@include('partials.icon', ['name' => 'chevron-right', 'class' => 'h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all'])</span>
                 </a>
-                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'rejected']) }}" class="aspect-square rounded-2xl border p-3.5 shadow-sm flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800/70 dark:to-slate-900/60 hover:border-amber-300 hover:shadow-md transition-all">
-                    <div class="inline-flex items-center gap-2">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'rejected']) }}" class="{{ $mpTile }}">
+                    <span class="pointer-events-none absolute inset-0 bg-gradient-to-br from-rose-500/[0.07] via-transparent to-transparent opacity-80 dark:from-rose-400/[0.09]"></span>
+                    <div class="relative flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200/60 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-500/20">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </span>
-                        <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Rejected</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ t('rejected', 'Rejected') }}</p>
+                        <p class="text-2xl font-bold tabular-nums tracking-tight text-red-600 dark:text-red-300">{{ $rejectedCount }}</p>
                     </div>
-                    <p class="text-2xl font-bold text-red-600 dark:text-red-300">{{ $rejectedCount }}</p>
+                    <span class="absolute bottom-2.5 right-2.5 text-slate-400 transition duration-200 group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400" aria-hidden="true">@include('partials.icon', ['name' => 'chevron-right', 'class' => 'h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all'])</span>
                 </a>
-                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'request']) }}" class="aspect-square rounded-2xl border p-3.5 shadow-sm flex flex-col justify-between border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800/70 dark:to-slate-900/60 hover:border-amber-300 hover:shadow-md transition-all">
-                    <div class="inline-flex items-center gap-2">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h5M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.257-3.771C3.468 15.03 3 13.56 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'request']) }}" class="{{ $mpTile }}">
+                    <span class="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-500/[0.06] via-transparent to-transparent opacity-80 dark:from-violet-400/[0.08]"></span>
+                    <div class="relative flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700 shadow-sm ring-1 ring-violet-200/60 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-500/20">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h5M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.257-3.771C3.468 15.03 3 13.56 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                         </span>
-                        <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ t('request', 'Request') }}</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ t('request', 'Request') }}</p>
+                        <p class="text-sm font-bold leading-snug text-slate-900 dark:text-slate-100">{{ t('open_chat', 'Open Chat') }}</p>
                     </div>
-                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ t('open_chat', 'Open Chat') }}</p>
-    </a>
-</div>
+                    <span class="absolute bottom-2.5 right-2.5 text-slate-400 transition duration-200 group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400" aria-hidden="true">@include('partials.icon', ['name' => 'chevron-right', 'class' => 'h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all'])</span>
+                </a>
+            </div>
         </section>
     @endif
 
@@ -221,38 +236,21 @@
     @endif
 
     @if($screen === 'request')
+        @php
+            $threadRevision = $messages->isEmpty()
+                ? '0-0-0'
+                : (($messages->max('id') ?? 0).'-'.$messages->count().'-'.(optional($messages->last())->updated_at?->timestamp ?? 0));
+        @endphp
         <section class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-5 sm:p-6 shadow-sm mb-8">
             <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">{{ t('request_form_super_admin', 'Request Form (Super Admin)') }}</h2>
-            <div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/40 p-4 mb-4 max-h-[280px] overflow-y-auto space-y-3">
-                @forelse($messages as $message)
-                    <div class="flex {{ $message->sender_type === 'admin' ? 'justify-start' : 'justify-end' }}">
-                        <div class="max-w-[90%] rounded-xl px-3 py-2 text-sm {{ $message->sender_type === 'admin' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600' : 'bg-amber-500/20 text-slate-900 dark:text-slate-100 border border-amber-400/40' }}">
-                            <p class="text-[11px] font-semibold mb-1 {{ $message->sender_type === 'admin' ? 'text-slate-500 dark:text-slate-400' : 'text-amber-700 dark:text-amber-300' }}">
-                                {{ $message->sender_type === 'admin' ? ($message->user->name ?? t('super_admin', 'Super Admin')) : t('you', 'You') }}
-                            </p>
-                            @if(!empty($message->payload_json) && is_array($message->payload_json))
-                                <div class="mb-2 rounded-lg border border-slate-200/80 dark:border-slate-600/70 bg-white/70 dark:bg-slate-900/40 px-2.5 py-2 space-y-1">
-                                    @foreach($message->payload_json as $item)
-                                        <p class="text-xs text-slate-600 dark:text-slate-300">
-                                            <span class="font-semibold">{{ $item['label'] ?? t('field', 'Field') }}:</span>
-                                            <span>
-                                                @if(is_array($item['value'] ?? null))
-                                                    {{ implode(', ', $item['value']) }}
-                                                @else
-                                                    {{ $item['value'] ?? t('empty_dash', '—') }}
-                                                @endif
-                                            </span>
-                                        </p>
-                                    @endforeach
-                                </div>
-                            @endif
-                            <p class="whitespace-pre-wrap break-words">{{ $message->message }}</p>
-                            <p class="text-[10px] mt-1 text-slate-500 dark:text-slate-400">{{ $message->created_at?->format('M d, H:i') }}</p>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ t('no_messages_send_first_request', 'No messages yet. Send your first request.') }}</p>
-                @endforelse
+            <div
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/40 p-4 mb-4 max-h-[280px] overflow-y-auto"
+                data-message-thread-poll-url="{{ route('monastery.messages.poll') }}"
+                data-message-thread-revision="{{ $threadRevision }}"
+            >
+                <div data-message-thread-list class="space-y-3">
+                    @include('partials.monastery-message-thread-items', ['messages' => $messages, 'monastery' => $monastery, 'variant' => 'portal'])
+                </div>
             </div>
             <form action="{{ route('monastery.messages.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                 @csrf

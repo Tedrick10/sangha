@@ -64,7 +64,7 @@
                     <td class="text-slate-600 dark:text-slate-400">{{ $subjects->firstItem() + $loop->index }}</td>
                     <td data-column="name"><span class="font-semibold text-slate-900 dark:text-slate-100">{{ $subject->name }}</span></td>
                     <td data-column="description">{{ Str::limit($subject->description, 50) ?: '—' }}</td>
-                    <td data-column="marks">{{ $subject->pass_mark ?? '—' }} / {{ $subject->full_mark ?? '—' }}</td>
+                    <td data-column="marks">{{ format_number_display($subject->pass_mark, '—') }} / {{ format_number_display($subject->full_mark, '—') }}</td>
                     <td data-column="status">
                         @if($subject->is_active)
                             <span class="admin-badge-active">Active</span>

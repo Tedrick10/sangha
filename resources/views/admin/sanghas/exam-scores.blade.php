@@ -23,7 +23,7 @@
                 <tr>
                     <td class="text-slate-600 dark:text-slate-400">{{ $loop->iteration }}</td>
                     <td><span class="font-semibold text-slate-900 dark:text-slate-100">{{ $score->subject->name }}</span></td>
-                    <td><span class="font-medium text-slate-800 dark:text-slate-100">{{ $score->value }}</span></td>
+                    <td><span class="font-medium text-slate-800 dark:text-slate-100">{{ format_number_display($score->value) }}</span></td>
                 </tr>
             @empty
                 <tr>

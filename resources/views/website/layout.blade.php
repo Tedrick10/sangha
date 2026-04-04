@@ -20,7 +20,7 @@
         ];
     };
 
-    $examSlugs = ['exam-schedule', 'results', 'syllabus', 'past-papers', 'guidelines'];
+    $examSlugs = ['exam-schedule', 'syllabus', 'past-papers', 'guidelines'];
     $aboutSlugs = ['about', 'contact', 'news', 'events', 'gallery'];
     $helpSlugs = ['faq', 'privacy', 'terms-of-use', 'accessibility'];
 
@@ -30,7 +30,7 @@
     $navMore = collect();
 
     foreach ($navPages as $navPage) {
-        if (in_array($navPage->slug, ['home', 'login'], true) || $navPage->slug === 'registration') {
+        if (in_array($navPage->slug, ['home', 'login', 'results'], true) || $navPage->slug === 'registration') {
             continue;
         }
         $link = $makeNavLink($navPage);
@@ -65,7 +65,7 @@
         ['label' => t('menu_more', 'More'), 'items' => $navMore],
     ], fn ($g) => $g['items']->isNotEmpty()));
 
-    $footerQuickOrder = ['exam-schedule', 'results', 'guidelines', 'about', 'contact', 'faq', 'privacy'];
+    $footerQuickOrder = ['exam-schedule', 'guidelines', 'about', 'contact', 'faq', 'privacy'];
     $footerQuickLinks = collect([
         ['title' => t('home'), 'url' => route('website.home')],
     ]);

@@ -7,8 +7,10 @@ use App\Models\CustomField;
 use App\Models\Exam;
 use App\Models\Monastery;
 use App\Models\Sangha;
+use App\Notifications\Monastery\SanghaApplicationDecidedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SanghaController extends Controller
@@ -59,13 +61,14 @@ class SanghaController extends Controller
                 ->orderBy('exams.name', $order)
                 ->select('sanghas.*');
         } elseif (in_array($sort, $sortCols)) {
-            $query->orderBy('sanghas.' . $sort, $order);
+            $query->orderBy('sanghas.'.$sort, $order);
         } else {
             $query->latest();
         }
         $sanghas = $query->paginate(admin_per_page(10))->withQueryString();
         $monasteries = Monastery::orderBy('name')->get();
         $exams = Exam::orderBy('exam_date', 'desc')->orderBy('name')->get();
+
         return view('admin.sanghas.index', compact('sanghas', 'monasteries', 'exams'));
     }
 
@@ -75,6 +78,7 @@ class SanghaController extends Controller
         $exams = Exam::whereHas('scores', fn ($q) => $q->where('sangha_id', $sangha->id))
             ->orderBy('exam_date', 'desc')
             ->get();
+
         return view('admin.sanghas.show', compact('sangha', 'exams'));
     }
 
@@ -85,6 +89,7 @@ class SanghaController extends Controller
             ->where('exam_id', $exam->id)
             ->orderBy('subject_id')
             ->get();
+
         return view('admin.sanghas.exam-scores', compact('sangha', 'exam', 'scores'));
     }
 
@@ -93,6 +98,7 @@ class SanghaController extends Controller
         $monasteries = Monastery::where('is_active', true)->orderBy('name')->get();
         $exams = Exam::where('is_active', true)->orderBy('exam_date', 'desc')->orderBy('name')->get();
         $customFields = CustomField::forEntity('sangha')->where('is_built_in', false)->get();
+
         return view('admin.sanghas.create', compact('monasteries', 'exams', 'customFields'));
     }
 
@@ -115,6 +121,7 @@ class SanghaController extends Controller
 
         $sangha = Sangha::create($validated);
         $sangha->setCustomFieldValues($request->input('custom_fields', []), $request);
+
         return redirect()->route('admin.sanghas.index')->with('success', 'Sangha created successfully.');
     }
 
@@ -124,6 +131,7 @@ class SanghaController extends Controller
         $exams = Exam::where('is_active', true)->orderBy('exam_date', 'desc')->orderBy('name')->get();
         $customFields = CustomField::forEntity('sangha')->where('is_built_in', false)->get();
         $customFieldValues = $sangha->getCustomFieldValuesArray();
+
         return view('admin.sanghas.edit', compact('sangha', 'monasteries', 'exams', 'customFields', 'customFieldValues'));
     }
 
@@ -133,7 +141,7 @@ class SanghaController extends Controller
             'monastery_id' => 'required|exists:monasteries,id',
             'exam_id' => 'nullable|exists:exams,id',
             'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:sanghas,username,' . $sangha->id,
+            'username' => 'required|string|max:255|unique:sanghas,username,'.$sangha->id,
             'password' => 'nullable|string|min:8|confirmed',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -147,14 +155,36 @@ class SanghaController extends Controller
             unset($validated['password']);
         }
 
+        $beforeStatus = $sangha->moderationStatus();
         $sangha->update($validated);
+        $sangha->refresh();
+        $afterStatus = $sangha->moderationStatus();
+        if ($beforeStatus !== $afterStatus && in_array($afterStatus, ['approved', 'rejected'], true)) {
+            $sangha->load('monastery');
+            if ($sangha->monastery) {
+                $screen = $afterStatus === 'approved' ? 'approved' : 'rejected';
+                $actionUrl = route('monastery.dashboard', ['tab' => 'main', 'screen' => $screen]);
+                $preview = $afterStatus === 'rejected' && filled($sangha->rejection_reason)
+                    ? Str::limit($sangha->rejection_reason, 160)
+                    : null;
+                $sangha->monastery->notify(new SanghaApplicationDecidedNotification(
+                    $sangha->name,
+                    $afterStatus,
+                    $preview,
+                    $actionUrl,
+                ));
+            }
+        }
+
         $sangha->setCustomFieldValues($request->input('custom_fields', []), $request);
+
         return redirect()->route('admin.sanghas.index')->with('success', 'Sangha updated successfully.');
     }
 
     public function destroy(Sangha $sangha): RedirectResponse
     {
         $sangha->delete();
+
         return redirect()->route('admin.sanghas.index')->with('success', 'Sangha deleted successfully.');
     }
 
