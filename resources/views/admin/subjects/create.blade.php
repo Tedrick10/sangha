@@ -8,7 +8,7 @@
     <h1 class="admin-page-title">Add Subject</h1>
 </div>
 
-<form action="{{ route('admin.subjects.store') }}" method="POST" class="admin-form-card">
+<form action="{{ route('admin.subjects.store') }}" method="POST" class="admin-form-card" data-admin-submit-once>
     @csrf
     <div class="space-y-5">
         <div class="admin-form-group">

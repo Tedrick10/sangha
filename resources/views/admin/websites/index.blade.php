@@ -30,8 +30,8 @@
     </div>
     @if($types->isNotEmpty())
     <div class="admin-filter-group">
-        <label for="type" class="admin-filter-label">Type</label>
-        <select name="type" id="type" class="admin-select">
+        <label for="website_filter_type" class="admin-filter-label">Type</label>
+        <select name="type" id="website_filter_type" class="admin-select" data-no-select-search>
             <option value="">All</option>
             @foreach($types as $t)
                 <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>

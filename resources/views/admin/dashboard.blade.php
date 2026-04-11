@@ -12,58 +12,58 @@
 {{-- Stats --}}
 <section class="mb-10" aria-labelledby="dashboard-stats-heading">
     <h2 id="dashboard-stats-heading" class="sr-only">{{ t('overview') }}</h2>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <a href="{{ route('admin.monasteries.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ t('monasteries') }}</p>
-                    <p class="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{{ $stats['monasteries'] }}</p>
+    <div class="grid gap-4 grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <a href="{{ route('admin.monasteries.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
+            <div class="flex items-center justify-between gap-3 min-w-0">
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{{ t('monasteries') }}</p>
+                    <p class="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{{ $stats['monasteries'] }}</p>
                 </div>
-                <span class="rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
+                <span class="shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
                     @include('partials.icon', ['name' => 'home', 'class' => 'w-8 h-8'])
                 </span>
             </div>
         </a>
-        <a href="{{ route('admin.sanghas.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ t('sanghas') }}</p>
-                    <p class="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{{ $stats['sanghas'] }}</p>
+        <a href="{{ route('admin.sanghas.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
+            <div class="flex items-center justify-between gap-3 min-w-0">
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{{ t('sanghas') }}</p>
+                    <p class="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{{ $stats['sanghas'] }}</p>
                 </div>
-                <span class="rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
+                <span class="shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
                     @include('partials.icon', ['name' => 'view', 'class' => 'w-8 h-8'])
                 </span>
             </div>
         </a>
-        <a href="{{ route('admin.exams.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ t('exams') }}</p>
-                    <p class="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{{ $stats['exams'] }}</p>
+        <a href="{{ route('admin.exams.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
+            <div class="flex items-center justify-between gap-3 min-w-0">
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{{ t('exams') }}</p>
+                    <p class="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{{ $stats['exams'] }}</p>
                 </div>
-                <span class="rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
+                <span class="shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                 </span>
             </div>
         </a>
-        <a href="{{ route('admin.scores.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ t('scores') }}</p>
-                    <p class="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{{ $stats['scores'] }}</p>
+        <a href="{{ route('admin.scores.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
+            <div class="flex items-center justify-between gap-3 min-w-0">
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{{ t('scores') }}</p>
+                    <p class="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{{ $stats['scores'] }}</p>
                 </div>
-                <span class="rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
+                <span class="shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                 </span>
             </div>
         </a>
-        <a href="{{ route('admin.users.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ t('users') }}</p>
-                    <p class="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{{ $stats['users'] }}</p>
+        <a href="{{ route('admin.users.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
+            <div class="flex items-center justify-between gap-3 min-w-0">
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{{ t('users') }}</p>
+                    <p class="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{{ $stats['users'] }}</p>
                 </div>
-                <span class="rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
+                <span class="shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
                     @include('partials.icon', ['name' => 'cog', 'class' => 'w-8 h-8'])
                 </span>
             </div>
@@ -85,7 +85,7 @@
 </section>
 
 {{-- Recent activity --}}
-<div class="grid gap-6 lg:grid-cols-3">
+<div class="grid gap-6 min-w-0 lg:grid-cols-3">
     <section class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 overflow-hidden shadow-sm" aria-labelledby="recent-monasteries-heading">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <h2 id="recent-monasteries-heading" class="text-lg font-semibold text-slate-900 dark:text-slate-100">{{ t('recent_monasteries') }}</h2>
@@ -93,9 +93,9 @@
         </div>
         <div class="divide-y divide-slate-100 dark:divide-slate-700">
             @forelse($recentMonasteries as $m)
-                <div class="px-6 py-3 flex items-center justify-between">
-                    <span class="font-medium text-slate-900 dark:text-slate-100">{{ $m->name }}</span>
-                    <span class="text-sm text-slate-500 dark:text-slate-400">{{ $m->created_at?->format('M d, Y') }}</span>
+                <div class="px-6 py-3 flex items-center justify-between gap-3 min-w-0">
+                    <span class="min-w-0 truncate font-medium text-slate-900 dark:text-slate-100">{{ $m->name }}</span>
+                    <span class="shrink-0 text-sm text-slate-500 dark:text-slate-400">{{ $m->created_at?->format('M d, Y') }}</span>
                 </div>
             @empty
                 <div class="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">{{ t('no_monasteries') }}</div>
@@ -109,9 +109,9 @@
         </div>
         <div class="divide-y divide-slate-100 dark:divide-slate-700">
             @forelse($recentExams as $e)
-                <div class="px-6 py-3 flex items-center justify-between gap-4">
-                    <span class="font-medium text-slate-900 dark:text-slate-100 truncate">{{ $e->name }}</span>
-                    <span class="text-sm text-slate-500 dark:text-slate-400 shrink-0">{{ $e->exam_date?->format('M d, Y') }} · {{ $e->monastery?->name ?? '—' }}</span>
+                <div class="px-6 py-3 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4 min-w-0">
+                    <span class="min-w-0 font-medium text-slate-900 dark:text-slate-100 break-words [overflow-wrap:anywhere]">{{ $e->name }}</span>
+                    <span class="text-sm text-slate-500 dark:text-slate-400 shrink-0 sm:text-right">{{ $e->exam_date?->format('M d, Y') }} · {{ $e->monastery?->name ?? '—' }}</span>
                 </div>
             @empty
                 <div class="px-6 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">{{ t('no_exams') }}</div>

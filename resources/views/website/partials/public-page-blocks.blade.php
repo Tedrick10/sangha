@@ -20,15 +20,15 @@
             @endphp
             @if($links->isNotEmpty())
                 <div class="rounded-2xl border border-stone-200/90 dark:border-slate-600 bg-white/90 dark:bg-slate-800/80 p-5 shadow-sm">
-                    <h2 class="font-heading text-sm font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-4">
+                    <h2 class="font-heading text-sm font-semibold uppercase tracking-wider text-yellow-800 dark:text-yellow-300 mb-4">
                         {{ t($sec['label_key'], $sec['label_default']) }}
                     </h2>
                     <ul class="space-y-2">
                         @foreach($links as $navPage)
                             @php $ic = $sitemapIcons[$navPage->slug] ?? 'document-text'; @endphp
                             <li>
-                                <a href="{{ route('website.page', $navPage->slug) }}" class="group flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm text-stone-700 dark:text-slate-200 hover:bg-amber-50/80 dark:hover:bg-slate-700/50 transition-colors">
-                                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stone-100 dark:bg-slate-700/80 text-stone-600 dark:text-slate-300 group-hover:text-amber-700 dark:group-hover:text-amber-400">
+                                <a href="{{ route('website.page', $navPage->slug) }}" class="group flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm text-stone-700 dark:text-slate-200 hover:bg-yellow-50/80 dark:hover:bg-slate-700/50 transition-colors">
+                                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stone-100 dark:bg-slate-700/80 text-stone-600 dark:text-slate-300 group-hover:text-yellow-700 dark:group-hover:text-yellow-400">
                                         @include('partials.icon', ['name' => $ic, 'class' => 'w-4 h-4'])
                                     </span>
                                     <span class="font-medium leading-snug">{{ $navPage->title }}</span>
@@ -46,8 +46,8 @@
             <ul class="flex flex-wrap gap-2">
                 @foreach($otherPages as $navPage)
                     <li>
-                        <a href="{{ route('website.page', $navPage->slug) }}" class="inline-flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-slate-200 hover:border-amber-400/60 transition-colors">
-                            @include('partials.icon', ['name' => 'document-text', 'class' => 'w-3.5 h-3.5 text-amber-600 dark:text-amber-400'])
+                        <a href="{{ route('website.page', $navPage->slug) }}" class="inline-flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-slate-200 hover:border-yellow-400/60 transition-colors">
+                            @include('partials.icon', ['name' => 'document-text', 'class' => 'w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400'])
                             {{ $navPage->title }}
                         </a>
                     </li>
@@ -101,11 +101,11 @@
                             @include('partials.icon', ['name' => 'calendar', 'class' => 'w-6 h-6'])
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="font-semibold text-stone-900 dark:text-slate-50">{{ $ex->name }}</p>
+                            <p class="font-semibold text-stone-900 dark:text-slate-200">{{ $ex->name }}</p>
                             <p class="text-sm text-stone-600 dark:text-slate-400">
                                 {{ $ex->exam_date ? $ex->exam_date->format('M j, Y') : t('home_exam_date_tbc', 'TBC') }}
                                 @if($ex->monastery)
-                                    <span class="text-stone-400 dark:text-slate-500">·</span> {{ $ex->monastery->name }}
+                                    <span class="text-stone-400 dark:text-slate-2000">·</span> {{ $ex->monastery->name }}
                                 @endif
                             </p>
                         </div>
@@ -122,7 +122,7 @@
 @if(($pageTheme ?? '') === 'gallery')
     <div class="mb-8 grid grid-cols-2 md:grid-cols-3 gap-3">
         @foreach([
-            ['from' => 'from-amber-200', 'to' => 'to-amber-400', 'l' => 'Opening ceremony'],
+            ['from' => 'from-yellow-200', 'to' => 'to-yellow-400', 'l' => 'Opening ceremony'],
             ['from' => 'from-teal-200', 'to' => 'to-teal-500', 'l' => 'Examination hall'],
             ['from' => 'from-violet-200', 'to' => 'to-violet-500', 'l' => 'Results day'],
             ['from' => 'from-rose-200', 'to' => 'to-rose-400', 'l' => 'Study circle'],
@@ -155,7 +155,7 @@
                     <p class="font-semibold text-stone-900 dark:text-slate-100">{{ $row['t'] }}</p>
                     <p class="text-sm text-stone-600 dark:text-slate-400">{{ $row['s'] }}</p>
                 </div>
-                <span class="text-xs font-medium text-amber-700 dark:text-amber-400 shrink-0 hidden sm:inline">{{ t('resources_demo_tag', 'Demo') }}</span>
+                <span class="text-xs font-medium text-yellow-700 dark:text-yellow-400 shrink-0 hidden sm:inline">{{ t('resources_demo_tag', 'Demo') }}</span>
             </div>
         @endforeach
     </div>
@@ -163,8 +163,8 @@
 
 @if(($pageTheme ?? '') === 'timeline' && ($page->slug ?? '') === 'guidelines')
     <div class="not-prose mb-8 grid gap-4 sm:grid-cols-3">
-        <div class="rounded-2xl border-l-4 border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 px-5 py-4">
-            <p class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">{{ t('guide_step_1', 'Step 1') }}</p>
+        <div class="rounded-2xl border-l-4 border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20 px-5 py-4">
+            <p class="text-xs font-bold text-yellow-800 dark:text-yellow-300 uppercase tracking-wider">{{ t('guide_step_1', 'Step 1') }}</p>
             <p class="font-semibold text-stone-900 dark:text-slate-100 mt-1">{{ t('guide_step_1_t', 'Confirm registration') }}</p>
             <p class="text-sm text-stone-600 dark:text-slate-400 mt-2">{{ t('guide_step_1_p', 'Check status with your monastery coordinator before travel.') }}</p>
         </div>

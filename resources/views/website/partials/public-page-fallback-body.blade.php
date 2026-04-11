@@ -1,7 +1,7 @@
 @switch($page->slug)
     @case('about')
         <h2>{{ t('fallback_about_mission_h', 'Our mission') }}</h2>
-        <p>{{ t('fallback_about_mission_p', 'Sangha Exam supports Pali, Vinaya, and Dhamma examinations for monastic communities—with secure portals, clear schedules, and respectful handling of results.') }}</p>
+        <p>{{ t('fallback_about_mission_p', config('app.name').' supports Pali, Vinaya, and Dhamma examinations for monastic communities—with secure portals, clear schedules, and respectful handling of results.') }}</p>
         <h2>{{ t('fallback_about_offer_h', 'What we offer') }}</h2>
         <ul>
             <li>{{ t('fallback_about_li1', 'Monastery and Sangha workspaces with role-appropriate views') }}</li>
@@ -15,7 +15,7 @@
         <div class="not-prose my-6 grid gap-4 sm:grid-cols-2">
             <div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5">
                 <p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">{{ t('fallback_contact_email_l', 'Email') }}</p>
-                <a href="mailto:contact@sanghaexam.org" class="text-amber-700 dark:text-amber-400 font-medium">contact@sanghaexam.org</a>
+                <a href="mailto:contact@sanghaexam.org" class="text-yellow-700 dark:text-yellow-400 font-medium">contact@sanghaexam.org</a>
             </div>
             <div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5">
                 <p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">{{ t('fallback_contact_phone_l', 'Phone') }}</p>

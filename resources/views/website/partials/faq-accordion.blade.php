@@ -1,7 +1,7 @@
 {{-- FAQ uses a text-first layout (not an accordion). Slug `faq` always loads this partial. --}}
 <div class="not-prose faq-page text-left space-y-14 sm:space-y-16">
     <section class="space-y-8" aria-labelledby="faq-heading-registration">
-        <h2 id="faq-heading-registration" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-50 tracking-tight pl-[1.125rem] border-l-[3px] border-amber-500 dark:border-amber-400">
+        <h2 id="faq-heading-registration" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-200 tracking-tight pl-[1.125rem] border-l-[3px] border-yellow-500 dark:border-yellow-400">
             {{ t('fallback_faq_section_reg', 'Registration') }}
         </h2>
         <div class="space-y-9 sm:space-y-10">
@@ -25,13 +25,13 @@
     </section>
 
     <section class="space-y-8 pt-2 border-t border-stone-200/80 dark:border-slate-700/80" aria-labelledby="faq-heading-exams">
-        <h2 id="faq-heading-exams" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-50 tracking-tight pl-[1.125rem] border-l-[3px] border-amber-500 dark:border-amber-400">
+        <h2 id="faq-heading-exams" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-200 tracking-tight pl-[1.125rem] border-l-[3px] border-yellow-500 dark:border-yellow-400">
             {{ t('fallback_faq_section_exams', 'Examinations') }}
         </h2>
         <div class="space-y-9 sm:space-y-10">
             <div class="space-y-3 max-w-4xl">
                 <h3 class="text-base sm:text-lg font-semibold text-stone-900 dark:text-slate-100 leading-snug">{{ t('fallback_faq_q_schedule', 'Where is the schedule?') }}</h3>
-                <p class="text-[1.0625rem] sm:text-[1.075rem] leading-[1.8] text-stone-600 dark:text-slate-300">{{ t('fallback_faq_a_schedule', 'Use the main menu: Examinations → Examination Schedule. Approved examinations from the database appear there with dates and venues where they have been entered. Coordinators should always confirm the final hall with candidates.') }}</p>
+                <p class="text-[1.0625rem] sm:text-[1.075rem] leading-[1.8] text-stone-600 dark:text-slate-300">{{ t('fallback_faq_a_schedule', 'Use the main menu: Examinations → Examination Schedule. Active examinations from the database appear there with dates and venues where they have been entered. Coordinators should always confirm the final hall with candidates.') }}</p>
             </div>
             <div class="space-y-3 max-w-4xl">
                 <h3 class="text-base sm:text-lg font-semibold text-stone-900 dark:text-slate-100 leading-snug">{{ t('fallback_faq_q_results', 'When are results published?') }}</h3>
@@ -49,7 +49,7 @@
     </section>
 
     <section class="space-y-8 pt-2 border-t border-stone-200/80 dark:border-slate-700/80" aria-labelledby="faq-heading-accounts">
-        <h2 id="faq-heading-accounts" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-50 tracking-tight pl-[1.125rem] border-l-[3px] border-amber-500 dark:border-amber-400">
+        <h2 id="faq-heading-accounts" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-200 tracking-tight pl-[1.125rem] border-l-[3px] border-yellow-500 dark:border-yellow-400">
             {{ t('fallback_faq_section_accounts', 'Accounts & portals') }}
         </h2>
         <div class="space-y-9 sm:space-y-10">
@@ -69,7 +69,7 @@
     </section>
 
     <section class="space-y-8 pt-2 border-t border-stone-200/80 dark:border-slate-700/80" aria-labelledby="faq-heading-tech">
-        <h2 id="faq-heading-tech" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-50 tracking-tight pl-[1.125rem] border-l-[3px] border-amber-500 dark:border-amber-400">
+        <h2 id="faq-heading-tech" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-200 tracking-tight pl-[1.125rem] border-l-[3px] border-yellow-500 dark:border-yellow-400">
             {{ t('fallback_faq_section_tech', 'Technical') }}
         </h2>
         <div class="space-y-9 sm:space-y-10">
@@ -89,7 +89,7 @@
     </section>
 
     <section class="space-y-8 pt-2 border-t border-stone-200/80 dark:border-slate-700/80" aria-labelledby="faq-heading-data">
-        <h2 id="faq-heading-data" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-50 tracking-tight pl-[1.125rem] border-l-[3px] border-amber-500 dark:border-amber-400">
+        <h2 id="faq-heading-data" class="font-heading text-xl sm:text-2xl font-semibold text-stone-900 dark:text-slate-200 tracking-tight pl-[1.125rem] border-l-[3px] border-yellow-500 dark:border-yellow-400">
             {{ t('fallback_faq_section_data', 'Data & privacy') }}
         </h2>
         <div class="space-y-9 sm:space-y-10">

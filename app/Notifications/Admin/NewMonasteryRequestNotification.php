@@ -23,7 +23,7 @@ class NewMonasteryRequestNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => t('notif_message_request_admin_title', 'New message request'),
+            'title' => t('notif_new_monastery_request_title', 'New monastery request'),
             'body' => strtr(t('notif_new_monastery_request_body', ':name: :preview'), [
                 ':name' => $this->monasteryName,
                 ':preview' => $this->preview,

@@ -27,11 +27,11 @@
     };
     $currentFlag = $flagFromValue($currentLanguage?->flag, $currentLanguage?->code ?? $currentLocale);
 @endphp
-<div class="relative inline-block" id="website-language-dropdown">
-    <button type="button" id="website-language-btn" aria-haspopup="true" aria-expanded="false" class="admin-dropdown-trigger flex items-center gap-2">
-        <span class="text-base leading-none shrink-0">{{ $currentFlag }}</span>
-        <span>{{ $currentLangName }}</span>
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+<div class="relative shrink-0" id="website-language-dropdown">
+    <button type="button" id="website-language-btn" aria-haspopup="true" aria-expanded="false" aria-label="{{ $currentLangName }}" class="admin-dropdown-trigger flex items-center gap-2">
+        <span class="text-base leading-none shrink-0" aria-hidden="true">{{ $currentFlag }}</span>
+        <span class="hidden max-w-[8rem] truncate 2xl:inline">{{ $currentLangName }}</span>
+        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
     </button>
     <div id="website-language-menu" class="admin-dropdown-panel w-48 hidden">
         @foreach($languages as $lang)
@@ -40,13 +40,13 @@
                 $isActive = strtolower($currentLocale) === $langCode;
                 $langFlag = $flagFromValue($lang->flag, $lang->code);
             @endphp
-            <button type="button" data-locale="{{ $lang->code }}" class="js-app-locale-choice flex items-center justify-between w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 active:bg-slate-100 dark:active:bg-slate-600/50 transition-colors text-left {{ $isActive ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : '' }}">
+            <button type="button" data-locale="{{ $lang->code }}" class="js-app-locale-choice flex items-center justify-between w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 active:bg-slate-100 dark:active:bg-slate-600/50 transition-colors text-left {{ $isActive ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400' : '' }}">
                     <span class="flex items-center gap-2">
                         <span class="text-lg leading-none">{{ $langFlag }}</span>
                         <span class="{{ $isActive ? 'font-medium' : '' }}">{{ $lang->name }}</span>
                     </span>
                     @if($isActive)
-                        <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                        <svg class="w-4 h-4 text-yellow-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                     @endif
             </button>
         @endforeach
@@ -62,6 +62,10 @@
         menu.classList.toggle('hidden');
         var other = document.getElementById('website-theme-menu');
         if (other) other.classList.add('hidden');
+        var loginMenu = document.getElementById('website-login-menu');
+        var loginBtn = document.getElementById('website-login-btn');
+        if (loginMenu) loginMenu.classList.add('hidden');
+        if (loginBtn) loginBtn.setAttribute('aria-expanded', 'false');
     });
     document.addEventListener('click', function() { menu.classList.add('hidden'); });
     menu.addEventListener('click', function(e) { e.stopPropagation(); });

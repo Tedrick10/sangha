@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Language;
+use App\Models\Translation;
+use App\Support\AppearancePortals;
 
 if (! function_exists('t')) {
     /**
@@ -11,15 +13,62 @@ if (! function_exists('t')) {
         $keys = config('translation-keys', []);
         $default = $default ?? ($keys[$key] ?? $key);
 
-        if (! Language::isUnofficial(app()->getLocale())) {
+        $locale = app()->getLocale();
+
+        if (! Language::isUnofficial($locale)) {
             return $default;
         }
 
-        $translation = \App\Models\Translation::whereHas('language', fn ($q) => $q->where('code', app()->getLocale()))
+        $translation = Translation::whereHas('language', fn ($q) => $q->where('code', $locale))
             ->where('key', $key)
             ->value('value');
 
-        return $translation ?? $default;
+        if (filled($translation)) {
+            return $translation;
+        }
+
+        $fileFallback = config('translation-fallbacks.'.$locale.'.'.$key);
+
+        return $fileFallback ?? $default;
+    }
+}
+
+if (! function_exists('app_brand_title_lines')) {
+    /**
+     * Split the site title for display when it ends with "စာမေးပွဲ".
+     * Long compound names (e.g. …သနာလင်္ကာရ…) are split before "လင်္ကာ" so lines read naturally in the sidebar/header.
+     *
+     * @return array<int, string>
+     */
+    function app_brand_title_lines(?string $name = null): array
+    {
+        $name = trim((string) ($name ?? config('app.name')));
+        if ($name === '') {
+            return [''];
+        }
+
+        $suffix = 'စာမေးပွဲ';
+        if (! str_ends_with($name, $suffix)) {
+            return [$name];
+        }
+
+        $before = mb_substr($name, 0, mb_strlen($name) - mb_strlen($suffix));
+        $before = rtrim($before);
+        if ($before === '') {
+            return [$name];
+        }
+
+        $marker = 'လင်္ကာ';
+        $pos = mb_strpos($before, $marker);
+        if ($pos !== false && $pos > 0) {
+            $part1 = rtrim(mb_substr($before, 0, $pos));
+            $part2 = ltrim(mb_substr($before, $pos));
+            if ($part1 !== '' && $part2 !== '') {
+                return [$part1, $part2, $suffix];
+            }
+        }
+
+        return [$before, $suffix];
     }
 }
 
@@ -97,6 +146,30 @@ if (! function_exists('admin_per_page')) {
     {
         $allowed = [10, 15, 25, 50, 100];
         $perPage = request()->integer('per_page', $default);
+
         return in_array($perPage, $allowed, true) ? $perPage : $default;
+    }
+}
+
+if (! function_exists('appearance_portal_body_attrs')) {
+    /**
+     * Optional classes + inline CSS variables for customized portal colors (website, admin, monastery).
+     *
+     * @return array{class: string, style: string}
+     */
+    function appearance_portal_body_attrs(string $portal): array
+    {
+        if (! in_array($portal, ['website', 'admin', 'monastery'], true)) {
+            return ['class' => '', 'style' => ''];
+        }
+        if (! AppearancePortals::isPortalActive($portal)) {
+            return ['class' => '', 'style' => ''];
+        }
+        $style = AppearancePortals::inlineStyle($portal);
+
+        return [
+            'class' => 'appearance-portal appearance-portal--'.$portal,
+            'style' => $style,
+        ];
     }
 }

@@ -46,9 +46,9 @@
                 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wider text-cyan-800 dark:text-cyan-300 mb-2">{{ t('partners_eyebrow', 'Network') }}</p>
-                        <h1 class="font-heading text-3xl sm:text-4xl font-semibold text-stone-900 dark:text-slate-100 tracking-tight">
-                            {{ $page->title }}
-                        </h1>
+                <h1 class="font-heading text-3xl sm:text-4xl font-semibold text-stone-900 dark:text-slate-100 tracking-tight">
+                    {{ $page->title }}
+                </h1>
                         <p class="mt-3 text-stone-600 dark:text-slate-400 max-w-xl leading-relaxed">
                             {{ t('partners_hero_sub', 'Live partner monasteries from your database—updated automatically when you approve and activate institutions.') }}
                         </p>
@@ -79,20 +79,20 @@
             <div class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-start">
                 <aside class="lg:col-span-4 space-y-4 website-fade-up" style="animation-delay: 0.05s">
                     @isset($aboutStats)
-                        <div class="rounded-2xl border border-amber-200/70 dark:border-amber-800/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/25 dark:to-slate-900 p-6">
-                            <p class="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-4">{{ t('about_aside_title', 'At a glance') }}</p>
+                        <div class="rounded-2xl border border-yellow-200/70 dark:border-yellow-800/40 bg-gradient-to-br from-yellow-50 to-white dark:from-yellow-950/25 dark:to-slate-900 p-6">
+                            <p class="text-xs font-bold uppercase tracking-wider text-yellow-800 dark:text-yellow-300 mb-4">{{ t('about_aside_title', 'At a glance') }}</p>
                             <dl class="space-y-4">
                                 <div>
                                     <dt class="text-xs text-stone-500 dark:text-slate-400">{{ t('monastery', 'Monastery') }}</dt>
-                                    <dd class="font-heading text-2xl font-semibold text-stone-900 dark:text-slate-50 tabular-nums">{{ number_format($aboutStats['monasteries']) }}</dd>
+                                    <dd class="font-heading text-2xl font-semibold text-stone-900 dark:text-slate-200 tabular-nums">{{ number_format($aboutStats['monasteries']) }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-xs text-stone-500 dark:text-slate-400">{{ t('sangha_label', 'Sangha') }}</dt>
-                                    <dd class="font-heading text-2xl font-semibold text-stone-900 dark:text-slate-50 tabular-nums">{{ number_format($aboutStats['sanghas']) }}</dd>
+                                    <dd class="font-heading text-2xl font-semibold text-stone-900 dark:text-slate-200 tabular-nums">{{ number_format($aboutStats['sanghas']) }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-xs text-stone-500 dark:text-slate-400">{{ t('exams', 'Exams') }}</dt>
-                                    <dd class="font-heading text-2xl font-semibold text-stone-900 dark:text-slate-50 tabular-nums">{{ number_format($aboutStats['exams']) }}</dd>
+                                    <dd class="font-heading text-2xl font-semibold text-stone-900 dark:text-slate-200 tabular-nums">{{ number_format($aboutStats['exams']) }}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -143,7 +143,7 @@
             <div class="website-fade-up rounded-2xl sm:rounded-3xl border border-stone-200/80 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/90 overflow-hidden shadow-xl shadow-stone-200/20 dark:shadow-none ring-1 ring-stone-200/40 dark:ring-slate-700/50">
                 <div class="h-1 w-full bg-gradient-to-r {{ $pageAccentBar }}" aria-hidden="true"></div>
                 <header class="px-6 sm:px-10 lg:px-12 pt-9 sm:pt-11 pb-7 border-b border-stone-200/80 dark:border-slate-700/80 bg-stone-50/60 dark:bg-slate-800/40">
-                    <h1 class="font-heading text-3xl sm:text-4xl lg:text-[2.5rem] font-semibold text-stone-900 dark:text-slate-50 tracking-tight">{{ $page->title }}</h1>
+                    <h1 class="font-heading text-3xl sm:text-4xl lg:text-[2.5rem] font-semibold text-stone-900 dark:text-slate-200 tracking-tight">{{ $page->title }}</h1>
                     <p class="mt-4 text-base text-stone-600 dark:text-slate-400 leading-relaxed max-w-3xl">
                         {{ t('legal_page_intro', 'The following is demo policy text for evaluation environments. Replace every section with wording reviewed by your legal counsel before production use.') }}
                     </p>
@@ -160,7 +160,7 @@
             <div class="website-fade-up rounded-2xl sm:rounded-3xl border border-stone-200/80 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/90 overflow-hidden shadow-xl shadow-stone-200/20 dark:shadow-none ring-1 ring-stone-200/40 dark:ring-slate-700/50">
                 <div class="h-1 w-full bg-gradient-to-r {{ $pageAccentBar }}" aria-hidden="true"></div>
                 <header class="px-6 sm:px-10 lg:px-12 pt-9 sm:pt-11 pb-7 border-b border-stone-200/80 dark:border-slate-700/80 bg-stone-50/60 dark:bg-slate-800/40 text-left">
-                    <h1 class="font-heading text-3xl sm:text-4xl lg:text-[2.5rem] font-semibold text-stone-900 dark:text-slate-50 tracking-tight">{{ $page->title }}</h1>
+                    <h1 class="font-heading text-3xl sm:text-4xl lg:text-[2.5rem] font-semibold text-stone-900 dark:text-slate-200 tracking-tight">{{ $page->title }}</h1>
                     <p class="mt-4 text-base text-stone-600 dark:text-slate-400 leading-relaxed max-w-3xl">
                         {{ t('faq_page_intro', 'Straight answers about registration, examinations, portals, and common technical issues. For anything not covered here, use the Contact page.') }}
                     </p>
@@ -189,9 +189,9 @@
     <section class="py-8 sm:py-12 lg:py-16">
         <div class="w-full max-w-5xl mx-auto px-0 sm:px-2">
             <div class="website-fade-up rounded-3xl overflow-hidden border border-rose-200/50 dark:border-rose-900/40 shadow-xl shadow-rose-200/20 dark:shadow-none">
-                <div class="bg-gradient-to-r from-rose-600 via-amber-600 to-amber-500 dark:from-rose-700 dark:via-amber-700 dark:to-amber-600 px-6 sm:px-10 py-10 sm:py-12 text-white">
+                <div class="bg-gradient-to-r from-rose-600 via-yellow-600 to-yellow-500 dark:from-rose-700 dark:via-yellow-700 dark:to-yellow-600 px-6 sm:px-10 py-10 sm:py-12 text-white">
                     <h1 class="font-heading text-3xl sm:text-4xl font-semibold tracking-tight">{{ $page->title }}</h1>
-                    <p class="mt-3 text-amber-50/95 max-w-2xl leading-relaxed">{{ t('cta_page_sub', 'Transparent copy builds trust—swap every line below with your official appeal or volunteer brief.') }}</p>
+                    <p class="mt-3 text-yellow-50/95 max-w-2xl leading-relaxed">{{ t('cta_page_sub', 'Transparent copy builds trust—swap every line below with your official appeal or volunteer brief.') }}</p>
                 </div>
                 <div class="bg-white dark:bg-slate-900 px-6 sm:px-10 py-8 sm:py-10">
                     @include('website.partials.public-page-body')
@@ -280,7 +280,7 @@
                                     </thead>
                                     <tbody class="divide-y divide-stone-200/80 dark:divide-slate-700/80">
                                         @foreach($scheduleExams as $exam)
-                                            <tr class="bg-white dark:bg-slate-900/40 hover:bg-amber-50/40 dark:hover:bg-slate-800/60 transition-colors">
+                                            <tr class="bg-white dark:bg-slate-900/40 hover:bg-yellow-50/40 dark:hover:bg-slate-800/60 transition-colors">
                                                 <td class="px-4 py-3.5 font-medium text-stone-900 dark:text-slate-100">{{ $exam->name }}</td>
                                                 <td class="px-4 py-3.5 text-stone-600 dark:text-slate-300 hidden sm:table-cell">{{ $exam->examType?->name ?? '—' }}</td>
                                                 <td class="px-4 py-3.5 text-stone-700 dark:text-slate-200 whitespace-nowrap">
@@ -302,9 +302,9 @@
                     'pt-6 border-t border-stone-200/80 dark:border-slate-700/80' => $scheduleExams !== null && $hasPageBody,
                 ])>
                     @include('website.partials.public-page-body')
-                </article>
-            </div>
+            </article>
         </div>
-    </section>
+    </div>
+</section>
 @endif
 @endsection

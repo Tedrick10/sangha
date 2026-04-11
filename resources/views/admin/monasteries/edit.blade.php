@@ -69,12 +69,6 @@
                 </div>
             </div>
         @endif
-        <div class="flex items-center gap-6 pt-2">
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $monastery->is_active) ? 'checked' : '' }} class="admin-checkbox">
-                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Active</span>
-            </label>
-        </div>
         <div class="admin-form-group">
             <label for="moderation_status" class="admin-form-label">Moderation Status</label>
             @php
@@ -93,8 +87,9 @@
             @error('rejection_reason')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
     </div>
-    <div class="admin-form-actions">
+    <div class="admin-form-actions flex flex-wrap items-center gap-2">
         <button type="submit" class="admin-btn-primary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'check', 'class' => 'w-5 h-5']) Update Monastery</button>
+        <a href="{{ route('admin.monasteries.chat', $monastery) }}" class="admin-btn-secondary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('monastery_chat_open', 'Open chat') }}</a>
         <a href="{{ route('admin.monasteries.index') }}" class="admin-btn-secondary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'x', 'class' => 'w-4 h-4']) Cancel</a>
     </div>
 </form>

@@ -19,23 +19,7 @@
         </div>
     </div>
     <div class="admin-filter-group">
-        <label for="is_active" class="admin-filter-label">{{ t('status') }}</label>
-        <select name="is_active" id="is_active" class="admin-select">
-            <option value="">{{ t('all') }}</option>
-            <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>{{ t('active') }}</option>
-            <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>{{ t('inactive') }}</option>
-        </select>
-    </div>
-    <div class="admin-filter-group">
-        <label for="approved" class="admin-filter-label">{{ t('approved') }}</label>
-        <select name="approved" id="approved" class="admin-select">
-            <option value="">{{ t('all') }}</option>
-            <option value="1" {{ request('approved') === '1' ? 'selected' : '' }}>{{ t('yes') }}</option>
-            <option value="0" {{ request('approved') === '0' ? 'selected' : '' }}>{{ t('no') }}</option>
-        </select>
-    </div>
-    <div class="admin-filter-group">
-        <label for="moderation_status" class="admin-filter-label">Moderation</label>
+        <label for="moderation_status" class="admin-filter-label">{{ t('status') }}</label>
         <select name="moderation_status" id="moderation_status" class="admin-select">
             <option value="">All</option>
             <option value="pending" {{ request('moderation_status') === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -45,7 +29,7 @@
     </div>
     <div class="flex gap-2">
         <button type="submit" class="admin-btn-filter">@include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4']) {{ t('filter') }}</button>
-        @if(request()->hasAny(['search', 'is_active', 'approved', 'moderation_status']))
+        @if(request()->hasAny(['search', 'moderation_status']))
             <a href="{{ route('admin.monasteries.index') }}" class="admin-btn-clear">@include('partials.icon', ['name' => 'x', 'class' => 'w-4 h-4']) {{ t('clear') }}</a>
         @endif
     </div>
@@ -60,9 +44,7 @@
                 ['id' => 'name', 'label' => t('name')],
                 ['id' => 'username', 'label' => t('username')],
                 ['id' => 'region_city', 'label' => t('region_city')],
-                ['id' => 'status', 'label' => t('status')],
-                ['id' => 'approved', 'label' => t('approved')],
-                ['id' => 'moderation', 'label' => 'Moderation'],
+                ['id' => 'moderation', 'label' => t('status')],
             ],
         ])
     </div>
@@ -73,9 +55,7 @@
                 @include('admin.partials.sortable-th', ['key' => 'name', 'label' => t('name'), 'dataColumn' => 'name'])
                 @include('admin.partials.sortable-th', ['key' => 'username', 'label' => t('username'), 'dataColumn' => 'username'])
                 @include('admin.partials.sortable-th', ['key' => 'region_city', 'label' => t('region_city'), 'dataColumn' => 'region_city'])
-                @include('admin.partials.sortable-th', ['key' => 'is_active', 'label' => t('status'), 'dataColumn' => 'status'])
-                @include('admin.partials.sortable-th', ['key' => 'approved', 'label' => t('approved'), 'dataColumn' => 'approved'])
-                <th>Moderation</th>
+                <th class="min-w-[7rem] text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider" data-column="moderation">{{ t('status') }}</th>
                 <th class="text-right">{{ t('actions') }}</th>
             </tr>
         </thead>
@@ -86,33 +66,20 @@
                     <td data-column="name"><span class="font-semibold text-slate-900 dark:text-slate-100">{{ $monastery->name }}</span></td>
                     <td data-column="username"><span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ $monastery->username ?? '—' }}</span></td>
                     <td data-column="region_city">{{ $monastery->region ?: '—' }} / {{ $monastery->city ?: '—' }}</td>
-                    <td data-column="status">
-                        @if($monastery->is_active)
-                            <span class="admin-badge-active">{{ t('active') }}</span>
-                        @else
-                            <span class="admin-badge-inactive">{{ t('inactive') }}</span>
-                        @endif
-                    </td>
-                    <td data-column="approved">
-                        @if($monastery->approved)
-                            <span class="admin-badge-yes">{{ t('yes') }}</span>
-                        @else
-                            <span class="admin-badge-no">{{ t('no') }}</span>
-                        @endif
-                    </td>
-                    <td data-column="moderation">
+                    <td class="min-w-[7rem]" data-column="moderation">
                         @if($monastery->moderationStatus() === 'approved')
                             <span class="admin-badge-yes">Approved</span>
                         @elseif($monastery->moderationStatus() === 'rejected')
                             <span class="admin-badge-rejected">Rejected</span>
                         @else
-                            <span class="inline-flex rounded-full bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Pending</span>
+                            <span class="admin-badge-pending">Pending</span>
                         @endif
                     </td>
                     <td class="text-right">
                         @if($monastery->moderationStatus() === 'rejected' && $monastery->rejection_reason)
                             <button type="button" class="admin-action-link admin-action-reason js-open-reason-modal" data-reason="{{ e($monastery->rejection_reason) }}">View Reason</button>
                         @endif
+                        <a href="{{ route('admin.monasteries.chat', $monastery) }}" class="admin-action-link">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('chat', 'Chat') }}</a>
                         <a href="{{ route('admin.monasteries.edit', $monastery) }}" class="admin-action-link admin-action-edit">@include('partials.icon', ['name' => 'pencil', 'class' => 'w-4 h-4']) {{ t('edit') }}</a>
                         <form action="{{ route('admin.monasteries.destroy', $monastery) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('{{ t('delete_monastery') }}');">
                             @csrf
@@ -123,7 +90,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="admin-table-empty">{{ t('no_monasteries') }} <a href="{{ route('admin.monasteries.create') }}">{{ t('create_one') }}</a>.</td>
+                    <td colspan="6" class="admin-table-empty">{{ t('no_monasteries') }} <a href="{{ route('admin.monasteries.create') }}">{{ t('create_one') }}</a>.</td>
                 </tr>
             @endforelse
         </tbody>

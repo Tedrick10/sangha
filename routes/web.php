@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\Admin\AppearanceController;
 use App\Http\Controllers\Admin\CustomFieldController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\ExamTypeController;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\MandatoryScoreEntryController;
+use App\Http\Controllers\Admin\MonasteryChatController as AdminMonasteryChatController;
 use App\Http\Controllers\Admin\MonasteryController;
-use App\Http\Controllers\Admin\MonasteryMessageController;
+use App\Http\Controllers\Admin\MonasteryFormRequestController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
@@ -20,8 +23,11 @@ use App\Http\Controllers\Admin\WebsiteController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\MonasteryLoginController;
 use App\Http\Controllers\Auth\StudentLoginController;
+use App\Http\Controllers\Monastery\ChatController as MonasteryPortalChatController;
 use App\Http\Controllers\Monastery\DashboardController as MonasteryDashboardController;
+use App\Http\Controllers\Monastery\FormRequestController as MonasteryFormRequestPortalController;
 use App\Http\Controllers\Monastery\NotificationController as MonasteryNotificationController;
+use App\Http\Controllers\Public\ExamEligibleController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\PassSanghaController;
 use App\Http\Controllers\Public\RegistrationController;
@@ -31,6 +37,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+// Browsers often request /favicon.ico before HTML; redirect to project SVG (avoids default Laravel tab icon).
+Route::get('/favicon.ico', function () {
+    return redirect(asset('favicon.svg'), 302);
+});
 
 Route::post('/preferences/theme', function (Request $request) {
     $theme = $request->input('theme', 'system');
@@ -45,7 +56,7 @@ Route::post('/preferences/theme', function (Request $request) {
 })->name('app.set-theme');
 
 Route::post('/preferences/locale', function (Request $request) {
-    $code = $request->input('locale', 'en');
+    $code = $request->input('locale', config('app.locale'));
     if ($code === 'en' || Language::where('code', $code)->where('is_active', true)->exists()) {
         sync_app_locale($code);
         app()->setLocale($code);
@@ -70,21 +81,37 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'
     Route::get('notifications/recent', [AdminNotificationController::class, 'recent'])->name('notifications.recent');
     Route::get('notifications/{notification}/go', [AdminNotificationController::class, 'go'])->name('notifications.go');
     Route::post('notifications/read-all', [AdminNotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::get('monasteries/{monastery}/chat', [AdminMonasteryChatController::class, 'show'])->name('monasteries.chat');
+    Route::get('monasteries/{monastery}/chat/messages', [AdminMonasteryChatController::class, 'fetch'])->name('monasteries.chat.messages');
+    Route::post('monasteries/{monastery}/chat/messages', [AdminMonasteryChatController::class, 'store'])->name('monasteries.chat.messages.store');
     Route::resource('monasteries', MonasteryController::class);
-    Route::get('monastery-requests', [MonasteryMessageController::class, 'index'])->name('monastery-requests.index');
-    Route::get('monastery-requests/{monastery}', [MonasteryMessageController::class, 'show'])->name('monastery-requests.show');
-    Route::get('monastery-requests/{monastery}/thread/messages', [MonasteryMessageController::class, 'pollThread'])->name('monastery-requests.thread-messages');
-    Route::post('monastery-requests/{monastery}/reply', [MonasteryMessageController::class, 'reply'])->name('monastery-requests.reply');
+    Route::get('monastery-requests', [MonasteryFormRequestController::class, 'index'])->name('monastery-requests.index');
+    Route::get('monastery-requests/{monasteryFormRequest}', [MonasteryFormRequestController::class, 'show'])->name('monastery-requests.show');
+    Route::get('monastery-requests/{monasteryFormRequest}/file', [MonasteryFormRequestController::class, 'file'])->name('monastery-requests.file');
+    Route::put('monastery-requests/{monasteryFormRequest}/status', [MonasteryFormRequestController::class, 'updateStatus'])->name('monastery-requests.update-status');
+    Route::delete('monastery-requests/{monasteryFormRequest}', [MonasteryFormRequestController::class, 'destroy'])->name('monastery-requests.destroy');
     Route::get('sanghas/{sangha}/exams/{exam}', [SanghaController::class, 'examScores'])->name('sanghas.exam-scores');
     Route::resource('sanghas', SanghaController::class);
     Route::resource('custom-fields', CustomFieldController::class);
     Route::post('custom-fields/reorder', [CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
     Route::resource('subjects', SubjectController::class);
+    Route::get('mandatory-scores/exam-options', [MandatoryScoreEntryController::class, 'examOptions'])->name('mandatory-scores.exam-options');
+    Route::get('mandatory-scores/desk-options', [MandatoryScoreEntryController::class, 'deskOptions'])->name('mandatory-scores.desk-options');
+    Route::post('mandatory-scores/grid-row', [MandatoryScoreEntryController::class, 'storeGridRow'])->name('mandatory-scores.grid-row');
+    Route::get('mandatory-scores/grid', [MandatoryScoreEntryController::class, 'grid'])->name('mandatory-scores.grid');
+    Route::post('mandatory-scores', [MandatoryScoreEntryController::class, 'store'])->name('mandatory-scores.store');
+    Route::get('mandatory-scores', [MandatoryScoreEntryController::class, 'index'])->name('mandatory-scores.index');
     Route::resource('scores', ScoreController::class);
     Route::post('scores/generate-pass-list', [ScoreController::class, 'generatePassList'])->name('scores.generate-pass-list');
     Route::post('scores/{score}/decision', [ScoreController::class, 'updateDecision'])->name('scores.decision');
     Route::post('scores/top20/reorder', [ScoreController::class, 'reorderTop20'])->name('scores.top20.reorder');
     Route::resource('exam-types', ExamTypeController::class);
+    Route::get('exams/{exam}/entrances', [ExamController::class, 'entrances'])->name('exams.entrances');
+    Route::post('exams/{exam}/entrances/confirm', [ExamController::class, 'confirmEntrance'])->name('exams.entrances.confirm');
+    Route::post('exams/{exam}/entrances/confirm-bulk', [ExamController::class, 'confirmEntranceBulk'])->name('exams.entrances.confirm-bulk');
+    Route::post('exams/{exam}/entrances/unseat', [ExamController::class, 'unseatEntrance'])->name('exams.entrances.unseat');
+    Route::patch('exams/{exam}/desk-number-prefix', [ExamController::class, 'updateDeskNumberPrefix'])->name('exams.desk-number-prefix');
+    Route::post('exams/{exam}/generate-eligible-list', [ExamController::class, 'generateEligibleList'])->name('exams.generate-eligible-list');
     Route::resource('exams', ExamController::class);
     Route::get('websites', [WebsiteController::class, 'index'])->name('websites.index');
     Route::get('websites/{website}/edit', [WebsiteController::class, 'edit'])->name('websites.edit');
@@ -98,6 +125,8 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('site-images', [SiteImagesController::class, 'edit'])->name('site-images.edit');
     Route::put('site-images', [SiteImagesController::class, 'update'])->name('site-images.update');
+    Route::get('appearance', [AppearanceController::class, 'edit'])->name('appearance.edit');
+    Route::put('appearance', [AppearanceController::class, 'update'])->name('appearance.update');
     Route::delete('site-images/{key}', [SiteImagesController::class, 'destroy'])->name('site-images.destroy');
     Route::post('logout', function () {
         Auth::logout();
@@ -114,19 +143,23 @@ Route::post('monastery/login', [MonasteryLoginController::class, 'login']);
 Route::post('monastery/logout', [MonasteryLoginController::class, 'logout'])->name('monastery.logout');
 Route::middleware(['website.locale', 'auth:monastery'])->prefix('monastery')->name('monastery.')->group(function () {
     Route::get('/', MonasteryDashboardController::class)->name('dashboard');
+    Route::get('chat/messages', [MonasteryPortalChatController::class, 'fetch'])->name('chat.messages');
+    Route::post('chat/messages', [MonasteryPortalChatController::class, 'store'])->name('chat.messages.store');
     Route::get('notifications/recent', [MonasteryNotificationController::class, 'recent'])->name('notifications.recent');
     Route::get('notifications/{notification}/go', [MonasteryNotificationController::class, 'go'])->name('notifications.go');
     Route::post('notifications/read-all', [MonasteryNotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('/sanghas', [MonasteryDashboardController::class, 'storeSangha'])->name('sanghas.store');
-    Route::post('/messages', [MonasteryDashboardController::class, 'storeMessage'])->name('messages.store');
-    Route::get('/thread/messages', [MonasteryDashboardController::class, 'pollMessages'])->name('messages.poll');
+    Route::post('/messages', [MonasteryDashboardController::class, 'storeFormRequest'])->name('messages.store');
+    Route::post('/exam-forms', [MonasteryDashboardController::class, 'storeExamFormSubmission'])->name('exam-forms.store');
+    Route::get('/requests/{monasteryFormRequest}', [MonasteryFormRequestPortalController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{monasteryFormRequest}/file', [MonasteryFormRequestPortalController::class, 'file'])->name('requests.file');
 });
 
 // Sangha login & dashboard
 Route::get('sangha/login', [StudentLoginController::class, 'showLoginForm'])->name('sangha.login');
 Route::post('sangha/login', [StudentLoginController::class, 'login']);
 Route::post('sangha/logout', [StudentLoginController::class, 'logout'])->name('sangha.logout');
-Route::middleware('auth:student')->prefix('sangha')->name('sangha.')->group(function () {
+Route::middleware(['website.locale', 'auth:student'])->prefix('sangha')->name('sangha.')->group(function () {
     Route::get('/', StudentDashboardController::class)->name('dashboard');
 });
 
@@ -139,6 +172,8 @@ Route::middleware('website.locale')->group(function () {
         return redirect()->route('website.login', ['type' => 'monastery', 'mode' => 'register']);
     });
     Route::get('/pass-sanghas', [PassSanghaController::class, 'index'])->name('website.pass-sanghas');
+    Route::get('/exam-eligible', [ExamEligibleController::class, 'index'])->name('website.exam-eligible.index');
+    Route::get('/exam-eligible/{exam}', [ExamEligibleController::class, 'show'])->name('website.exam-eligible.show');
     Route::post('/register/monastery', [RegistrationController::class, 'storeMonastery'])->name('website.register.monastery');
     Route::post('/register/sangha', [RegistrationController::class, 'storeSangha'])->name('website.register.sangha');
     Route::get('/{slug}', [PageController::class, 'show'])->where('slug', '[a-z0-9\-]+')->name('website.page');

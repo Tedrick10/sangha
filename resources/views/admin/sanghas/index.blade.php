@@ -20,40 +20,28 @@
     </div>
     <div class="flex flex-col gap-1 shrink-0 min-w-0">
         <label for="monastery_id" class="admin-filter-label text-xs max-w-[80px] sm:max-w-none">Monastery</label>
-        <select name="monastery_id" id="monastery_id" class="admin-select py-2 text-sm w-36 sm:w-40 max-w-[160px] shrink-0">
-            <option value="">All</option>
-            @foreach($monasteries as $m)
-                <option value="{{ $m->id }}" {{ request('monastery_id') == $m->id ? 'selected' : '' }}>{{ Str::limit($m->name, 20) }}</option>
-            @endforeach
-        </select>
+        <div class="admin-filter-select-wrap w-44 sm:w-56 max-w-[240px]">
+            <select name="monastery_id" id="monastery_id" class="admin-select py-2 text-sm w-full">
+                <option value="">All</option>
+                @foreach($monasteries as $m)
+                    <option value="{{ $m->id }}" {{ request('monastery_id') == $m->id ? 'selected' : '' }}>{{ Str::limit($m->name, 20) }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
     <div class="flex flex-col gap-1 shrink-0 min-w-0">
         <label for="exam_id" class="admin-filter-label text-xs max-w-[80px] sm:max-w-none">Exam</label>
-        <select name="exam_id" id="exam_id" class="admin-select py-2 text-sm w-36 sm:w-40 max-w-[160px] shrink-0">
-            <option value="">All</option>
-            @foreach($exams as $e)
-                <option value="{{ $e->id }}" {{ request('exam_id') == $e->id ? 'selected' : '' }}>{{ Str::limit($e->name . ($e->exam_date ? ' ' . $e->exam_date->format('M d') : ''), 24) }}</option>
-            @endforeach
-        </select>
+        <div class="admin-filter-select-wrap w-44 sm:w-56 max-w-[240px]">
+            <select name="exam_id" id="exam_id" class="admin-select py-2 text-sm w-full">
+                <option value="">All</option>
+                @foreach($exams as $e)
+                    <option value="{{ $e->id }}" {{ request('exam_id') == $e->id ? 'selected' : '' }}>{{ Str::limit($e->name . ($e->exam_date ? ' ' . $e->exam_date->format('M d') : ''), 24) }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
     <div class="flex flex-col gap-1 shrink-0 min-w-0">
-        <label for="is_active" class="admin-filter-label text-xs max-w-[80px] sm:max-w-none">Status</label>
-        <select name="is_active" id="is_active" class="admin-select py-2 text-sm w-24 shrink-0">
-            <option value="">All</option>
-            <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Active</option>
-            <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Inactive</option>
-        </select>
-    </div>
-    <div class="flex flex-col gap-1 shrink-0 min-w-0">
-        <label for="approved" class="admin-filter-label text-xs max-w-[80px] sm:max-w-none">Approved</label>
-        <select name="approved" id="approved" class="admin-select py-2 text-sm w-20 shrink-0">
-            <option value="">All</option>
-            <option value="1" {{ request('approved') === '1' ? 'selected' : '' }}>Yes</option>
-            <option value="0" {{ request('approved') === '0' ? 'selected' : '' }}>No</option>
-        </select>
-    </div>
-    <div class="flex flex-col gap-1 shrink-0 min-w-0">
-        <label for="moderation_status" class="admin-filter-label text-xs max-w-[80px] sm:max-w-none">Moderation</label>
+        <label for="moderation_status" class="admin-filter-label text-xs max-w-[80px] sm:max-w-none">Status</label>
         <select name="moderation_status" id="moderation_status" class="admin-select py-2 text-sm w-28 shrink-0">
             <option value="">All</option>
             <option value="pending" {{ request('moderation_status') === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -63,7 +51,7 @@
     </div>
     <div class="flex gap-2 shrink-0 ml-auto self-end">
         <button type="submit" class="admin-btn-filter py-2 text-sm">@include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4']) Filter</button>
-        @if(request()->hasAny(['search', 'monastery_id', 'exam_id', 'is_active', 'approved', 'moderation_status']))
+        @if(request()->hasAny(['search', 'monastery_id', 'exam_id', 'moderation_status']))
             <a href="{{ route('admin.sanghas.index') }}" class="admin-btn-clear py-2 text-sm">@include('partials.icon', ['name' => 'x', 'class' => 'w-4 h-4']) Clear</a>
         @endif
     </div>
@@ -75,13 +63,12 @@
             'tableId' => 'sanghas-table',
             'storageKey' => 'admin-sanghas-columns',
             'columns' => [
+                ['id' => 'user_id', 'label' => t('user_id', 'Student Id')],
                 ['id' => 'name', 'label' => 'Name'],
-                ['id' => 'username', 'label' => 'Username'],
+                ['id' => 'father_nrc', 'label' => t('score_table_father_nrc', 'Father / NRC')],
                 ['id' => 'monastery', 'label' => 'Monastery'],
                 ['id' => 'exam', 'label' => 'Exam'],
                 ['id' => 'status', 'label' => 'Status'],
-                ['id' => 'approved', 'label' => 'Approved'],
-                ['id' => 'moderation', 'label' => 'Moderation'],
             ],
         ])
     </div>
@@ -89,13 +76,12 @@
         <thead>
             <tr>
                 <th class="w-12 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">No.</th>
-                @include('admin.partials.sortable-th', ['key' => 'name', 'label' => 'Name', 'dataColumn' => 'name', 'class' => 'w-[18%] min-w-[140px]'])
-                @include('admin.partials.sortable-th', ['key' => 'username', 'label' => 'Username', 'dataColumn' => 'username', 'class' => 'w-[12%] min-w-[100px]'])
-                @include('admin.partials.sortable-th', ['key' => 'monastery', 'label' => 'Monastery', 'dataColumn' => 'monastery', 'class' => 'w-[18%] min-w-[140px]'])
-                @include('admin.partials.sortable-th', ['key' => 'exam', 'label' => 'Exam', 'dataColumn' => 'exam', 'class' => 'w-[20%] min-w-[150px]'])
-                @include('admin.partials.sortable-th', ['key' => 'is_active', 'label' => 'Status', 'dataColumn' => 'status', 'class' => 'w-[10%] min-w-[80px]'])
-                @include('admin.partials.sortable-th', ['key' => 'approved', 'label' => 'Approved', 'dataColumn' => 'approved', 'class' => 'w-[10%] min-w-[80px]'])
-                <th class="w-[16%] min-w-[170px]">Moderation</th>
+                @include('admin.partials.sortable-th', ['key' => 'username', 'label' => t('user_id', 'Student Id'), 'dataColumn' => 'user_id', 'class' => 'w-[11%] min-w-[96px]'])
+                @include('admin.partials.sortable-th', ['key' => 'name', 'label' => 'Name', 'dataColumn' => 'name', 'class' => 'w-[14%] min-w-[120px]'])
+                <th data-column="father_nrc" class="text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[14%] min-w-[140px] max-w-[220px]">{{ t('score_table_father_nrc', 'Father / NRC') }}</th>
+                @include('admin.partials.sortable-th', ['key' => 'monastery', 'label' => 'Monastery', 'dataColumn' => 'monastery', 'class' => 'w-[14%] min-w-[120px]'])
+                @include('admin.partials.sortable-th', ['key' => 'exam', 'label' => 'Exam', 'dataColumn' => 'exam', 'class' => 'w-[16%] min-w-[130px]'])
+                <th data-column="status" class="w-[16%] min-w-[170px] text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
                 <th class="w-[12%] min-w-[180px] text-right">Actions</th>
             </tr>
         </thead>
@@ -103,31 +89,35 @@
             @forelse($sanghas as $sangha)
                 <tr>
                     <td class="align-top text-slate-600 dark:text-slate-400">{{ $sanghas->firstItem() + $loop->index }}</td>
+                    <td data-column="user_id" class="align-top whitespace-nowrap"><span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ $sangha->username ?? '—' }}</span></td>
                     <td data-column="name" class="align-top"><span class="font-semibold text-slate-900 dark:text-slate-100 block break-words">{{ $sangha->name }}</span></td>
-                    <td data-column="username" class="align-top whitespace-nowrap"><span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ $sangha->username ?? '—' }}</span></td>
+                    <td data-column="father_nrc" class="align-top max-w-[220px] min-w-0">
+                        @php
+                            $hasFather = filled($sangha->father_name);
+                            $hasNrc = filled($sangha->nrc_number);
+                        @endphp
+                        @if(! $hasFather && ! $hasNrc)
+                            <span class="text-slate-500 dark:text-slate-400">—</span>
+                        @else
+                            <div class="flex flex-col gap-0.5">
+                                @if($hasFather)
+                                    <span class="font-semibold text-slate-900 dark:text-slate-100 break-words leading-snug">{{ $sangha->father_name }}</span>
+                                @endif
+                                @if($hasNrc)
+                                    <span class="text-xs font-mono text-slate-500 dark:text-slate-400 break-words leading-snug">{{ $sangha->nrc_number }}</span>
+                                @endif
+                            </div>
+                        @endif
+                    </td>
                     <td data-column="monastery" class="align-top"><span class="block break-words">{{ $sangha->monastery->name }}</span></td>
                     <td data-column="exam" class="align-top"><span class="block break-words">{{ $sangha->exam?->name ?? '—' }}</span></td>
-                    <td data-column="status" class="align-top whitespace-nowrap">
-                        @if($sangha->is_active)
-                            <span class="admin-badge-active">Active</span>
-                        @else
-                            <span class="admin-badge-inactive">Inactive</span>
-                        @endif
-                    </td>
-                    <td data-column="approved" class="align-top whitespace-nowrap">
-                        @if($sangha->approved)
-                            <span class="admin-badge-yes">Yes</span>
-                        @else
-                            <span class="admin-badge-no">No</span>
-                        @endif
-                    </td>
-                    <td data-column="moderation" class="align-top">
+                    <td data-column="status" class="align-top">
                         @if($sangha->moderationStatus() === 'approved')
                             <span class="admin-badge-yes">Approved</span>
                         @elseif($sangha->moderationStatus() === 'rejected')
                             <span class="admin-badge-rejected">Rejected</span>
                         @else
-                            <span class="inline-flex rounded-full bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Pending</span>
+                            <span class="admin-badge-pending">Pending</span>
                         @endif
                     </td>
                     <td class="align-top text-right whitespace-nowrap">
@@ -145,7 +135,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" class="admin-table-empty">No sanghas yet. <a href="{{ route('admin.sanghas.create') }}">Create one</a>.</td>
+                    <td colspan="8" class="admin-table-empty">No sanghas yet. <a href="{{ route('admin.sanghas.create') }}">Create one</a>.</td>
                 </tr>
             @endforelse
         </tbody>

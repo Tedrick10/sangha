@@ -5,11 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', t('monastery_portal')) - {{ config('app.name', 'Sangha Exam') }}</title>
-    @php $favicon = \App\Models\SiteSetting::imageUrl('favicon'); @endphp
-    @if($favicon)
-        <link rel="icon" href="{{ $favicon }}" type="image/x-icon">
-    @endif
+    <title>@yield('title', t('monastery_portal')) - {{ config('app.name') }}</title>
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
@@ -38,26 +35,30 @@
         })();
     </script>
 </head>
-<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans" data-app-locale-url="{{ route('app.set-locale') }}" data-app-theme-url="{{ route('app.set-theme') }}">
-    <header class="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-            <div>
-                <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ auth()->guard('monastery')->user()->name ?? t('monastery') }}</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ t('monastery_portal') }}</p>
+@php $__ap = appearance_portal_body_attrs('monastery'); @endphp
+<body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans {{ $__ap['class'] }}" @if($__ap['style'] !== '') style="{{ $__ap['style'] }}" @endif data-app-locale-url="{{ route('app.set-locale') }}" data-app-theme-url="{{ route('app.set-theme') }}">
+    <header class="monastery-header sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
+        {{-- Title wraps instead of ellipsis; toolbar scrolls horizontally if needed. --}}
+        <div class="mx-auto flex max-w-5xl min-w-0 flex-nowrap items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
+            <div class="min-w-0 flex-1 basis-0">
+                <p class="break-words text-sm font-semibold leading-snug text-slate-900 dark:text-slate-100 [overflow-wrap:anywhere]">
+                    {{ auth()->guard('monastery')->user()->name ?? t('monastery') }}<span class="monastery-header-kicker font-medium text-slate-500 dark:text-amber-200"> · {{ t('monastery_portal') }}</span>
+                </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="monastery-header-toolbar flex shrink-0 flex-nowrap items-center justify-end gap-1 overflow-x-auto [-webkit-overflow-scrolling:touch] sm:gap-2 no-scrollbar">
                 @include('partials.notifications-bell', ['notifiable' => auth()->guard('monastery')->user(), 'goRouteName' => 'monastery.notifications.go', 'readAllRouteName' => 'monastery.notifications.read-all', 'jsonRouteName' => 'monastery.notifications.recent'])
                 @include('website.partials.appbar-language')
                 @include('website.partials.appbar-theme')
-                <form action="{{ route('monastery.logout') }}" method="POST">
+                <form action="{{ route('monastery.logout') }}" method="POST" class="shrink-0">
                     @csrf
-                    <button type="submit" class="inline-flex items-center px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">{{ t('exit') }}</button>
+                    <button type="submit" class="monastery-header-exit inline-flex items-center rounded-lg border border-slate-300 px-2 py-1.5 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-amber-500/35 dark:text-amber-100 dark:hover:bg-slate-800 dark:hover:border-amber-400/50 sm:px-3 sm:py-2 sm:text-xs">{{ t('exit') }}</button>
                 </form>
             </div>
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto w-full px-4 sm:px-6 py-5 sm:py-6 pb-24">
+    {{-- Bottom padding ≈ fixed nav (bottom-5 + bar height) + safe area — avoid duplicating large pb inside tab content. --}}
+    <main class="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-6 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] max-[480px]:pb-[calc(7.25rem+env(safe-area-inset-bottom,0px))]">
         @if(session('success'))
             <div class="mb-5 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200/80 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-200 px-5 py-3.5 font-medium">
                 {{ session('success') }}
@@ -83,5 +84,6 @@
             })();
         </script>
     @endif
+    @stack('scripts')
 </body>
 </html>

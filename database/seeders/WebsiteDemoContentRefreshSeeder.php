@@ -14,33 +14,10 @@ class WebsiteDemoContentRefreshSeeder extends Seeder
     public function run(): void
     {
         $y = (int) date('Y');
-        $pages = [
-            'home' => [
-                'title' => 'Home',
-                'sort_order' => 0,
-                'content' => '',
-            ],
-            'about' => [
-                'title' => 'About Us',
-                'sort_order' => 1,
-                'content' => '<h2>Our mission</h2><p>Sangha Exam is a dedicated platform for organizing <strong>Pali</strong>, <strong>Vinaya</strong>, and <strong>Dhamma</strong> examinations for monastic communities. We help monasteries register candidates, publish schedules, record scores, and share results with clarity and respect.</p><h2>What we offer</h2><ul><li>Secure portals for monasteries and Sangha members</li><li>Centralized exam types, subjects, and score management</li><li>Public pages for schedules, policies, and pass lists</li><li>Multilingual interface options for regional use</li></ul><h2>Who we serve</h2><p>Partner monasteries, examination boards, and candidates use the system for end-to-end exam cycles—from registration to publication of outcomes.</p>',
-            ],
-            'contact' => [
-                'title' => 'Contact',
-                'sort_order' => 2,
-                'content' => '<h2>Contact the secretariat</h2><p>For registration support, technical issues, or examination enquiries, reach us through the channels below. Typical response time is <strong>1–2 business days</strong>.</p><div class="not-prose my-6 grid gap-4 sm:grid-cols-2"><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5"><p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">Email</p><a href="mailto:contact@sanghaexam.org" class="text-amber-700 dark:text-amber-400 font-medium">contact@sanghaexam.org</a></div><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5"><p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">Phone</p><p class="font-medium text-stone-900 dark:text-slate-100">+95 9 123 456 789</p></div></div><h2>Office hours</h2><p>Monday–Friday, 09:00–17:00 (local time). During examination periods, extended support may be announced on the home page.</p>',
-            ],
-            'exam-schedule' => [
-                'title' => 'Examination Schedule',
-                'sort_order' => 3,
-                'content' => '<p>The <strong>table below</strong> is generated automatically from approved, active examinations in the database. Use it in demos to show real venues, monasteries, and dates. Static notes can still be edited here in the admin panel.</p><p>Monastery coordinators should confirm final hall assignments before the exam date.</p>',
-            ],
-            'privacy' => [
-                'title' => 'Privacy Policy',
-                'sort_order' => 4,
-                'content' => <<<'HTML'
+        $appName = config('app.name');
+        $privacyHtml = <<<HTML
 <h2>Summary</h2>
-<p>This Privacy Policy describes how Sangha Exam (the &ldquo;platform&rdquo;) handles personal information when monasteries and Sangha members use registration, examination, and results features. It applies to the public website and the monastery and Sangha portals unless a separate notice says otherwise.</p>
+<p>This Privacy Policy describes how {$appName} (the &ldquo;platform&rdquo;) handles personal information when monasteries and Sangha members use registration, examination, and results features. It applies to the public website and the monastery and Sangha portals unless a separate notice says otherwise.</p>
 <p><strong>Demo notice:</strong> Replace this entire document with counsel-approved text before relying on it in production.</p>
 
 <h2>Who we are</h2>
@@ -87,7 +64,32 @@ class WebsiteDemoContentRefreshSeeder extends Seeder
 
 <h2>Contact</h2>
 <p>For privacy-related questions, use the channel published on the <strong>Contact</strong> page.</p>
-HTML,
+HTML;
+        $pages = [
+            'home' => [
+                'title' => 'Home',
+                'sort_order' => 0,
+                'content' => '',
+            ],
+            'about' => [
+                'title' => 'About Us',
+                'sort_order' => 1,
+                'content' => '<h2>Our mission</h2><p>'.$appName.' is a dedicated platform for organizing <strong>Pali</strong>, <strong>Vinaya</strong>, and <strong>Dhamma</strong> examinations for monastic communities. We help monasteries register candidates, publish schedules, record scores, and share results with clarity and respect.</p><h2>What we offer</h2><ul><li>Secure portals for monasteries and Sangha members</li><li>Centralized exam types, subjects, and score management</li><li>Public pages for schedules, policies, and pass lists</li><li>Multilingual interface options for regional use</li></ul><h2>Who we serve</h2><p>Partner monasteries, examination boards, and candidates use the system for end-to-end exam cycles—from registration to publication of outcomes.</p>',
+            ],
+            'contact' => [
+                'title' => 'Contact',
+                'sort_order' => 2,
+                'content' => '<h2>Contact the secretariat</h2><p>For registration support, technical issues, or examination enquiries, reach us through the channels below. Typical response time is <strong>1–2 business days</strong>.</p><div class="not-prose my-6 grid gap-4 sm:grid-cols-2"><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5"><p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">Email</p><a href="mailto:contact@sanghaexam.org" class="text-amber-700 dark:text-amber-400 font-medium">contact@sanghaexam.org</a></div><div class="rounded-2xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800/60 p-5"><p class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-slate-400 mb-1">Phone</p><p class="font-medium text-stone-900 dark:text-slate-100">+95 9 123 456 789</p></div></div><h2>Office hours</h2><p>Monday–Friday, 09:00–17:00 (local time). During examination periods, extended support may be announced on the home page.</p>',
+            ],
+            'exam-schedule' => [
+                'title' => 'Examination Schedule',
+                'sort_order' => 3,
+                'content' => '<p>The <strong>table below</strong> is generated automatically from active examinations in the database. Use it in demos to show real venues, monasteries, and dates. Static notes can still be edited here in the admin panel.</p><p>Monastery coordinators should confirm final hall assignments before the exam date.</p>',
+            ],
+            'privacy' => [
+                'title' => 'Privacy Policy',
+                'sort_order' => 4,
+                'content' => $privacyHtml,
             ],
             'faq' => [
                 'title' => 'FAQ',
@@ -142,7 +144,7 @@ HTML,
             'donate' => [
                 'title' => 'Donate',
                 'sort_order' => 92,
-                'content' => '<h2>Support the program</h2><p>Donations help cover examination materials, hall costs, and platform maintenance. This is <strong>demo copy</strong>—replace with your official donation channels.</p><ul><li><strong>Bank transfer:</strong> Demo Bank — Account name: Sangha Exam Trust — Reference: DONATION</li><li><strong>Contact:</strong> Use the Contact page for receipts and enquiries.</li></ul>',
+                'content' => '<h2>Support the program</h2><p>Donations help cover examination materials, hall costs, and platform maintenance. This is <strong>demo copy</strong>—replace with your official donation channels.</p><ul><li><strong>Bank transfer:</strong> Demo Bank — Account name: '.$appName.' Trust — Reference: DONATION</li><li><strong>Contact:</strong> Use the Contact page for receipts and enquiries.</li></ul>',
             ],
             'resources' => [
                 'title' => 'Resources',

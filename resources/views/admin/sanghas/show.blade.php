@@ -9,6 +9,23 @@
     <p class="text-slate-600 dark:text-slate-400 mt-1">{{ $sangha->monastery->name }}</p>
 </div>
 
+<div class="rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 mb-6">
+    <dl class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+            <dt class="text-slate-500 dark:text-slate-400">{{ t('user_id', 'Student Id') }}</dt>
+            <dd class="font-mono font-medium text-slate-900 dark:text-slate-100">{{ $sangha->username ?? '—' }}</dd>
+        </div>
+        <div>
+            <dt class="text-slate-500 dark:text-slate-400">{{ t('score_father_name_label', 'Father name') }}</dt>
+            <dd class="text-slate-900 dark:text-slate-100">{{ filled($sangha->father_name) ? $sangha->father_name : '—' }}</dd>
+        </div>
+        <div>
+            <dt class="text-slate-500 dark:text-slate-400">{{ t('score_nrc_label', 'NRC number') }}</dt>
+            <dd class="font-mono text-slate-800 dark:text-slate-200">{{ filled($sangha->nrc_number) ? $sangha->nrc_number : '—' }}</dd>
+        </div>
+    </dl>
+</div>
+
 <div class="admin-table-card">
     <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-600 bg-gradient-to-r from-slate-50 to-slate-100/80 dark:from-slate-700 dark:to-slate-700/80">
         <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Exams taken</h2>

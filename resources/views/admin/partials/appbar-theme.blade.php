@@ -3,8 +3,8 @@
     $themeLabels = ['light' => t('theme_light'), 'dark' => t('theme_dark'), 'system' => t('theme_system')];
     $currentLabel = $themeLabels[$theme] ?? t('theme_system');
 @endphp
-<div class="relative inline-block" id="admin-theme-dropdown">
-    <button type="button" id="admin-theme-btn" aria-haspopup="true" aria-expanded="false" class="admin-dropdown-trigger whitespace-nowrap">
+<div class="relative shrink-0" id="admin-theme-dropdown">
+    <button type="button" id="admin-theme-btn" data-theme-aria-prefix="{{ e(t('theme', 'Theme')) }}" aria-haspopup="true" aria-expanded="false" aria-label="{{ t('theme', 'Theme') }}: {{ $currentLabel }}" class="admin-dropdown-trigger admin-header-dropdown-trigger whitespace-nowrap">
         <span id="admin-theme-icon-slot" class="shrink-0 inline-flex" aria-hidden="true">
             @if($theme === 'light')
                 <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -14,8 +14,8 @@
                 <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
             @endif
         </span>
-        <span id="admin-theme-label">{{ $currentLabel }}</span>
-        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        <span id="admin-theme-label" class="hidden sm:inline">{{ $currentLabel }}</span>
+        <svg class="h-3.5 w-3.5 shrink-0 text-slate-400 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
     </button>
     <div id="admin-theme-menu" class="admin-dropdown-panel w-44 hidden" role="menu">
         @foreach(['light', 'dark', 'system'] as $opt)
@@ -58,6 +58,10 @@
         var labelEl = document.getElementById('admin-theme-label');
         var iconSlot = document.getElementById('admin-theme-icon-slot');
         if (labelEl && labels[theme]) labelEl.textContent = labels[theme];
+        if (btn && labels[theme]) {
+            var prefix = (btn.getAttribute('data-theme-aria-prefix') || 'Theme') + ': ';
+            btn.setAttribute('aria-label', prefix + labels[theme]);
+        }
         if (iconSlot && icons[theme]) iconSlot.innerHTML = icons[theme];
         menu.querySelectorAll('.admin-theme-choice').forEach(function (el) {
             var t = el.getAttribute('data-admin-theme');

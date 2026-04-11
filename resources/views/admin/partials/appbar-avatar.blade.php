@@ -1,6 +1,6 @@
 {{-- Avatar dropdown for profile and logout --}}
 @php $user = auth()->user(); @endphp
-<div class="relative inline-block" id="admin-avatar-dropdown">
+<div class="relative shrink-0" id="admin-avatar-dropdown">
     <button type="button" id="admin-avatar-btn" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 hover:ring-2 hover:ring-slate-200 dark:hover:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-400/50 transition-all duration-200">
         <span class="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center text-sm font-semibold shrink-0">
             @if($user)

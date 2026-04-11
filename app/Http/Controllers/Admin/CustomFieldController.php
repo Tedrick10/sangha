@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomField;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -36,48 +37,63 @@ class CustomFieldController extends Controller
         }
         $customFields = $query->get();
         $groupedByForm = $customFields->sortBy('sort_order')->groupBy('entity_type');
+
         return view('admin.custom-fields.index', compact('customFields', 'groupedByForm'));
     }
 
+    /**
+     * Ensure built-in field rows exist for each slug. New rows get defaults from code; existing rows keep
+     * admin-edited label, type, placeholder, required, and sort order (so Custom Fields index does not revert edits).
+     */
     protected function syncBuiltInFields(): void
     {
         foreach (CustomField::builtInFields() as $entityType => $fields) {
-            $order = 0;
-            foreach ($fields as $def) {
-                $field = CustomField::firstOrCreate(
-                    ['entity_type' => $entityType, 'slug' => $def['slug']],
+            foreach (array_values($fields) as $sortOrder => $def) {
+                $field = CustomField::firstOrNew(
                     [
+                        'entity_type' => $entityType,
+                        'slug' => $def['slug'],
+                    ]
+                );
+
+                if (! $field->exists) {
+                    $field->fill([
                         'name' => $def['name'],
                         'type' => $def['type'],
                         'required' => $def['required'],
                         'placeholder' => $def['placeholder'] ?? null,
-                        'sort_order' => $order++,
+                        'sort_order' => $sortOrder,
                         'is_built_in' => true,
-                    ]
-                );
-                if (! $field->wasRecentlyCreated) {
-                    $updates = $field->is_built_in ? [] : ['is_built_in' => true];
-                    if (($def['placeholder'] ?? null) !== null && empty($field->placeholder)) {
-                        $updates['placeholder'] = $def['placeholder'];
-                    }
-                    if (! empty($updates)) {
-                        $field->update($updates);
-                    }
+                    ]);
+                    $field->save();
+                } elseif (! $field->is_built_in) {
+                    $field->update(['is_built_in' => true]);
                 }
             }
+        }
+
+        foreach (CustomField::builtInFields() as $entityType => $fields) {
+            $slugs = collect($fields)->pluck('slug')->filter()->values()->all();
+            CustomField::query()
+                ->where('entity_type', $entityType)
+                ->where('is_built_in', true)
+                ->whereNotIn('slug', $slugs)
+                ->get()
+                ->each(fn (CustomField $obsolete) => $obsolete->delete());
         }
     }
 
     public function create(Request $request): View
     {
         $entityType = $request->get('entity_type', 'monastery');
+
         return view('admin.custom-fields.create', compact('entityType'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'entity_type' => 'required|in:monastery,sangha,request,exam,exam_type',
+            'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255',
             'type' => 'required|in:text,textarea,number,date,time,datetime,select,checkbox,media,document,video',
@@ -95,6 +111,7 @@ class CustomFieldController extends Controller
             : null;
 
         $created = CustomField::create($validated);
+
         return redirect()->route('admin.custom-fields.index', ['entity_type' => $created->entity_type])->with('success', 'Custom field created successfully.');
     }
 
@@ -106,7 +123,7 @@ class CustomFieldController extends Controller
     public function update(Request $request, CustomField $customField): RedirectResponse
     {
         $validated = $request->validate([
-            'entity_type' => 'required|in:monastery,sangha,request,exam,exam_type',
+            'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
             'name' => 'required|string|max:255',
             'type' => 'required|in:text,textarea,number,date,time,datetime,select,checkbox,media,document,video',
             'options' => 'nullable|array',
@@ -122,12 +139,20 @@ class CustomFieldController extends Controller
             : null;
 
         $customField->update($validated);
+
         return redirect()->route('admin.custom-fields.index', ['entity_type' => $customField->entity_type])->with('success', 'Custom field updated successfully.');
     }
 
     public function destroy(CustomField $customField): RedirectResponse
     {
+        if ($customField->is_built_in) {
+            return redirect()
+                ->route('admin.custom-fields.index', ['entity_type' => $customField->entity_type])
+                ->with('error', 'Built-in fields cannot be deleted. You can edit their label, placeholder, and options.');
+        }
+
         $customField->delete();
+
         return redirect()->route('admin.custom-fields.index', ['entity_type' => $customField->entity_type])->with('success', 'Custom field deleted successfully.');
     }
 
@@ -163,12 +188,12 @@ class CustomFieldController extends Controller
         return redirect()->route('admin.custom-fields.index', ['entity_type' => $customField->entity_type])->with('success', 'Field position updated.');
     }
 
-    public function reorder(Request $request): \Illuminate\Http\JsonResponse
+    public function reorder(Request $request): JsonResponse
     {
         $request->validate([
             'order' => 'required|array',
             'order.*' => 'required|integer|exists:custom_fields,id',
-            'entity_type' => 'required|in:monastery,sangha,request,exam,exam_type',
+            'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
         ]);
 
         foreach ($request->order as $position => $id) {

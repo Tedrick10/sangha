@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') - Sangha Exam</title>
+    <title>@yield('title', 'Admin') - {{ config('app.name') }}</title>
     <script>
         try {
             if (localStorage.getItem('admin_sidebar_collapsed') === '1' && window.matchMedia('(min-width: 1024px)').matches) {
@@ -13,18 +13,15 @@
             }
         } catch (e) {}
     </script>
-    @php $favicon = \App\Models\SiteSetting::imageUrl('favicon'); @endphp
-    @if($favicon)
-        <link rel="icon" href="{{ $favicon }}" type="image/x-icon">
-    @endif
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
     <script>
         (function() {
             function applyAdminTheme() {
-                var theme = document.documentElement.getAttribute('data-theme') || 'system';
-                var dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            var theme = document.documentElement.getAttribute('data-theme') || 'system';
+            var dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
                 document.documentElement.classList.toggle('dark', dark);
             }
             window.sanghaSetAppTheme = function (theme) {
@@ -45,39 +42,32 @@
         })();
     </script>
 </head>
-<body class="min-h-screen bg-stone-50 text-stone-900 dark:bg-slate-900 dark:text-slate-100 font-sans" data-app-locale-url="{{ route('app.set-locale') }}" data-app-theme-url="{{ route('app.set-theme') }}">
+@php $__ap = appearance_portal_body_attrs('admin'); @endphp
+<body class="min-h-screen overflow-x-hidden bg-stone-50 text-stone-900 dark:bg-slate-950 dark:text-slate-200 font-sans antialiased {{ $__ap['class'] }}" @if($__ap['style'] !== '') style="{{ $__ap['style'] }}" @endif data-app-locale-url="{{ route('app.set-locale') }}" data-app-theme-url="{{ route('app.set-theme') }}">
     {{-- Mobile overlay: opacity transition (no display:none) for smooth fade --}}
     <div id="admin-sidebar-overlay" class="admin-sidebar-overlay fixed inset-0 z-30 pointer-events-none opacity-0 lg:hidden" aria-hidden="true"></div>
     {{-- Sidebar is fixed (mobile + desktop) so width animation does not flex-reflow the main column (major jank source). Main uses matching padding-left transition. --}}
     <div class="relative min-h-screen min-w-0">
-        <aside id="admin-sidebar" class="admin-sidebar-drawer fixed inset-y-0 left-0 z-40 flex min-h-screen w-64 max-w-[85vw] flex-col border-r border-stone-200/90 bg-gradient-to-b from-stone-50 via-white to-stone-50/95 text-stone-800 shadow-xl shadow-stone-300/25 dark:border-slate-800/90 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100 dark:shadow-black/30 lg:max-w-none lg:shadow-none">
-            <div class="admin-sidebar-top flex h-[3.25rem] shrink-0 items-center gap-2 border-b border-stone-200/80 px-3 dark:border-slate-700/50">
-                <button type="button" class="js-admin-sidebar-toggle hidden h-9 w-9 shrink-0 items-center justify-center rounded-lg text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white lg:inline-flex" aria-label="{{ t('toggle_sidebar', 'Toggle sidebar') }}" aria-expanded="true">
+        <aside id="admin-sidebar" class="admin-sidebar-drawer fixed inset-y-0 left-0 z-40 flex min-h-screen w-64 max-w-[85vw] flex-col border-r border-stone-200/90 bg-gradient-to-b from-stone-50 via-white to-stone-50/95 text-stone-800 shadow-xl shadow-stone-300/20 dark:border-slate-700/80 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:text-slate-200 dark:shadow-black/40 lg:max-w-none lg:shadow-none">
+            <div class="admin-sidebar-top flex min-h-[3.25rem] shrink-0 items-start gap-2 border-b border-stone-200/80 px-3 py-2 dark:border-slate-700/50">
+                <button type="button" class="js-admin-sidebar-toggle mt-0.5 hidden h-9 w-9 shrink-0 items-center justify-center self-start rounded-lg text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white lg:inline-flex" aria-label="{{ t('toggle_sidebar', 'Toggle sidebar') }}" aria-expanded="true">
                     <svg class="js-as-menu h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     <svg class="js-as-close hidden h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     <svg class="js-as-collapse hidden h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
                 </button>
                 @php $logo = \App\Models\SiteSetting::imageUrl('logo'); @endphp
-                <a href="{{ route('admin.dashboard') }}" class="admin-sidebar-brand-full flex min-w-0 flex-1 items-center gap-2 rounded-md outline-none ring-amber-500/0 focus-visible:ring-2 focus-visible:ring-amber-500/40">
+                <a href="{{ route('admin.dashboard') }}" class="admin-sidebar-brand-full flex min-w-0 flex-1 items-start gap-2 rounded-md outline-none ring-amber-500/0 focus-visible:ring-2 focus-visible:ring-amber-500/40" title="{{ config('app.name') }}">
                     @if($logo)
-                        <img src="{{ $logo }}" alt="{{ t('sangha_exam') }}" class="h-7 max-w-[7.5rem] rounded-md bg-white object-contain p-1 ring-1 ring-stone-200/90 dark:bg-white/10 dark:ring-white/10">
+                        <img src="{{ $logo }}" alt="{{ config('app.name') }}" class="h-7 max-w-[7.5rem] rounded-md bg-white object-contain p-1 ring-1 ring-stone-200/90 dark:bg-white/10 dark:ring-white/10">
                     @else
-                        <span class="truncate text-sm font-semibold tracking-tight text-amber-900 dark:text-white">{{ t('sangha_exam') }}</span>
+                        @include('partials.app-brand-title', [
+                            'outerClass' => 'admin-sidebar-brand-title text-left text-xs font-semibold tracking-tight text-amber-900 dark:text-white sm:text-sm',
+                            'lineClass' => 'leading-snug',
+                        ])
                     @endif
                 </a>
             </div>
             @php $adminUser = auth()->user(); @endphp
-            @if($adminUser)
-                <div class="admin-sidebar-user flex items-center gap-3 border-b border-stone-200/80 px-3 py-3 dark:border-slate-700/50">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-semibold text-amber-800 ring-1 ring-amber-200/80 dark:bg-amber-500/20 dark:text-amber-200 dark:ring-amber-400/30">
-                        {{ strtoupper(mb_substr($adminUser->name ?? $adminUser->email ?? 'A', 0, 1)) }}
-                    </span>
-                    <div class="admin-sidebar-user-text min-w-0 flex-1">
-                        <p class="truncate text-sm font-medium text-stone-900 dark:text-white">{{ $adminUser->name }}</p>
-                        <p class="truncate text-xs text-stone-500 dark:text-slate-400">{{ $adminUser->email ?? '' }}</p>
-                    </div>
-                </div>
-            @endif
             @include('admin.partials.sidebar-nav')
             <div class="mt-auto border-t border-stone-200/80 p-2 dark:border-slate-700/50">
                 <form action="{{ route('admin.logout') }}" method="POST" class="block">
@@ -91,27 +81,34 @@
         </aside>
 
         {{-- Header + Main: lg padding tracks sidebar width (see app.css .admin-main) --}}
-        <div class="admin-main flex min-h-screen flex-col min-w-0 lg:pl-64">
-            <header class="admin-header relative z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-stone-200/90 bg-white/95 px-4 backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 sm:gap-3 sm:px-6 lg:px-8">
+        {{-- min-h-screen only stretches empty space below short pages; sidebar is already full-height fixed. --}}
+        <div class="admin-main flex min-h-0 w-full max-w-full min-w-0 flex-col lg:pl-64">
+            {{-- w-full/min-w-0/flex-1 toolbar: nowrap cluster must not widen the column past the viewport (mobile). --}}
+            <header class="admin-header relative z-50 flex w-full min-w-0 max-w-full min-h-12 shrink-0 items-center gap-1.5 border-b border-stone-200/90 bg-white/95 px-2.5 backdrop-blur-md shadow-sm shadow-stone-900/5 dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-none sm:min-h-14 sm:gap-3 sm:px-6 lg:px-8">
                 <button type="button" id="admin-sidebar-toggle" aria-label="{{ t('toggle_sidebar', 'Toggle sidebar') }}" aria-expanded="false" class="js-admin-sidebar-toggle relative -ml-2 inline-flex shrink-0 items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:hidden">
                     <svg class="js-as-menu h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     <svg class="js-as-close hidden h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     <svg class="js-as-collapse hidden h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
                 </button>
-                <div class="flex items-center gap-2 sm:gap-3 ml-auto">
-                <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.dashboard') ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700' }}">@include('partials.icon', ['name' => 'home', 'class' => 'w-4 h-4']) {{ t('dashboard') }}</a>
-                <a href="{{ url('/') }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">@include('partials.icon', ['name' => 'external-link', 'class' => 'w-4 h-4']) {{ t('view_site') }}</a>
-                @include('admin.partials.appbar-language')
-                @include('admin.partials.appbar-theme')
-                @if($adminUser)
-                    @include('partials.notifications-bell', ['notifiable' => $adminUser, 'goRouteName' => 'admin.notifications.go', 'readAllRouteName' => 'admin.notifications.read-all', 'jsonRouteName' => 'admin.notifications.recent'])
-                @endif
-                @include('admin.partials.appbar-avatar')
+                {{-- overflow-x only on text links — absolute dropdowns must not sit inside an overflow clip or menus never show. --}}
+                <div class="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 md:gap-3">
+                    <div class="flex min-w-0 flex-1 flex-nowrap items-center justify-end gap-1 overflow-x-auto [-webkit-overflow-scrolling:touch] sm:gap-2 no-scrollbar">
+                        <a href="{{ route('admin.dashboard') }}" aria-label="{{ t('dashboard') }}" class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:gap-2 sm:px-3 {{ request()->routeIs('admin.dashboard') ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700' }}">@include('partials.icon', ['name' => 'home', 'class' => 'w-4 h-4']) <span class="hidden sm:inline">{{ t('dashboard') }}</span></a>
+                        <a href="{{ url('/') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ t('view_site') }}" class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100 sm:gap-2 sm:px-3">@include('partials.icon', ['name' => 'external-link', 'class' => 'w-4 h-4']) <span class="hidden sm:inline">{{ t('view_site') }}</span></a>
+                    </div>
+                    <div class="flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2 md:gap-3">
+                        @include('admin.partials.appbar-language')
+                        @include('admin.partials.appbar-theme')
+                        @if($adminUser)
+                            @include('partials.notifications-bell', ['notifiable' => $adminUser, 'goRouteName' => 'admin.notifications.go', 'readAllRouteName' => 'admin.notifications.read-all', 'jsonRouteName' => 'admin.notifications.recent'])
+                        @endif
+                        @include('admin.partials.appbar-avatar')
+                    </div>
                 </div>
             </header>
-        <main class="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8">
+        <main class="w-full min-w-0 p-3 sm:p-6 lg:p-8 pb-8 sm:pb-10">
             @if(session('success'))
-                <div class="mb-6 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200/80 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-200 px-5 py-4 font-medium shadow-sm">
+                <div class="mb-6 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200/80 dark:border-amber-800/50 text-amber-900 dark:text-amber-100 px-5 py-4 font-medium shadow-sm">
                     {{ session('success') }}
                 </div>
             @endif
@@ -194,7 +191,7 @@
                 sidebar.classList.add('admin-mobile-drawer-open');
                 if (overlay) {
                     overlay.classList.add('is-open');
-                    overlay.setAttribute('aria-hidden', 'false');
+                overlay.setAttribute('aria-hidden', 'false');
                 }
                 document.body.style.overflow = 'hidden';
                 syncToggleIcons();
@@ -206,7 +203,7 @@
                 sidebar.classList.remove('admin-mobile-drawer-open');
                 if (overlay) {
                     overlay.classList.remove('is-open');
-                    overlay.setAttribute('aria-hidden', 'true');
+                overlay.setAttribute('aria-hidden', 'true');
                 }
                 if (drawerBodyUnlockTimer) {
                     clearTimeout(drawerBodyUnlockTimer);
@@ -307,6 +304,15 @@
             });
             syncToggleIcons();
         })();
+    </script>
+    <script>
+        document.addEventListener('submit', function (e) {
+            var form = e.target;
+            if (!form || form.tagName !== 'FORM' || !form.hasAttribute('data-admin-submit-once')) return;
+            form.querySelectorAll('button[type="submit"]').forEach(function (btn) {
+                btn.disabled = true;
+            });
+        }, true);
     </script>
 </body>
 </html>

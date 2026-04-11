@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'tom-select/dist/css/tom-select.default.css';
 @plugin '@tailwindcss/typography';
 
 /* Class-based dark mode (session / data-theme on <html>) — must match inline script in layouts */
@@ -97,11 +98,13 @@
 
 .website-card-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px -12px rgba(251, 191, 36, 0.18);
+    box-shadow: 0 12px 40px -12px rgba(250, 204, 21, 0.22);
 }
 
 .dark .website-card-hover:hover {
-    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.45);
+    box-shadow:
+        0 12px 40px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(250, 204, 21, 0.08);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -119,8 +122,8 @@
     /* Search & filter bar */
     .admin-filter-bar {
         @apply rounded-xl sm:rounded-2xl border p-4 sm:p-5 mb-4 sm:mb-6;
-        @apply bg-white border-slate-200/80 shadow-sm shadow-slate-200/50;
-        @apply dark:bg-slate-800 dark:border-slate-600 dark:shadow-none;
+        @apply bg-white border-slate-200/80 shadow-sm shadow-slate-200/40;
+        @apply dark:bg-slate-800/95 dark:border-slate-600/90 dark:shadow-md dark:shadow-black/20;
     }
     .admin-search-wrap {
         @apply flex-1 min-w-0 sm:min-w-[180px] md:min-w-[220px] relative w-full;
@@ -141,6 +144,10 @@
     }
     .admin-filter-label {
         @apply text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider;
+    }
+    /* Fixed width for native or Tom Select (wrapper must size .ts-wrapper, not only the hidden <select>) */
+    .admin-filter-select-wrap {
+        @apply min-w-0 shrink-0;
     }
     .admin-select {
         @apply pl-4 pr-10 py-2.5 rounded-xl border appearance-none
@@ -170,10 +177,11 @@
 
     /* Table - responsive with horizontal scroll on small screens */
     .admin-table-card {
-        @apply rounded-2xl border -mx-2 sm:mx-0 relative;
-        @apply bg-gradient-to-b from-slate-50/70 via-white to-slate-50/80 border-slate-200/80 shadow-xl shadow-slate-300/30;
-        @apply dark:bg-gradient-to-b dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 dark:border-slate-600 dark:shadow-none;
-        @apply ring-1 ring-white/60 dark:ring-slate-700/50;
+        @apply rounded-xl sm:rounded-2xl border relative max-w-[100vw] sm:max-w-none;
+        @apply -mx-1 px-0.5 sm:mx-0 sm:px-0;
+        @apply bg-gradient-to-b from-slate-50/80 via-white to-slate-50/90 border-slate-200/80 shadow-lg shadow-slate-300/25;
+        @apply dark:from-slate-800/98 dark:via-slate-800 dark:to-slate-900/95 dark:border-slate-600/80 dark:shadow-lg dark:shadow-black/35;
+        @apply ring-1 ring-slate-200/40 dark:ring-slate-600/40;
         overflow-x: auto;
         overflow-y: visible;
         -webkit-overflow-scrolling: touch;
@@ -204,8 +212,12 @@
         @apply dark:from-slate-700 dark:via-slate-700/90 dark:to-slate-700;
     }
     .admin-table th {
-        @apply px-4 sm:px-6 py-3.5 sm:py-4 text-left text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-[0.12em] whitespace-nowrap sticky top-0 z-10 backdrop-blur;
+        @apply px-4 sm:px-6 py-3.5 sm:py-4 text-left text-[11px] font-bold text-slate-600 dark:text-slate-200 uppercase tracking-[0.12em] whitespace-nowrap sticky top-0 z-10 backdrop-blur-md;
         @apply border-b border-slate-200/80 dark:border-slate-600;
+        box-shadow: 0 1px 0 0 rgb(241 245 249 / 0.9);
+    }
+    .dark .admin-table th {
+        box-shadow: 0 1px 0 0 rgb(51 65 85 / 0.65);
     }
     .admin-table tbody tr {
         @apply transition-all duration-200;
@@ -214,7 +226,19 @@
         @apply px-4 sm:px-6 py-3.5 sm:py-4 text-slate-700 dark:text-slate-200 text-sm align-middle;
         @apply bg-white/85 dark:bg-slate-800/95 border-b border-slate-100 dark:border-slate-600/70;
         white-space: normal;
-        word-break: break-word;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+    /* Badge / pill columns: never break label character-by-character when the column is narrow */
+    .admin-table th[data-column="moderation"],
+    .admin-table td[data-column="moderation"],
+    .admin-table th[data-column="status"],
+    .admin-table td[data-column="status"],
+    .admin-table th[data-column="required"],
+    .admin-table td[data-column="required"] {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
     }
     .admin-table tbody tr:nth-child(even) td {
         @apply bg-slate-50/80 dark:bg-slate-800/80;
@@ -227,6 +251,12 @@
     }
     .admin-table tbody td:last-child {
         @apply border-r border-slate-100 dark:border-slate-600/70 rounded-r-xl whitespace-nowrap;
+    }
+    /* Allow stacked action buttons on very narrow screens (overrides last-child nowrap). */
+    @media (max-width: 639px) {
+        .admin-table tbody td.admin-table-actions-stack {
+            white-space: normal !important;
+        }
     }
     .admin-table tbody tr:last-child td {
         @apply border-b border-slate-100 dark:border-slate-600/70;
@@ -245,17 +275,18 @@
     .admin-table-empty a {
         @apply text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-semibold underline underline-offset-2;
     }
-    .admin-badge-active { @apply inline-flex rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200; }
-    .admin-badge-inactive { @apply inline-flex rounded-full bg-slate-100 dark:bg-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300; }
-    .admin-badge-yes { @apply inline-flex rounded-full bg-blue-100 dark:bg-blue-900/50 px-3 py-1 text-xs font-semibold text-blue-800 dark:text-blue-200; }
-    .admin-badge-no { @apply inline-flex rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200; }
-    .admin-badge-draft { @apply inline-flex rounded-full bg-slate-100 dark:bg-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300; }
+    .admin-badge-active { @apply inline-flex shrink-0 whitespace-nowrap rounded-full bg-amber-100 dark:bg-amber-900/45 px-3 py-1 text-xs font-semibold text-amber-900 dark:text-amber-200; }
+    .admin-badge-inactive { @apply inline-flex shrink-0 whitespace-nowrap rounded-full bg-slate-100 dark:bg-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300; }
+    .admin-badge-yes { @apply inline-flex shrink-0 whitespace-nowrap rounded-full bg-amber-100 dark:bg-amber-900/50 px-3 py-1 text-xs font-semibold text-amber-900 dark:text-amber-100 ring-1 ring-amber-600/15 dark:ring-amber-400/25; }
+    .admin-badge-no { @apply inline-flex shrink-0 whitespace-nowrap rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200; }
+    .admin-badge-draft { @apply inline-flex shrink-0 whitespace-nowrap rounded-full bg-slate-100 dark:bg-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300; }
     .admin-action-link { @apply inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border border-transparent; }
     .admin-action-edit { @apply text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30 hover:border-amber-200/70 dark:hover:border-amber-700/50; }
     .admin-action-view { @apply text-blue-600 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-200/70 dark:hover:border-blue-700/50; }
     .admin-action-delete { @apply text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:border-red-200/70 dark:hover:border-red-700/50; }
     .admin-action-reason { @apply text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:border-rose-200/70 dark:hover:border-rose-700/50; }
-    .admin-badge-rejected { @apply inline-flex rounded-full bg-rose-100 dark:bg-rose-900/40 px-3 py-1 text-xs font-semibold text-rose-700 dark:text-rose-300; }
+    .admin-badge-rejected { @apply inline-flex shrink-0 whitespace-nowrap rounded-full bg-rose-100 dark:bg-rose-900/40 px-3 py-1 text-xs font-semibold text-rose-700 dark:text-rose-300; }
+    .admin-badge-pending { @apply inline-flex shrink-0 whitespace-nowrap rounded-full bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300; }
     .admin-table tbody td:last-child form.inline-block {
         margin-left: 0 !important;
     }
@@ -280,15 +311,15 @@
     .admin-reason-modal__content {
         @apply px-5 py-4 text-sm leading-relaxed text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words max-h-[55vh] overflow-auto;
     }
-    @media (max-width: 1024px) {
+    @media (max-width: 1023px) {
         .admin-table {
-            min-width: 700px;
+            min-width: min(920px, max(100%, 640px));
         }
     }
 
     /* Form */
     .admin-form-card {
-        @apply w-full max-w-full rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-600 shadow-sm shadow-slate-200/50 dark:shadow-none p-4 sm:p-6 md:p-8;
+        @apply w-full max-w-full rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/95 border border-slate-200/80 dark:border-slate-600/90 shadow-md shadow-slate-200/40 dark:shadow-lg dark:shadow-black/25 p-4 sm:p-6 md:p-8;
     }
     .admin-form-group {
         @apply space-y-2;
@@ -351,13 +382,13 @@
         @apply inline-flex items-center gap-1.5 whitespace-nowrap text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 font-medium text-sm sm:text-base transition-colors;
     }
     .admin-page-title {
-        @apply text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1 sm:mt-2;
+        @apply text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1 sm:mt-2 tracking-tight;
     }
     .admin-page-header {
         @apply flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8;
     }
     .admin-page-header h1 {
-        @apply text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100;
+        @apply text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100;
     }
     .admin-btn-add {
         @apply inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-amber-500 text-white font-semibold text-sm sm:text-base
@@ -395,11 +426,17 @@
                focus:outline-none focus:ring-2 focus:ring-amber-400/50
                transition-all duration-200;
     }
+    /* Admin top bar: compact triggers on small phones so the row stays one line without awkward wraps. */
+    .admin-header .admin-header-dropdown-trigger {
+        @apply gap-1.5 px-2 py-1.5 text-xs sm:gap-2 sm:px-3.5 sm:py-2 sm:text-sm;
+    }
     /* Public site header: match warm stone palette + readable contrast */
     .website-header-toolbar .admin-dropdown-trigger {
-        @apply rounded-lg border-stone-200/90 dark:border-slate-600 bg-white dark:bg-slate-900
-               text-stone-800 dark:text-slate-100 px-2.5 py-1.5 text-sm font-medium
-               hover:bg-stone-50 dark:hover:bg-slate-800 hover:border-stone-300 dark:hover:border-slate-500;
+        @apply rounded-lg border-0 bg-stone-100/90 text-stone-800 shadow-none ring-0
+               outline-none dark:border-0 dark:bg-slate-800/90 dark:text-slate-100
+               px-2.5 py-2 text-sm font-medium
+               hover:bg-stone-200/90 hover:shadow-none dark:hover:bg-slate-700 dark:hover:text-yellow-100
+               xl:px-3.5 xl:py-2.5;
     }
     /* Responsive filter bar - ensure wrapping on small screens (except .admin-filter-bar-inline) */
     @media (max-width: 639px) {
@@ -541,7 +578,6 @@
     }
 
     html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-label,
-    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-user-text,
     html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-logout-label {
         position: absolute;
         width: 1px;
@@ -555,13 +591,6 @@
     }
 
     html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-top {
-        justify-content: center;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-    }
-
-    html.admin-sidebar-collapsed #admin-sidebar .admin-sidebar-user {
-        position: relative;
         justify-content: center;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
@@ -589,4 +618,1056 @@
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
+}
+
+/*
+ * Tom Select — searchable selects (resources/js/searchable-selects.js)
+ * Library CSS is @import'd at top of this file so these overrides always win.
+ */
+.ts-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.ts-dropdown {
+    z-index: 10050;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.08),
+        0 4px 6px -4px rgb(0 0 0 / 0.06);
+}
+
+/* Search row + magnifier */
+.plugin-dropdown_input .dropdown-input-wrap {
+    position: relative;
+    border-bottom: 1px solid rgb(226 232 240);
+    background-color: rgb(255 255 255);
+}
+
+html.dark .plugin-dropdown_input .dropdown-input-wrap {
+    border-bottom-color: rgb(51 65 85);
+    background-color: rgb(30 41 59);
+}
+
+.plugin-dropdown_input .dropdown-input-wrap .dropdown-input {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0.65rem 0.75rem 0.65rem 2.5rem !important;
+    width: 100%;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.7rem 50%;
+    background-size: 1.1rem 1.1rem;
+}
+
+html.dark .plugin-dropdown_input .dropdown-input-wrap .dropdown-input {
+    color: rgb(241 245 249) !important;
+}
+
+.plugin-dropdown_input .dropdown-input-wrap .dropdown-input::placeholder {
+    color: rgb(148 163 184);
+}
+
+html.dark .plugin-dropdown_input .dropdown-input-wrap .dropdown-input::placeholder {
+    color: rgb(100 116 139);
+}
+
+/* Light theme: match admin inputs */
+.ts-wrapper .ts-control {
+    border-radius: 0.5rem;
+}
+
+/* Dark: beat .full .ts-control, .ts-wrapper.single .ts-control gradients, etc. */
+html.dark .ts-wrapper .ts-control,
+html.dark .ts-wrapper.full .ts-control,
+html.dark .ts-wrapper.single .ts-control,
+html.dark .ts-wrapper.single.input-active .ts-control {
+    background: rgb(30 41 59) !important;
+    background-image: none !important;
+    color: rgb(241 245 249) !important;
+    border-color: rgb(71 85 105) !important;
+    box-shadow: none !important;
+    min-height: 2.625rem;
+    padding-top: 0.45rem !important;
+    padding-bottom: 0.45rem !important;
+    align-items: center;
+}
+
+html.dark .ts-wrapper.focus .ts-control,
+html.dark .plugin-dropdown_input.focus.dropdown-active .ts-control {
+    border-color: rgb(245 158 11) !important;
+    box-shadow: 0 0 0 1px rgb(245 158 11 / 0.35) !important;
+}
+
+html.dark .ts-wrapper .ts-control .items-placeholder,
+html.dark .ts-wrapper .ts-control input {
+    color: rgb(241 245 249) !important;
+    background: transparent !important;
+    caret-color: rgb(241 245 249);
+}
+
+html.dark .ts-wrapper.disabled .ts-control {
+    opacity: 0.65;
+    background: rgb(15 23 42 / 0.5) !important;
+}
+
+html.dark .ts-wrapper.single .ts-control::after {
+    border-color: rgb(148 163 184) transparent transparent transparent !important;
+}
+
+html.dark .ts-wrapper.single.dropdown-active .ts-control::after {
+    border-color: transparent transparent rgb(148 163 184) transparent !important;
+}
+
+html.dark .ts-dropdown {
+    background-color: rgb(30 41 59) !important;
+    border-color: rgb(71 85 105) !important;
+    color: rgb(226 232 240) !important;
+}
+
+html.dark .ts-dropdown .option,
+html.dark .ts-dropdown .optgroup-header,
+html.dark .ts-dropdown .no-results,
+html.dark .ts-dropdown .create {
+    color: rgb(226 232 240) !important;
+}
+
+html.dark .ts-dropdown .optgroup-header {
+    background: rgb(30 41 59) !important;
+}
+
+html.dark .ts-dropdown .active {
+    background-color: rgb(51 65 85) !important;
+    color: rgb(255 255 255) !important;
+}
+
+html.dark .ts-dropdown .selected {
+    background-color: rgb(71 85 105 / 0.55) !important;
+    color: rgb(255 255 255) !important;
+}
+
+html.dark .ts-dropdown [data-selectable] .highlight {
+    background: rgb(245 158 11 / 0.25) !important;
+    color: rgb(254 252 232) !important;
+}
+
+/* Tom Select + admin filter rows: one shell, full width (avoid nested “double box”) */
+.admin-filter-bar .admin-filter-group {
+    min-width: 0;
+}
+
+.admin-filter-bar .admin-filter-group .ts-wrapper,
+.admin-filter-bar .admin-filter-select-wrap .ts-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/*
+ * Tom Select copies the <select> class list onto .ts-wrapper (see tom-select.ts).
+ * If the select uses .admin-select, that duplicates chrome: wrapper + .ts-control both look framed.
+ */
+.admin-filter-bar .ts-wrapper.admin-select {
+    /* Tom Select copies <select> classes; .admin-select includes sm:w-auto → wrapper shrinks and body dropdown matches that narrow width */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto;
+    align-self: stretch;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    background-image: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    appearance: none;
+}
+
+html.dark .admin-filter-bar .ts-wrapper.admin-select {
+    box-shadow: none !important;
+}
+
+/* Single selected value: no inner “pill” / second frame */
+.admin-filter-bar .ts-wrapper.single .ts-control > .item {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    background-image: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1.375rem;
+}
+
+html.dark .admin-filter-bar .ts-wrapper.single .ts-control > .item {
+    color: inherit !important;
+}
+
+.admin-filter-bar .ts-wrapper.single .ts-control {
+    width: 100%;
+    min-height: 2.75rem;
+    border-radius: 0.75rem;
+    padding-left: 1rem !important;
+    padding-right: 2.5rem !important;
+    align-items: center;
+    background: #fff !important;
+    background-image: none !important;
+    border-color: rgb(226 232 240) !important;
+    color: rgb(30 41 59) !important;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04) !important;
+}
+
+.admin-filter-bar .ts-wrapper .items-placeholder {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    line-height: 1.375rem;
+}
+
+html.dark .admin-filter-bar .ts-wrapper.single .ts-control {
+    background: rgb(30 41 59) !important;
+    border-color: rgb(71 85 105) !important;
+    color: rgb(241 245 249) !important;
+    box-shadow: none !important;
+}
+
+html.dark .admin-filter-bar .ts-wrapper .ts-control .items-placeholder,
+html.dark .admin-filter-bar .ts-wrapper .ts-control input {
+    color: rgb(241 245 249) !important;
+}
+
+/* Mandatory scores & similar: .admin-select-input + Tom Select */
+.admin-form-card .admin-form-group .ts-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.admin-form-card .ts-wrapper.admin-select-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto;
+    align-self: stretch;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    background-image: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    appearance: none;
+}
+
+html.dark .admin-form-card .ts-wrapper.admin-select-input {
+    box-shadow: none !important;
+}
+
+.admin-form-card .ts-wrapper.single .ts-control {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 0.75rem;
+    padding-left: 1rem !important;
+    padding-right: 2.5rem !important;
+    align-items: center;
+    background: #fff !important;
+    background-image: none !important;
+    border-color: rgb(226 232 240) !important;
+    color: rgb(30 41 59) !important;
+}
+
+.admin-form-card .ts-wrapper .items-placeholder {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    line-height: 1.375rem;
+}
+
+html.dark .admin-form-card .ts-wrapper.single .ts-control {
+    background: rgb(30 41 59) !important;
+    border-color: rgb(71 85 105) !important;
+    color: rgb(241 245 249) !important;
+}
+
+html.dark .admin-form-card .ts-wrapper .ts-control .items-placeholder,
+html.dark .admin-form-card .ts-wrapper .ts-control input {
+    color: rgb(241 245 249) !important;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Optional portal colors (body.appearance-portal--*) — CSS variables from
+| Admin → Content → Colors. Targets common amber / yellow / slate utilities.
+|--------------------------------------------------------------------------
+*/
+
+/* --- Admin + Monastery (amber accent) --- */
+body.appearance-portal--admin.text-stone-900,
+body.appearance-portal--monastery.text-slate-900 {
+    color: var(--ap-body) !important;
+}
+html.dark body.appearance-portal--admin.dark\:text-slate-200,
+html.dark body.appearance-portal--monastery.dark\:text-slate-100 {
+    color: var(--ap-body-dark) !important;
+}
+
+body.appearance-portal--admin .text-stone-600,
+body.appearance-portal--admin .text-stone-500,
+body.appearance-portal--admin .text-slate-500,
+body.appearance-portal--monastery .text-slate-500,
+body.appearance-portal--monastery .text-slate-400 {
+    color: var(--ap-muted) !important;
+}
+
+body.appearance-portal--admin .admin-btn-primary,
+body.appearance-portal--admin .admin-btn-add,
+body.appearance-portal--monastery .bg-amber-500.text-white,
+body.appearance-portal--monastery .bg-amber-600.text-white {
+    background-color: var(--ap-btn-bg) !important;
+    color: var(--ap-btn-text) !important;
+}
+body.appearance-portal--admin .admin-btn-primary:hover,
+body.appearance-portal--admin .admin-btn-add:hover,
+body.appearance-portal--monastery .hover\:bg-amber-600:hover {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 86%, #000) !important;
+}
+
+body.appearance-portal--monastery .hover\:bg-amber-500:hover {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 82%, #fff) !important;
+}
+
+body.appearance-portal--monastery .hover\:bg-amber-400:hover {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 72%, #fff) !important;
+}
+
+body.appearance-portal--admin .bg-amber-500:not(.text-white),
+body.appearance-portal--monastery .bg-amber-500:not(.text-white),
+body.appearance-portal--admin .bg-amber-600:not(.text-white),
+body.appearance-portal--monastery .bg-amber-600:not(.text-white) {
+    background-color: var(--ap-btn-bg) !important;
+}
+
+body.appearance-portal--admin .bg-amber-500.text-white,
+body.appearance-portal--admin .bg-amber-600.text-white {
+    background-color: var(--ap-btn-bg) !important;
+    color: var(--ap-btn-text) !important;
+}
+body.appearance-portal--admin .hover\:bg-amber-600:hover {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 86%, #000) !important;
+}
+
+/* Light mode only: these remaps use !important and would otherwise beat Tailwind
+   `dark:text-*` on the same node (sidebar links, filter pills, icons). */
+html:not(.dark) body.appearance-portal--admin .text-amber-600,
+html:not(.dark) body.appearance-portal--admin .text-amber-700,
+html:not(.dark) body.appearance-portal--monastery .text-amber-600,
+html:not(.dark) body.appearance-portal--monastery .text-amber-700,
+html:not(.dark) body.appearance-portal--monastery .text-amber-800 {
+    color: color-mix(in srgb, var(--ap-btn-bg) 42%, #000) !important;
+}
+html.dark body.appearance-portal--admin .dark\:text-amber-200,
+html.dark body.appearance-portal--admin .dark\:text-amber-300,
+html.dark body.appearance-portal--admin .dark\:text-amber-400,
+html.dark body.appearance-portal--monastery .dark\:text-amber-200,
+html.dark body.appearance-portal--monastery .dark\:text-amber-300,
+html.dark body.appearance-portal--monastery .dark\:text-amber-400 {
+    color: color-mix(in srgb, var(--ap-btn-bg) 5%, rgb(255 224 130)) !important;
+}
+
+body.appearance-portal--admin .bg-amber-500\/15,
+body.appearance-portal--admin .bg-amber-500\/10,
+body.appearance-portal--monastery .bg-amber-500\/15,
+body.appearance-portal--monastery .bg-amber-500\/10 {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 14%, transparent) !important;
+}
+html:not(.dark) body.appearance-portal--admin .bg-amber-50,
+html:not(.dark) body.appearance-portal--admin .bg-amber-50\/60,
+html:not(.dark) body.appearance-portal--admin .bg-amber-50\/90,
+html:not(.dark) body.appearance-portal--monastery .bg-amber-50,
+html:not(.dark) body.appearance-portal--monastery .bg-amber-50\/60,
+html:not(.dark) body.appearance-portal--monastery .bg-amber-50\/90 {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 12%, #fff) !important;
+}
+html.dark body.appearance-portal--admin .dark\:bg-amber-900\/20,
+html.dark body.appearance-portal--admin .dark\:bg-amber-900\/25,
+html.dark body.appearance-portal--admin .dark\:bg-amber-900\/30,
+html.dark body.appearance-portal--monastery .dark\:bg-amber-900\/10,
+html.dark body.appearance-portal--monastery .dark\:bg-amber-900\/20,
+html.dark body.appearance-portal--monastery .dark\:bg-amber-950\/30 {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 22%, #020617) !important;
+}
+
+html:not(.dark) body.appearance-portal--admin .text-amber-900:not(.dark\:text-white),
+html:not(.dark) body.appearance-portal--monastery .text-amber-900:not(.dark\:text-white) {
+    color: color-mix(in srgb, var(--ap-btn-bg) 48%, #000) !important;
+}
+
+/* Light mode only: remapping slate onto --ap-body in dark broke contrast on dark surfaces
+   (e.g. inactive scope tabs used text-slate-700 and became near-black on slate-800). */
+html:not(.dark) body.appearance-portal--admin .text-slate-800,
+html:not(.dark) body.appearance-portal--admin .text-slate-900,
+html:not(.dark) body.appearance-portal--admin .text-slate-700,
+html:not(.dark) body.appearance-portal--admin .admin-page-title,
+html:not(.dark) body.appearance-portal--admin .admin-page-header h1,
+html:not(.dark) body.appearance-portal--monastery .text-slate-800,
+html:not(.dark) body.appearance-portal--monastery .text-slate-900 {
+    color: var(--ap-body) !important;
+}
+
+/* --- Public website (yellow accent) --- */
+body.appearance-portal--website.text-stone-900 {
+    color: var(--ap-body) !important;
+}
+html.dark body.appearance-portal--website.dark\:text-slate-200 {
+    color: var(--ap-body-dark) !important;
+}
+
+body.appearance-portal--website .text-stone-600,
+body.appearance-portal--website .text-stone-500 {
+    color: var(--ap-muted) !important;
+}
+
+body.appearance-portal--website .bg-yellow-500,
+body.appearance-portal--website .bg-yellow-600,
+body.appearance-portal--website .hover\:bg-yellow-600:hover {
+    background-color: var(--ap-btn-bg) !important;
+}
+body.appearance-portal--website .bg-yellow-500.text-white,
+body.appearance-portal--website .bg-yellow-600.text-white {
+    color: var(--ap-btn-text) !important;
+}
+
+body.appearance-portal--website .text-yellow-600,
+body.appearance-portal--website .text-yellow-700,
+body.appearance-portal--website .text-yellow-800,
+body.appearance-portal--website .text-yellow-900,
+body.appearance-portal--website .text-yellow-950 {
+    color: color-mix(in srgb, var(--ap-btn-bg) 38%, #000) !important;
+}
+html.dark body.appearance-portal--website .dark\:text-yellow-100,
+html.dark body.appearance-portal--website .dark\:text-yellow-200,
+html.dark body.appearance-portal--website .dark\:text-yellow-300,
+html.dark body.appearance-portal--website .dark\:text-yellow-400 {
+    color: color-mix(in srgb, var(--ap-btn-bg) 5%, rgb(255 230 120)) !important;
+}
+
+body.appearance-portal--website .bg-yellow-50,
+body.appearance-portal--website .bg-yellow-50\/80,
+body.appearance-portal--website .bg-yellow-50\/90,
+body.appearance-portal--website .bg-yellow-100,
+body.appearance-portal--website .bg-yellow-100\/90,
+body.appearance-portal--website .bg-yellow-100\/95 {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 14%, #fff) !important;
+}
+html.dark body.appearance-portal--website .dark\:bg-yellow-900\/20,
+html.dark body.appearance-portal--website .dark\:bg-yellow-900\/25,
+html.dark body.appearance-portal--website .dark\:bg-yellow-500\/25 {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 52%, rgb(15 23 42 / 0.68)) !important;
+}
+
+body.appearance-portal--website .file\:bg-yellow-600::file-selector-button {
+    background-color: var(--ap-btn-bg) !important;
+    color: var(--ap-btn-text) !important;
+}
+body.appearance-portal--website .file\:hover\:bg-yellow-500:hover::file-selector-button {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 88%, #fff) !important;
+}
+body.appearance-portal--website .file\:bg-yellow-50::file-selector-button {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 10%, #fff) !important;
+    color: color-mix(in srgb, var(--ap-btn-bg) 35%, #000) !important;
+}
+
+/* --- Page background, surfaces, dark-mode muted (extra tokens) --- */
+body.appearance-portal--admin.bg-stone-50 {
+    background-color: var(--ap-page-bg) !important;
+}
+html.dark body.appearance-portal--admin.dark\:bg-slate-950 {
+    background-color: color-mix(in srgb, var(--ap-page-bg) 18%, #020617) !important;
+}
+
+body.appearance-portal--admin #admin-sidebar.admin-sidebar-drawer {
+    background: var(--ap-surface-bg) !important;
+    background-image: none !important;
+}
+html.dark body.appearance-portal--admin #admin-sidebar.admin-sidebar-drawer {
+    background: color-mix(in srgb, var(--ap-surface-bg) 12%, #0f172a) !important;
+}
+
+body.appearance-portal--admin .admin-header {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 92%, transparent) !important;
+}
+html.dark body.appearance-portal--admin .admin-header {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 52%, #020617) !important;
+}
+
+body.appearance-portal--admin .admin-form-card {
+    background-color: var(--ap-surface-bg) !important;
+}
+/* Surface token is often near-white for light portals; in dark mode weight toward slate
+   or the card stays a pale grey "stripe" on navy (mandatory scores filter, etc.). */
+html.dark body.appearance-portal--admin .admin-form-card {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 6%, rgb(15 23 42 / 0.96)) !important;
+    border-color: color-mix(in srgb, var(--ap-btn-bg) 14%, rgb(51 65 85 / 0.55)) !important;
+}
+
+html.dark body.appearance-portal--admin .admin-form-card .admin-form-label {
+    color: rgb(226 232 240) !important;
+}
+
+/* Main headings + body slate on dark surfaces */
+html.dark body.appearance-portal--admin .text-slate-800,
+html.dark body.appearance-portal--admin .text-slate-900,
+html.dark body.appearance-portal--admin .text-slate-700,
+html.dark body.appearance-portal--admin .admin-page-title,
+html.dark body.appearance-portal--admin .admin-page-header h1 {
+    color: var(--ap-body-dark) !important;
+}
+
+html.dark body.appearance-portal--admin .text-slate-400,
+html.dark body.appearance-portal--admin .text-slate-500,
+html.dark body.appearance-portal--admin .text-slate-600 {
+    color: var(--ap-muted-dark) !important;
+}
+
+html.dark body.appearance-portal--admin .text-stone-600,
+html.dark body.appearance-portal--admin .text-stone-500 {
+    color: var(--ap-muted-dark) !important;
+}
+
+body.appearance-portal--monastery.bg-slate-50 {
+    background-color: var(--ap-page-bg) !important;
+}
+html.dark body.appearance-portal--monastery.dark\:bg-slate-900 {
+    background-color: color-mix(in srgb, var(--ap-page-bg) 22%, #020617) !important;
+}
+
+body.appearance-portal--monastery > header {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 92%, transparent) !important;
+}
+html.dark body.appearance-portal--monastery > header {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 75%, #020617) !important;
+}
+
+html.dark body.appearance-portal--monastery .text-slate-900,
+html.dark body.appearance-portal--monastery .text-slate-800,
+html.dark body.appearance-portal--monastery .text-slate-700,
+html.dark body.appearance-portal--monastery .text-slate-200,
+html.dark body.appearance-portal--monastery .text-slate-100 {
+    color: var(--ap-body-dark) !important;
+}
+
+html.dark body.appearance-portal--monastery .text-slate-500,
+html.dark body.appearance-portal--monastery .text-slate-400 {
+    color: var(--ap-muted-dark) !important;
+}
+
+body.appearance-portal--website.bg-stone-50 {
+    background-color: var(--ap-page-bg) !important;
+}
+html.dark body.appearance-portal--website.dark\:bg-slate-950 {
+    background-color: color-mix(in srgb, var(--ap-page-bg) 16%, #020617) !important;
+}
+
+body.appearance-portal--website .website-header-surface {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 94%, transparent) !important;
+}
+html.dark body.appearance-portal--website .website-header-surface {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 14%, rgb(2 6 23 / 0.97)) !important;
+}
+
+html.dark body.appearance-portal--website .text-stone-900,
+html.dark body.appearance-portal--website .text-stone-800 {
+    color: var(--ap-body-dark) !important;
+}
+
+html.dark body.appearance-portal--website .text-stone-600,
+html.dark body.appearance-portal--website .text-stone-500 {
+    color: var(--ap-muted-dark) !important;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Appearance colors admin page — isolate from portal variable text remaps
+|--------------------------------------------------------------------------
+*/
+html.dark body.appearance-portal--admin .appearance-settings-root {
+    --as-fg: #e2e8f0;
+    --as-fg-muted: #94a3b8;
+    --as-field-bg: rgb(30 41 59);
+    --as-field-border: rgb(71 85 105);
+    --as-field-text: #f8fafc;
+    --as-card: rgb(15 23 42 / 0.72);
+    --as-card-border: rgb(51 65 85 / 0.55);
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-settings-hero,
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-portal-card,
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-field {
+    border-color: var(--as-card-border) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-portal-card,
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-field {
+    background-color: var(--as-card) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-settings-hero {
+    background: linear-gradient(
+        135deg,
+        rgb(30 27 75 / 0.55) 0%,
+        rgb(15 23 42 / 0.92) 45%,
+        rgb(15 23 42 / 0.98) 100%
+    ) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root h1,
+html.dark body.appearance-portal--admin .appearance-settings-root h2,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-stone-900,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-900,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-700,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-600,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-500,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-400,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-300,
+html.dark body.appearance-portal--admin .appearance-settings-root label {
+    color: var(--as-fg) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .text-stone-600,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-500,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-slate-400 {
+    color: var(--as-fg-muted) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .text-amber-800\/80,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-amber-900,
+html.dark body.appearance-portal--admin .appearance-settings-root .text-amber-800 {
+    color: rgb(253 230 138) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-preset-btn {
+    background-color: rgb(30 41 59) !important;
+    border-color: rgb(71 85 105) !important;
+    color: var(--as-fg) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .admin-input,
+html.dark body.appearance-portal--admin .appearance-settings-root input[type='text'],
+html.dark body.appearance-portal--admin .appearance-settings-root input[type='text'].admin-input {
+    background-color: var(--as-field-bg) !important;
+    border-color: var(--as-field-border) !important;
+    color: var(--as-field-text) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .admin-input::placeholder {
+    color: rgb(148 163 184) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root input[type='color'] {
+    border-color: var(--as-field-border) !important;
+    background-color: var(--as-field-bg) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .border-slate-100\/90,
+html.dark body.appearance-portal--admin .appearance-settings-root .from-slate-50\/80 {
+    border-color: rgb(51 65 85 / 0.45) !important;
+    background-image: none !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .from-slate-50\/80 {
+    background-color: rgb(30 41 59 / 0.35) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .bg-slate-50\/50,
+html.dark body.appearance-portal--admin .appearance-settings-root .bg-slate-50\/80 {
+    background-color: rgb(15 23 42 / 0.55) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-settings-footer {
+    background-color: rgb(15 23 42 / 0.65) !important;
+    border-color: var(--as-card-border) !important;
+}
+
+html.dark body.appearance-portal--admin .appearance-settings-root .appearance-settings-footer p {
+    color: var(--as-fg-muted) !important;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Portal appearance — dark mode polish (depth, accent glow, softer mixes)
+|--------------------------------------------------------------------------
+*/
+html.dark body.appearance-portal--admin.dark\:bg-slate-950 {
+    background-color: color-mix(
+        in srgb,
+        var(--ap-page-bg) 6%,
+        color-mix(in srgb, var(--ap-btn-bg) 5.5%, #0b1120) 100%
+    ) !important;
+    background-image: radial-gradient(
+        ellipse 120% 70% at 50% -30%,
+        color-mix(in srgb, var(--ap-btn-bg) 9%, transparent),
+        transparent 52%
+    ) !important;
+}
+
+html.dark body.appearance-portal--admin #admin-sidebar.admin-sidebar-drawer {
+    background: linear-gradient(
+        185deg,
+        color-mix(in srgb, var(--ap-surface-bg) 8%, #0f172a) 0%,
+        color-mix(in srgb, var(--ap-surface-bg) 4%, #020617) 42%,
+        #020617 100%
+    ) !important;
+    border-right-color: color-mix(in srgb, var(--ap-btn-bg) 22%, rgb(51 65 85 / 0.42)) !important;
+    box-shadow: inset -1px 0 0 color-mix(in srgb, var(--ap-btn-bg) 7%, transparent) !important;
+}
+
+html.dark body.appearance-portal--admin .admin-header {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 22%, rgb(2 6 23 / 0.98)) !important;
+    border-bottom-color: color-mix(in srgb, var(--ap-btn-bg) 18%, rgb(71 85 105 / 0.55)) !important;
+    box-shadow:
+        0 1px 0 0 color-mix(in srgb, rgb(255 255 255) 5%, transparent),
+        0 12px 40px -28px color-mix(in srgb, var(--ap-btn-bg) 10%, rgb(0 0 0 / 0.5)) !important;
+}
+
+html.dark body.appearance-portal--admin .admin-main {
+    background-image: radial-gradient(
+        ellipse 90% 55% at 70% 0%,
+        color-mix(in srgb, var(--ap-btn-bg) 5%, transparent),
+        transparent 48%
+    ) !important;
+}
+
+html.dark body.appearance-portal--admin .admin-form-card {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 6%, rgb(15 23 42 / 0.96)) !important;
+    border-color: color-mix(in srgb, var(--ap-btn-bg) 12%, rgb(51 65 85 / 0.45)) !important;
+    box-shadow:
+        0 1px 0 0 color-mix(in srgb, #fff 4%, transparent),
+        0 18px 40px -28px rgb(0 0 0 / 0.35) !important;
+}
+
+html.dark body.appearance-portal--admin .dark\:bg-amber-900\/20,
+html.dark body.appearance-portal--admin .dark\:bg-amber-900\/25,
+html.dark body.appearance-portal--admin .dark\:bg-amber-900\/30,
+html.dark body.appearance-portal--monastery .dark\:bg-amber-900\/10,
+html.dark body.appearance-portal--monastery .dark\:bg-amber-900\/20,
+html.dark body.appearance-portal--monastery .dark\:bg-amber-950\/30 {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 34%, rgb(15 23 42 / 0.72)) !important;
+}
+
+html.dark body.appearance-portal--admin .admin-btn-primary:hover,
+html.dark body.appearance-portal--admin .admin-btn-add:hover {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 78%, rgb(0 0 0 / 0.82)) !important;
+}
+
+html.dark body.appearance-portal--monastery.dark\:bg-slate-900 {
+    background-color: color-mix(
+        in srgb,
+        var(--ap-page-bg) 10%,
+        color-mix(in srgb, var(--ap-btn-bg) 6%, #0b1120) 100%
+    ) !important;
+    background-image: radial-gradient(
+        ellipse 100% 60% at 50% -25%,
+        color-mix(in srgb, var(--ap-btn-bg) 10%, transparent),
+        transparent 50%
+    ) !important;
+}
+
+html.dark body.appearance-portal--monastery > header {
+    background-color: color-mix(in srgb, var(--ap-surface-bg) 32%, rgb(2 6 23 / 0.95)) !important;
+    border-bottom-color: color-mix(in srgb, var(--ap-btn-bg) 18%, rgb(51 65 85 / 0.45)) !important;
+    box-shadow: 0 1px 0 0 color-mix(in srgb, var(--ap-btn-bg) 8%, transparent) !important;
+}
+
+html.dark body.appearance-portal--website.dark\:bg-slate-950 {
+    background-color: color-mix(
+        in srgb,
+        var(--ap-page-bg) 8%,
+        color-mix(in srgb, var(--ap-btn-bg) 5%, #0a0f1a) 100%
+    ) !important;
+}
+
+html.dark body.appearance-portal--website #website-ambient-layer {
+    background: radial-gradient(
+            ellipse 72% 50% at 50% -8%,
+            color-mix(in srgb, var(--ap-btn-bg) 48%, transparent),
+            transparent 58%
+        ),
+        radial-gradient(ellipse 48% 38% at 94% 6%, color-mix(in srgb, var(--ap-btn-bg) 28%, transparent), transparent 46%) !important;
+}
+
+html.dark body.appearance-portal--website .website-header-surface {
+    box-shadow:
+        0 1px 0 0 color-mix(in srgb, var(--ap-btn-bg) 11%, transparent),
+        0 20px 50px -28px color-mix(in srgb, var(--ap-btn-bg) 12%, rgb(0 0 0 / 0.6)) !important;
+}
+
+html.dark body.appearance-portal--website .dark\:bg-yellow-900\/20,
+html.dark body.appearance-portal--website .dark\:bg-yellow-900\/25,
+html.dark body.appearance-portal--website .dark\:bg-yellow-500\/25 {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 52%, rgb(15 23 42 / 0.68)) !important;
+}
+
+html.dark body.appearance-portal--website .dark\:text-yellow-100,
+html.dark body.appearance-portal--website .dark\:text-yellow-200,
+html.dark body.appearance-portal--website .dark\:text-yellow-300,
+html.dark body.appearance-portal--website .dark\:text-yellow-400 {
+    color: color-mix(in srgb, var(--ap-btn-bg) 5%, rgb(255 230 120)) !important;
+}
+
+/* -------------------------------------------------------------------------
+   Dark mode — brighter gold / teal (defaults) + admin header / chrome
+   More specific portal rules above still win for custom appearance mixes.
+   ------------------------------------------------------------------------- */
+html.dark .dark\:text-yellow-100 {
+    color: rgb(255 251 235) !important;
+}
+html.dark .dark\:text-yellow-200 {
+    color: rgb(254 240 138) !important;
+}
+html.dark .dark\:text-yellow-300 {
+    color: rgb(253 224 71) !important;
+}
+html.dark .dark\:text-yellow-400 {
+    color: rgb(250 204 21) !important;
+}
+html.dark .dark\:text-yellow-500 {
+    color: rgb(234 179 8) !important;
+}
+
+html.dark .dark\:text-teal-100 {
+    color: rgb(204 251 241) !important;
+}
+html.dark .dark\:text-teal-200 {
+    color: rgb(94 234 212) !important;
+}
+html.dark .dark\:text-teal-300 {
+    color: rgb(45 212 191) !important;
+}
+html.dark .dark\:text-teal-400 {
+    color: rgb(34 211 238) !important;
+}
+
+html.dark .dark\:text-sky-300 {
+    color: rgb(125 211 252) !important;
+}
+html.dark .dark\:text-emerald-300 {
+    color: rgb(110 231 183) !important;
+}
+html.dark .dark\:text-orange-300 {
+    color: rgb(253 186 116) !important;
+}
+
+html.dark .dark\:text-amber-200 {
+    color: rgb(253 230 138) !important;
+}
+html.dark .dark\:text-amber-300 {
+    color: rgb(252 211 77) !important;
+}
+html.dark .dark\:text-amber-400 {
+    color: rgb(251 191 36) !important;
+}
+
+html.dark .admin-header .dark\:text-slate-300 {
+    color: rgb(226 232 240) !important;
+}
+html.dark .admin-header .dark\:text-slate-400 {
+    color: rgb(203 213 225) !important;
+}
+html.dark .admin-header .dark\:text-amber-400,
+html.dark .admin-header .dark\:text-amber-600 {
+    color: rgb(253 224 71) !important;
+}
+
+html.dark body.appearance-portal--admin .js-notif-badge,
+html.dark .js-notif-badge {
+    background: linear-gradient(145deg, rgb(254 215 170), rgb(251 146 60) 45%, rgb(234 88 12)) !important;
+    box-shadow:
+        0 0 0 1px rgb(15 23 42 / 0.45),
+        0 0 18px rgb(251 146 60 / 0.65),
+        0 0 36px rgb(249 115 22 / 0.28);
+}
+
+html.dark body.appearance-portal--admin #admin-avatar-dropdown .rounded-full.bg-amber-500,
+html.dark #admin-avatar-dropdown .rounded-full.bg-amber-500 {
+    background: linear-gradient(145deg, rgb(254 215 170), rgb(251 146 60) 40%, rgb(234 88 12)) !important;
+    box-shadow:
+        0 0 0 2px rgb(15 23 42 / 0.5),
+        0 0 20px rgb(251 146 60 / 0.55),
+        0 0 40px rgb(249 115 22 / 0.3);
+}
+
+/* -------------------------------------------------------------------------
+   Dark mode — cleaner surfaces: admin bar, public header brand, monastery CTA
+   ------------------------------------------------------------------------- */
+html.dark .admin-header {
+    background: linear-gradient(180deg, rgb(15 23 42) 0%, rgb(15 23 42 / 0.99) 55%, rgb(12 17 29) 100%);
+    border-bottom-color: rgb(51 65 85 / 0.85);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+html.dark .admin-header .admin-dropdown-trigger {
+    background-color: rgb(30 41 59 / 0.92);
+    border-color: rgb(71 85 105 / 0.9);
+    color: rgb(248 250 252);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+
+html.dark .admin-header .admin-dropdown-trigger:hover {
+    background-color: rgb(51 65 85 / 0.95);
+    border-color: rgb(148 163 184 / 0.55);
+}
+
+html.dark .website-header-toolbar .admin-dropdown-trigger {
+    background-color: rgb(30 41 59 / 0.92) !important;
+    color: rgb(248 250 252) !important;
+    box-shadow: inset 0 0 0 1px rgb(71 85 105 / 0.65);
+}
+
+html.dark .website-header-toolbar .admin-dropdown-trigger:hover {
+    background-color: rgb(51 65 85 / 0.9) !important;
+    box-shadow: inset 0 0 0 1px rgb(251 191 36 / 0.28);
+}
+
+html.dark .website-header-surface .website-header-brand-title {
+    color: rgb(250 204 21) !important;
+    text-shadow:
+        0 1px 2px rgb(0 0 0 / 0.5),
+        0 0 28px rgb(251 191 36 / 0.45);
+}
+
+html.dark body.appearance-portal--website .website-header-surface .website-header-brand-title {
+    color: color-mix(in srgb, var(--ap-btn-bg) 4%, rgb(255 230 120)) !important;
+    text-shadow:
+        0 0 24px color-mix(in srgb, var(--ap-btn-bg) 42%, transparent),
+        0 0 48px color-mix(in srgb, var(--ap-btn-bg) 18%, transparent);
+}
+
+html.dark a.website-monastery-portal-cta {
+    background-color: rgb(15 23 42 / 0.94) !important;
+    color: rgb(255 247 200) !important;
+    border: 1px solid rgb(250 204 21 / 0.65) !important;
+    box-shadow:
+        0 0 0 1px rgb(0 0 0 / 0.25),
+        0 2px 16px rgb(251 146 60 / 0.28),
+        0 0 32px rgb(251 146 60 / 0.15);
+}
+
+html.dark a.website-monastery-portal-cta:hover {
+    background-color: rgb(30 41 59 / 0.96) !important;
+    color: rgb(255 255 255) !important;
+    border-color: rgb(253 224 71 / 0.85) !important;
+    box-shadow:
+        0 0 0 1px rgb(251 191 36 / 0.2),
+        0 4px 24px rgb(251 146 60 / 0.35);
+}
+
+html.dark body.appearance-portal--website a.website-monastery-portal-cta {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 22%, rgb(15 23 42 / 0.96)) !important;
+    color: color-mix(in srgb, var(--ap-btn-bg) 3%, rgb(255 237 170)) !important;
+    border-color: color-mix(in srgb, var(--ap-btn-bg) 35%, rgb(250 204 21 / 0.75)) !important;
+    box-shadow:
+        0 0 0 1px rgb(0 0 0 / 0.3),
+        0 2px 18px color-mix(in srgb, var(--ap-btn-bg) 32%, transparent),
+        0 0 40px color-mix(in srgb, var(--ap-btn-bg) 18%, transparent);
+}
+
+html.dark body.appearance-portal--website a.website-monastery-portal-cta:hover {
+    background-color: color-mix(in srgb, var(--ap-btn-bg) 30%, rgb(30 41 59 / 0.95)) !important;
+    border-color: color-mix(in srgb, var(--ap-btn-bg) 28%, rgb(253 224 71 / 0.9)) !important;
+}
+
+/* -------------------------------------------------------------------------
+   Admin sidebar title + nav — readable gold (appearance no longer tints
+   elements that also use dark:text-white, e.g. sidebar brand)
+   ------------------------------------------------------------------------- */
+html.dark #admin-sidebar .admin-sidebar-brand-title {
+    color: rgb(255 251 235) !important;
+    text-shadow:
+        0 1px 2px rgb(0 0 0 / 0.45),
+        0 0 22px rgb(251 191 36 / 0.22);
+}
+
+html.dark #admin-sidebar .dark\:text-amber-200 {
+    color: rgb(254 240 138) !important;
+}
+
+html.dark #admin-sidebar .text-amber-600,
+html.dark #admin-sidebar .dark\:text-amber-400 {
+    color: rgb(251 191 36) !important;
+}
+
+html.dark #admin-sidebar .dark\:text-slate-200,
+html.dark #admin-sidebar .dark\:text-slate-300 {
+    color: rgb(241 245 249) !important;
+}
+
+html.dark #admin-sidebar .sidebar-group-chevron.dark\:text-slate-500,
+html.dark #admin-sidebar .dark\:text-slate-500 {
+    color: rgb(163 180 198) !important;
+}
+
+html.dark #admin-sidebar .admin-sidebar-logout-btn.dark\:text-slate-400 {
+    color: rgb(186 198 216) !important;
+}
+
+/* -------------------------------------------------------------------------
+   Monastery portal header — brighter kicker + toolbar (not inside
+   .website-header-toolbar, so dedicated rules)
+   ------------------------------------------------------------------------- */
+html.dark .monastery-header {
+    background: linear-gradient(180deg, rgb(15 23 42 / 0.98) 0%, rgb(15 23 42 / 0.92) 100%);
+    border-bottom-color: rgb(71 85 105 / 0.85);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+html.dark .monastery-header .monastery-header-kicker {
+    color: rgb(253 224 71) !important;
+    text-shadow: 0 0 18px rgb(251 191 36 / 0.2);
+}
+
+html.dark body.appearance-portal--monastery .monastery-header .monastery-header-kicker {
+    color: color-mix(in srgb, var(--ap-btn-bg) 4%, rgb(255 230 130)) !important;
+    text-shadow: 0 0 20px color-mix(in srgb, var(--ap-btn-bg) 30%, transparent);
+}
+
+html.dark .monastery-header-toolbar .admin-dropdown-trigger {
+    background-color: rgb(30 41 59 / 0.92) !important;
+    color: rgb(248 250 252) !important;
+    box-shadow: inset 0 0 0 1px rgb(251 191 36 / 0.22);
+}
+
+html.dark .monastery-header-toolbar .admin-dropdown-trigger:hover {
+    background-color: rgb(51 65 85 / 0.92) !important;
+    box-shadow: inset 0 0 0 1px rgb(253 224 71 / 0.4);
+}
+
+html.dark .monastery-header-toolbar #website-theme-btn {
+    background-color: rgb(30 41 59 / 0.92) !important;
+    color: rgb(248 250 252) !important;
+    box-shadow: inset 0 0 0 1px rgb(251 191 36 / 0.22);
+}
+
+html.dark .monastery-header-toolbar #website-theme-btn:hover {
+    background-color: rgb(51 65 85 / 0.92) !important;
+    color: rgb(255 255 255) !important;
+    box-shadow: inset 0 0 0 1px rgb(253 224 71 / 0.35);
+}
+
+html.dark .monastery-header-toolbar .js-notifications-bell-root summary {
+    color: rgb(203 213 225) !important;
+}
+
+html.dark .monastery-header-toolbar .js-notifications-bell-root summary:hover {
+    color: rgb(255 255 255) !important;
+    background-color: rgb(30 41 59 / 0.85) !important;
 }

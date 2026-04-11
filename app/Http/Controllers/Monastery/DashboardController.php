@@ -5,35 +5,42 @@ namespace App\Http\Controllers\Monastery;
 use App\Http\Controllers\Controller;
 use App\Models\CustomField;
 use App\Models\Exam;
+use App\Models\ExamType;
+use App\Models\MonasteryFormRequest;
 use App\Models\MonasteryMessage;
 use App\Models\Sangha;
 use App\Models\Score;
+use App\Models\SiteSetting;
 use App\Notifications\Admin\NewMonasteryRequestNotification;
 use App\Notifications\Admin\NewPendingSanghaNotification;
 use App\Support\AdminNotifications;
-use Illuminate\Http\JsonResponse;
+use App\Support\MonasteryPortalResultsSnapshot;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\In;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     public function __invoke(Request $request): View
     {
-        $tab = in_array($request->get('tab'), ['main', 'results'], true)
+        $tab = in_array($request->get('tab'), ['main', 'results', 'exam', 'chat'], true)
             ? $request->get('tab')
             : 'main';
 
-        $allowedScreens = ['main-home', 'results-home', 'total', 'register', 'pending', 'approved', 'rejected', 'request', 'pass', 'fail'];
-        $screen = in_array($request->get('screen'), $allowedScreens, true)
-            ? $request->get('screen')
-            : ($tab === 'results' ? 'results-home' : 'main-home');
+        $allowedScreens = ['main-home', 'results-home', 'exam-home', 'total', 'register', 'pending', 'approved', 'rejected', 'request', 'pass', 'fail', 'chat'];
+        if ($tab === 'chat') {
+            $screen = 'chat';
+        } elseif ($tab === 'exam') {
+            $screen = 'exam-home';
+        } else {
+            $screen = in_array($request->get('screen'), $allowedScreens, true)
+                ? $request->get('screen')
+                : ($tab === 'results' ? 'results-home' : 'main-home');
+        }
 
         $monastery = Auth::guard('monastery')->user();
         $monastery->loadCount(['sanghas']);
@@ -78,67 +85,57 @@ class DashboardController extends Controller
             ->get();
 
         $exams = Exam::where('is_active', true)->orderBy('exam_date', 'desc')->orderBy('name')->get();
+        $sanghaFieldMeta = CustomField::sanghaDefinitionsBySlug();
         $sanghaCustomFields = CustomField::forEntity('sangha')
             ->where('is_built_in', false)
             ->get();
         $requestCustomFields = CustomField::forEntity('request')
             ->where('is_built_in', false)
             ->get();
-
-        MonasteryMessage::where('monastery_id', $monastery->id)
-            ->where('sender_type', 'admin')
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
-
-        $messages = $monastery->messages()
-            ->with('user:id,name')
-            ->latest()
-            ->limit(100)
-            ->get()
-            ->reverse()
-            ->values();
-
-        $passSanghas = Sangha::query()
-            ->with('exam')
-            ->where('monastery_id', $monastery->id)
-            ->where(function ($query) {
-                $query->whereExists(function ($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('scores')
-                        ->join('subjects', 'subjects.id', '=', 'scores.subject_id')
-                        ->whereColumn('scores.sangha_id', 'sanghas.id')
-                        ->whereNotNull('subjects.pass_mark')
-                        ->whereRaw('scores.value >= subjects.pass_mark');
-                })->orWhereExists(function ($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('scores')
-                        ->whereColumn('scores.sangha_id', 'sanghas.id')
-                        ->where('scores.moderation_decision', 'pass');
-                });
-            })
-            ->orderBy('name')
+        $monasteryExamCustomFields = CustomField::forEntity('monastery_exam')
+            ->where('is_built_in', false)
             ->get();
 
-        $failSanghas = Sangha::query()
-            ->with('exam')
-            ->where('monastery_id', $monastery->id)
-            ->where(function ($query) {
-                $query->whereExists(function ($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('scores')
-                        ->join('subjects', 'subjects.id', '=', 'scores.subject_id')
-                        ->whereColumn('scores.sangha_id', 'sanghas.id')
-                        ->whereNotNull('subjects.moderation_mark')
-                        ->whereRaw('scores.value < subjects.moderation_mark');
-                })->orWhereExists(function ($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('scores')
-                        ->whereColumn('scores.sangha_id', 'sanghas.id')
-                        ->where('scores.moderation_decision', 'fail');
-                });
-            })
-            ->orderBy('name')
+        $myFormRequests = $monastery->formRequests()->whereNull('exam_type_id')->latest()->limit(25)->get();
+
+        $examTypesCanonical = ExamType::query()
+            ->whereIn('name', ExamType::CANONICAL_NAME_ORDER)
+            ->orderByCanonical()
             ->get();
+        $canonicalExamTypeIds = $examTypesCanonical->pluck('id')->all();
+        $examTypeId = (int) $request->get('exam_type_id', 0);
+        if ($tab === 'exam') {
+            if ($canonicalExamTypeIds === [] || ! in_array($examTypeId, $canonicalExamTypeIds, true)) {
+                $examTypeId = (int) ($canonicalExamTypeIds[0] ?? 0);
+            }
+        } else {
+            $examTypeId = 0;
+        }
+        $myExamFormRequests = $tab === 'exam' && $examTypeId > 0
+            ? $monastery->formRequests()->where('exam_type_id', $examTypeId)->latest()->limit(25)->get()
+            : collect();
+
+        $resultsRaw = SiteSetting::get(MonasteryPortalResultsSnapshot::key());
+        $resultsDecoded = $resultsRaw ? json_decode($resultsRaw, true) : null;
+        $resultsBlock = is_array($resultsDecoded)
+            ? ($resultsDecoded['monasteries'][(string) $monastery->id] ?? null)
+            : null;
+        $resultsPublishedAt = is_array($resultsDecoded) ? ($resultsDecoded['generated_at'] ?? null) : null;
+
+        $passSanghas = collect($resultsBlock['pass'] ?? [])->map(fn (array $row) => (object) $row);
+        $failSanghas = collect($resultsBlock['fail'] ?? [])->map(fn (array $row) => (object) $row);
+
+        $recentChatMessages = collect();
+        if ($tab === 'chat') {
+            $recentChatMessages = MonasteryMessage::query()
+                ->where('monastery_id', $monastery->id)
+                ->with(['user:id,name', 'monastery:id,name'])
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get()
+                ->reverse()
+                ->values();
+        }
 
         return view('monastery.dashboard', compact(
             'monastery',
@@ -153,46 +150,20 @@ class DashboardController extends Controller
             'scoresCount',
             'recentScores',
             'exams',
+            'sanghaFieldMeta',
             'sanghaCustomFields',
             'requestCustomFields',
-            'messages',
+            'monasteryExamCustomFields',
+            'myFormRequests',
+            'examTypesCanonical',
+            'examTypeId',
+            'myExamFormRequests',
             'screen',
             'passSanghas',
-            'failSanghas'
+            'failSanghas',
+            'resultsPublishedAt',
+            'recentChatMessages'
         ));
-    }
-
-    public function pollMessages(): JsonResponse
-    {
-        $monastery = Auth::guard('monastery')->user();
-
-        MonasteryMessage::where('monastery_id', $monastery->id)
-            ->where('sender_type', 'admin')
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
-
-        $messages = $monastery->messages()
-            ->with('user:id,name')
-            ->latest()
-            ->limit(100)
-            ->get()
-            ->reverse()
-            ->values();
-
-        $revision = $messages->isEmpty()
-            ? '0-0-0'
-            : (($messages->max('id') ?? 0).'-'.$messages->count().'-'.(optional($messages->last())->updated_at?->timestamp ?? 0));
-
-        $html = view('partials.monastery-message-thread-items', [
-            'messages' => $messages,
-            'monastery' => $monastery,
-            'variant' => 'portal',
-        ])->render();
-
-        return response()->json([
-            'revision' => $revision,
-            'html' => $html,
-        ]);
     }
 
     public function storeSangha(Request $request): RedirectResponse
@@ -201,21 +172,21 @@ class DashboardController extends Controller
         $customFields = CustomField::forEntity('sangha')
             ->where('is_built_in', false)
             ->get();
+        $bySlug = CustomField::sanghaDefinitionsBySlug();
 
-        $validated = $request->validate(array_merge([
-            'exam_id' => ['nullable', 'exists:exams,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:sanghas,username'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'description' => ['nullable', 'string'],
-        ], $this->customFieldRules($customFields)));
+        $validated = $request->validate(array_merge(
+            CustomField::sanghaCoreValidationRules($bySlug, ['exam_id', 'name', 'father_name', 'nrc_number', 'description']),
+            $this->customFieldRules($customFields)
+        ));
 
         $sangha = Sangha::create([
             'monastery_id' => $monastery->id,
             'exam_id' => $validated['exam_id'] ?? null,
             'name' => $validated['name'],
-            'username' => $validated['username'],
-            'password' => $validated['password'],
+            'father_name' => $validated['father_name'] ?? null,
+            'nrc_number' => $validated['nrc_number'] ?? null,
+            'username' => null,
+            'password' => null,
             'description' => $validated['description'] ?? null,
             'is_active' => true,
             'approved' => false,
@@ -232,88 +203,133 @@ class DashboardController extends Controller
 
         return redirect()
             ->route('monastery.dashboard', ['tab' => 'main', 'screen' => 'pending'])
-            ->with('success', 'Sangha application submitted successfully.');
+            ->with('success', t('sangha_application_submitted', 'Sangha application submitted successfully. An administrator will assign a Student Id before the candidate can log in.'));
     }
 
-    public function storeMessage(Request $request): RedirectResponse
+    public function storeFormRequest(Request $request): RedirectResponse
     {
         $monastery = Auth::guard('monastery')->user();
         $requestCustomFields = CustomField::forEntity('request')
             ->where('is_built_in', false)
             ->get();
 
-        $validated = $request->validate(array_merge([
-            'message' => ['nullable', 'string', 'max:3000'],
-        ], $this->customFieldRules($requestCustomFields)));
-
-        $customPayload = [];
-        foreach ($requestCustomFields as $field) {
-            $value = $request->input('custom_fields.'.$field->slug);
-
-            if (in_array($field->type, ['media', 'document', 'video'], true)) {
-                $file = $request->file('custom_fields.'.$field->slug);
-                if ($file?->isValid()) {
-                    $value = $file->store('monastery-requests/'.$monastery->id, 'public');
-                }
-            }
-
-            if ($field->type === 'checkbox') {
-                if (! in_array((string) $value, ['1', 'true'], true)) {
-                    continue;
-                }
-            }
-
-            if (is_array($value)) {
-                $value = array_values(array_filter($value, fn ($item) => filled($item)));
-                if (empty($value)) {
-                    continue;
-                }
-            } elseif (! filled($value)) {
-                continue;
-            }
-
-            $customPayload[] = [
-                'slug' => $field->slug,
-                'label' => $field->name,
-                'type' => $field->type,
-                'value' => $value,
-            ];
-        }
-
-        $messageText = trim((string) ($validated['message'] ?? ''));
-        if ($messageText === '' && empty($customPayload)) {
+        if ($requestCustomFields->isEmpty()) {
             return redirect()
                 ->route('monastery.dashboard', ['tab' => 'main', 'screen' => 'request'])
-                ->with('error', 'Please fill at least one request field or message.');
+                ->with('error', t('no_request_fields_configured', 'No request form fields are configured yet. Please contact the administrator.'));
         }
 
-        $storedMessage = $messageText === '' ? 'Request form submitted.' : $messageText;
+        $request->validate($this->customFieldRules($requestCustomFields));
 
-        MonasteryMessage::create([
+        if (! $this->portalRequestHasAnyInput($request, $requestCustomFields)) {
+            return redirect()
+                ->route('monastery.dashboard', ['tab' => 'main', 'screen' => 'request'])
+                ->with('error', t('request_form_fill_one', 'Please complete the request form before submitting.'));
+        }
+
+        $submission = MonasteryFormRequest::create([
             'monastery_id' => $monastery->id,
-            'sender_type' => 'monastery',
-            'message' => $storedMessage,
-            'payload_json' => empty($customPayload) ? null : $customPayload,
+            'status' => MonasteryFormRequest::STATUS_PENDING,
         ]);
 
-        $preview = Str::limit($storedMessage, 140);
-        if ($messageText === '' && ! empty($customPayload)) {
-            $preview = t('notif_request_with_attachments', 'Request with attachments');
+        $submission->syncRequestFieldValues($request);
+
+        $preview = $submission->fresh()->summaryPreview();
+        if ($preview === '—') {
+            $preview = t('notif_new_request_submitted', 'New request submitted');
         }
 
         AdminNotifications::notifyAll(new NewMonasteryRequestNotification(
             $monastery->name,
-            $preview,
-            route('admin.monastery-requests.show', $monastery),
+            Str::limit($preview, 140),
+            route('admin.monastery-requests.show', $submission),
         ));
 
         return redirect()
             ->route('monastery.dashboard', ['tab' => 'main', 'screen' => 'request'])
-            ->with('success', 'Message sent to Super Admin.');
+            ->with('success', t('request_submitted_success', 'Your request was submitted and is pending review.'));
+    }
+
+    public function storeExamFormSubmission(Request $request): RedirectResponse
+    {
+        $monastery = Auth::guard('monastery')->user();
+        $allowedExamTypeIds = ExamType::query()
+            ->whereIn('name', ExamType::CANONICAL_NAME_ORDER)
+            ->pluck('id')
+            ->all();
+
+        $monasteryExamCustomFields = CustomField::forEntity('monastery_exam')
+            ->where('is_built_in', false)
+            ->get();
+
+        if ($monasteryExamCustomFields->isEmpty()) {
+            return redirect()
+                ->route('monastery.dashboard', ['tab' => 'exam', 'exam_type_id' => $request->input('exam_type_id')])
+                ->with('error', t('no_monastery_exam_fields_configured', 'No monastery exam form fields are configured yet. Please contact the administrator.'));
+        }
+
+        $request->validate(array_merge(
+            ['exam_type_id' => ['required', 'integer', Rule::in($allowedExamTypeIds)]],
+            $this->customFieldRules($monasteryExamCustomFields)
+        ));
+
+        if (! $this->portalRequestHasAnyInput($request, $monasteryExamCustomFields)) {
+            return redirect()
+                ->route('monastery.dashboard', ['tab' => 'exam', 'exam_type_id' => $request->integer('exam_type_id')])
+                ->with('error', t('exam_form_fill_one', 'Please complete the exam form before submitting.'));
+        }
+
+        $submission = MonasteryFormRequest::create([
+            'monastery_id' => $monastery->id,
+            'exam_type_id' => (int) $request->input('exam_type_id'),
+            'status' => MonasteryFormRequest::STATUS_PENDING,
+        ]);
+
+        $submission->syncRequestFieldValues($request);
+
+        $submission = $submission->fresh(['examType']);
+        $preview = $submission->summaryPreview();
+        if ($preview === '—') {
+            $preview = t('notif_new_request_submitted', 'New request submitted');
+        }
+        if ($submission->examType) {
+            $preview = '['.$submission->examType->name.'] '.$preview;
+        }
+
+        AdminNotifications::notifyAll(new NewMonasteryRequestNotification(
+            $monastery->name,
+            Str::limit($preview, 140),
+            route('admin.monastery-requests.show', $submission),
+        ));
+
+        return redirect()
+            ->route('monastery.dashboard', ['tab' => 'exam', 'exam_type_id' => $submission->exam_type_id])
+            ->with('success', t('exam_form_submitted_success', 'Exam form submitted and is pending review.'));
+    }
+
+    private function portalRequestHasAnyInput(Request $request, Collection $fields): bool
+    {
+        $values = $request->input('custom_fields', []);
+
+        foreach ($fields as $field) {
+            if (in_array($field->type, ['media', 'document', 'video'], true)) {
+                if ($request->hasFile('custom_fields.'.$field->slug)) {
+                    return true;
+                }
+            } elseif ($field->type === 'checkbox') {
+                if ($request->boolean('custom_fields.'.$field->slug)) {
+                    return true;
+                }
+            } elseif (isset($values[$field->slug]) && filled($values[$field->slug])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
-     * @return array<string, array<int, string|In>>
+     * @return array<string, array<int, mixed>>
      */
     private function customFieldRules(Collection $fields): array
     {
@@ -361,8 +377,7 @@ class DashboardController extends Controller
                         $fieldRules = ['nullable'];
                     }
                     $fieldRules[] = 'file';
-                    $fieldRules[] = 'mimes:pdf,doc,docx,xls,xlsx,txt';
-                    $fieldRules[] = 'max:10240';
+                    $fieldRules[] = 'max:51200';
                     break;
                 case 'video':
                     if (! $field->required) {

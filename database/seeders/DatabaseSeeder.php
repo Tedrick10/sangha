@@ -187,17 +187,13 @@ class DatabaseSeeder extends Seeder
                 ]);
         }
 
-        // Exam Types
-        $examTypes = [
-            ExamType::updateOrCreate(['name' => 'Pali Level 1'], ['description' => 'Introductory Pali examination', 'is_active' => true, 'approved' => true]),
-            ExamType::updateOrCreate(['name' => 'Pali Level 2'], ['description' => 'Intermediate Pali examination', 'is_active' => true, 'approved' => true]),
-            ExamType::updateOrCreate(['name' => 'Pali Level 3'], ['description' => 'Advanced Pali examination', 'is_active' => true, 'approved' => true]),
-            ExamType::updateOrCreate(['name' => 'Dhamma Exam'], ['description' => 'Dhamma theory examination', 'is_active' => true, 'approved' => true]),
-            ExamType::updateOrCreate(['name' => 'Vinaya Exam'], ['description' => 'Monastic discipline examination', 'is_active' => true, 'approved' => true]),
-        ];
-        $moreExamTypeNames = ['Pali Level 4', 'Pali Level 5', 'Abhidhamma Exam', 'Suttanta Exam', 'Tipitaka Exam', 'Memorization Exam', 'Writing Exam', 'Oral Exam', 'Preliminary Exam', 'Final Exam'];
-        foreach ($moreExamTypeNames as $i => $name) {
-            $examTypes[] = ExamType::updateOrCreate(['name' => $name], ['description' => $name.' description', 'is_active' => true, 'approved' => $i % 3 !== 0]);
+        // Exam Types: five canonical programmes (Burmese labels only), order matches ExamType::CANONICAL_NAME_ORDER.
+        $examTypes = [];
+        foreach (ExamType::CANONICAL_NAME_ORDER as $name) {
+            $examTypes[] = ExamType::updateOrCreate(
+                ['name' => $name],
+                ['description' => null, 'is_active' => true, 'approved' => true]
+            );
         }
 
         // Subjects
@@ -438,6 +434,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // Websites
+        $appName = config('app.name');
         Website::updateOrCreate(
             ['slug' => 'home'],
             [
@@ -451,7 +448,7 @@ class DatabaseSeeder extends Seeder
             ['slug' => 'about'],
             [
                 'title' => 'About Us',
-                'content' => '<h2>Our mission</h2><p>Sangha Exam is a dedicated platform for organizing <strong>Pali</strong>, <strong>Vinaya</strong>, and <strong>Dhamma</strong> examinations for monastic communities. We help monasteries register candidates, publish schedules, record scores, and share results with clarity and respect.</p><h2>What we offer</h2><ul><li>Secure portals for monasteries and Sangha members</li><li>Centralized exam types, subjects, and score management</li><li>Public pages for schedules, policies, and pass lists</li><li>Multilingual interface options for regional use</li></ul><h2>Who we serve</h2><p>Partner monasteries, examination boards, and candidates use the system for end-to-end exam cycles—from registration to publication of outcomes.</p>',
+                'content' => '<h2>Our mission</h2><p>'.$appName.' is a dedicated platform for organizing <strong>Pali</strong>, <strong>Vinaya</strong>, and <strong>Dhamma</strong> examinations for monastic communities. We help monasteries register candidates, publish schedules, record scores, and share results with clarity and respect.</p><h2>What we offer</h2><ul><li>Secure portals for monasteries and Sangha members</li><li>Centralized exam types, subjects, and score management</li><li>Public pages for schedules, policies, and pass lists</li><li>Multilingual interface options for regional use</li></ul><h2>Who we serve</h2><p>Partner monasteries, examination boards, and candidates use the system for end-to-end exam cycles—from registration to publication of outcomes.</p>',
                 'type' => 'page',
                 'is_published' => true,
                 'sort_order' => 1,
@@ -469,7 +466,7 @@ class DatabaseSeeder extends Seeder
             ['slug' => 'exam-schedule'],
             [
                 'title' => 'Examination Schedule',
-                'content' => '<p>The <strong>table below</strong> is generated automatically from approved, active examinations in the database. Use it in demos to show real venues, monasteries, and dates. Static notes can still be edited here in the admin panel.</p><p>Monastery coordinators should confirm final hall assignments before the exam date.</p>',
+                'content' => '<p>The <strong>table below</strong> is generated automatically from active examinations in the database. Use it in demos to show real venues, monasteries, and dates. Static notes can still be edited here in the admin panel.</p><p>Monastery coordinators should confirm final hall assignments before the exam date.</p>',
                 'type' => 'page',
                 'is_published' => true,
                 'sort_order' => 3,
@@ -478,9 +475,9 @@ class DatabaseSeeder extends Seeder
             ['slug' => 'privacy'],
             [
                 'title' => 'Privacy Policy',
-                'content' => <<<'HTML'
+                'content' => <<<HTML
 <h2>Summary</h2>
-<p>This Privacy Policy describes how Sangha Exam (the &ldquo;platform&rdquo;) handles personal information when monasteries and Sangha members use registration, examination, and results features. It applies to the public website and the monastery and Sangha portals unless a separate notice says otherwise.</p>
+<p>This Privacy Policy describes how {$appName} (the &ldquo;platform&rdquo;) handles personal information when monasteries and Sangha members use registration, examination, and results features. It applies to the public website and the monastery and Sangha portals unless a separate notice says otherwise.</p>
 <p><strong>Demo notice:</strong> Replace this entire document with counsel-approved text before relying on it in production.</p>
 
 <h2>Who we are</h2>
@@ -545,7 +542,7 @@ HTML,
             ['slug' => 'footer'],
             [
                 'title' => 'Footer',
-                'content' => '<p>© '.date('Y').' Sangha Exam. Examination services for monastic communities.</p><p class="text-sm opacity-90">Demo deployment — content and figures illustrate typical usage.</p>',
+                'content' => '<p>© '.date('Y').' '.$appName.'. Examination services for monastic communities.</p><p class="text-sm opacity-90">Demo deployment — content and figures illustrate typical usage.</p>',
                 'type' => 'section',
                 'is_published' => true,
                 'sort_order' => 10,
@@ -560,7 +557,7 @@ HTML,
             ['slug' => 'gallery', 'title' => 'Gallery', 'sort' => 19, 'body' => '<h2>Gallery</h2><p>Photo highlights from recent ceremonies and examination days will appear here.</p>'],
             ['slug' => 'terms-of-use', 'title' => 'Terms of Use', 'sort' => 90, 'body' => '<h2>Terms of use</h2><p>Use of this platform is subject to fair use and respect for monastic privacy. Administrative accounts are issued to authorized staff only.</p>'],
             ['slug' => 'accessibility', 'title' => 'Accessibility', 'sort' => 91, 'body' => '<h2>Our commitment</h2><p>We strive for readable type sizes, sufficient colour contrast in <strong>light</strong> and <strong>dark</strong> themes, and keyboard-accessible navigation across public pages.</p><h2>Features</h2><ul><li>Semantic headings and landmark regions</li><li>Focus-visible styles on interactive controls</li><li>Reduced-motion friendly animations where applicable</li></ul><h2>Feedback</h2><p>If you encounter a barrier, please contact us via the <strong>Contact</strong> page with the page URL and your browser or assistive technology (demo process).</p>'],
-            ['slug' => 'donate', 'title' => 'Donate', 'sort' => 92, 'body' => '<h2>Support the program</h2><p>Donations help cover examination materials, hall costs, and platform maintenance. This is <strong>demo copy</strong>—replace with your official donation channels.</p><ul><li><strong>Bank transfer:</strong> Demo Bank — Account name: Sangha Exam Trust — Reference: DONATION</li><li><strong>Contact:</strong> Use the Contact page for receipts and enquiries.</li></ul>'],
+            ['slug' => 'donate', 'title' => 'Donate', 'sort' => 92, 'body' => '<h2>Support the program</h2><p>Donations help cover examination materials, hall costs, and platform maintenance. This is <strong>demo copy</strong>—replace with your official donation channels.</p><ul><li><strong>Bank transfer:</strong> Demo Bank — Account name: '.$appName.' Trust — Reference: DONATION</li><li><strong>Contact:</strong> Use the Contact page for receipts and enquiries.</li></ul>'],
             ['slug' => 'resources', 'title' => 'Resources', 'sort' => 93, 'body' => '<h2>Downloads & links</h2><ul><li>Candidate handbook (PDF) — available from your monastery coordinator</li><li>Sample timetable template for hall supervisors</li><li>Regional contact list — issued per examination cycle</li></ul><p>Administrators can attach real files through custom fields or future media modules.</p>'],
             ['slug' => 'volunteer', 'title' => 'Volunteer', 'sort' => 94, 'body' => '<h2>Volunteer with us</h2><p>We welcome lay supporters for registration desks, timekeeping, and hall setup. Training is provided before each examination season.</p><p><strong>To apply:</strong> email volunteer@sanghaexam.org with your city and availability (demo address).</p>'],
             ['slug' => 'partners', 'title' => 'Partners', 'sort' => 95, 'body' => '<h2>Partner monasteries</h2><p>Partner institutions host sittings, nominate invigilators, and validate candidate lists. The map and directory below can be replaced with your real partner list.</p><p>Current demo data includes monasteries across Yangon, Mandalay, and Mon regions.</p>'],
@@ -639,6 +636,8 @@ HTML,
                 ['name' => $f['name'], 'type' => $f['type'], 'required' => false, 'sort_order' => 200 + $i, 'is_built_in' => false]
             );
         }
+
+        $this->call(MonasteryExamDemoCustomFieldsSeeder::class);
 
         // Custom field values
         $foundedField = CustomField::where('slug', 'founded_year')->first();

@@ -9,18 +9,18 @@
 <section class="relative py-10 sm:py-14 lg:py-16">
     <div class="max-w-5xl mx-auto">
         <div class="rounded-3xl border border-stone-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 shadow-xl shadow-stone-200/40 dark:shadow-none overflow-hidden">
-            <div class="px-6 sm:px-8 pt-6 sm:pt-8 pb-4 border-b border-stone-200 dark:border-slate-700 bg-gradient-to-r from-amber-50/50 to-transparent dark:from-amber-900/10 dark:to-transparent">
+            <div class="px-6 sm:px-8 pt-6 sm:pt-8 pb-4 border-b border-stone-200 dark:border-slate-700 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-900/10 dark:to-transparent">
                 <h1 class="font-heading text-3xl sm:text-4xl font-semibold text-stone-900 dark:text-slate-100">Create Account</h1>
                 <p class="mt-2 text-sm sm:text-base text-stone-600 dark:text-slate-300">Choose account type and continue with registration or login.</p>
             </div>
             <div class="flex border-b border-stone-200 dark:border-slate-700">
                 <button type="button" id="reg-tab-monastery" role="tab" aria-selected="{{ $activeTab === 'monastery' ? 'true' : 'false' }}"
-                    class="register-tab flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-semibold transition-colors {{ $activeTab === 'monastery' ? 'text-amber-600 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/20 border-b-2 border-amber-500' : 'text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-700/50' }}">
+                    class="register-tab flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-semibold transition-colors {{ $activeTab === 'monastery' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-50/80 dark:bg-yellow-900/20 border-b-2 border-yellow-500' : 'text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-700/50' }}">
                     @include('partials.icon', ['name' => 'home', 'class' => 'w-4 h-4'])
                     Monastery
                 </button>
                 <button type="button" id="reg-tab-sangha" role="tab" aria-selected="{{ $activeTab === 'sangha' ? 'true' : 'false' }}"
-                    class="register-tab flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-semibold transition-colors {{ $activeTab === 'sangha' ? 'text-amber-600 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/20 border-b-2 border-amber-500' : 'text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-700/50' }}">
+                    class="register-tab flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-semibold transition-colors {{ $activeTab === 'sangha' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-50/80 dark:bg-yellow-900/20 border-b-2 border-yellow-500' : 'text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-700/50' }}">
                     @include('partials.icon', ['name' => 'login', 'class' => 'w-4 h-4'])
                     Sangha
                 </button>
@@ -39,18 +39,18 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <label for="monastery_name" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Name *</label>
-                                <input type="text" name="name" id="monastery_name" value="{{ old('name') }}" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                <input type="text" name="name" id="monastery_name" value="{{ old('name') }}" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                             </div>
                             <div>
                                 <label for="monastery_username" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Username *</label>
-                                <input type="text" name="username" id="monastery_username" value="{{ old('username') }}" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                <input type="text" name="username" id="monastery_username" value="{{ old('username') }}" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <label for="monastery_password" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Password *</label>
                                 <div class="relative" data-password-toggle-ignore="1">
-                                    <input type="password" name="password" id="monastery_password" required class="w-full px-4 py-3 pr-12 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                    <input type="password" name="password" id="monastery_password" required class="w-full px-4 py-3 pr-12 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                                     <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 p-1 text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 rounded transition-colors w-9 h-9 flex items-center justify-center z-10" aria-label="Show password" tabindex="-1">
                                         <span class="icon-eye absolute inset-0 flex items-center justify-center">@include('partials.icon', ['name' => 'eye', 'class' => 'w-5 h-5'])</span>
                                         <span class="icon-eye-off absolute inset-0 flex items-center justify-center" style="display: none">@include('partials.icon', ['name' => 'eye-off', 'class' => 'w-5 h-5'])</span>
@@ -60,7 +60,7 @@
                             <div>
                                 <label for="monastery_password_confirmation" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Confirm Password *</label>
                                 <div class="relative" data-password-toggle-ignore="1">
-                                    <input type="password" name="password_confirmation" id="monastery_password_confirmation" required class="w-full px-4 py-3 pr-12 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                    <input type="password" name="password_confirmation" id="monastery_password_confirmation" required class="w-full px-4 py-3 pr-12 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                                     <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 p-1 text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 rounded transition-colors w-9 h-9 flex items-center justify-center z-10" aria-label="Show password" tabindex="-1">
                                         <span class="icon-eye absolute inset-0 flex items-center justify-center">@include('partials.icon', ['name' => 'eye', 'class' => 'w-5 h-5'])</span>
                                         <span class="icon-eye-off absolute inset-0 flex items-center justify-center" style="display: none">@include('partials.icon', ['name' => 'eye-off', 'class' => 'w-5 h-5'])</span>
@@ -71,24 +71,24 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <label for="monastery_region" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Region</label>
-                                <input type="text" name="region" id="monastery_region" value="{{ old('region') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                <input type="text" name="region" id="monastery_region" value="{{ old('region') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                             </div>
                             <div>
                                 <label for="monastery_city" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">City</label>
-                                <input type="text" name="city" id="monastery_city" value="{{ old('city') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                <input type="text" name="city" id="monastery_city" value="{{ old('city') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                             </div>
                         </div>
                         <div>
                             <label for="monastery_address" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Address</label>
-                            <input type="text" name="address" id="monastery_address" value="{{ old('address') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                            <input type="text" name="address" id="monastery_address" value="{{ old('address') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                         </div>
                         <div>
                             <label for="monastery_phone" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Phone</label>
-                            <input type="text" name="phone" id="monastery_phone" value="{{ old('phone') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                            <input type="text" name="phone" id="monastery_phone" value="{{ old('phone') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                         </div>
                         <div>
                             <label for="monastery_description" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Description</label>
-                            <textarea name="description" id="monastery_description" rows="3" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">{{ old('description') }}</textarea>
+                            <textarea name="description" id="monastery_description" rows="3" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">{{ old('description') }}</textarea>
                         </div>
 
                         @if($monasteryCustomFields->isNotEmpty())
@@ -100,7 +100,7 @@
                             </div>
                         @endif
 
-                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-colors">
+                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-yellow-500 text-white font-semibold hover:bg-yellow-600 focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition-colors">
                             Register Monastery
                         </button>
                     </form>
@@ -117,7 +117,7 @@
                         <input type="hidden" name="form_type" value="sangha">
                         <div>
                             <label for="sangha_monastery_id" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Monastery *</label>
-                            <select name="monastery_id" id="sangha_monastery_id" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                            <select name="monastery_id" id="sangha_monastery_id" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                                 <option value="">Select monastery</option>
                                 @foreach($monasteries as $monastery)
                                     <option value="{{ $monastery->id }}" {{ old('monastery_id') == $monastery->id ? 'selected' : '' }}>{{ $monastery->name }}</option>
@@ -127,38 +127,21 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <label for="sangha_name" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Name *</label>
-                                <input type="text" name="name" id="sangha_name" value="{{ old('name') }}" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                <input type="text" name="name" id="sangha_name" value="{{ old('name') }}" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                             </div>
                             <div>
-                                <label for="sangha_username" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Username *</label>
-                                <input type="text" name="username" id="sangha_username" value="{{ old('username') }}" required class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                <label for="sangha_father_name" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">{{ t('score_father_name_label', 'Father name') }}</label>
+                                <input type="text" name="father_name" id="sangha_father_name" value="{{ old('father_name') }}" maxlength="255" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="{{ t('score_optional_placeholder', 'Optional') }}">
+                            </div>
+                            <div>
+                                <label for="sangha_nrc_number" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">{{ t('score_nrc_label', 'NRC number') }}</label>
+                                <input type="text" name="nrc_number" id="sangha_nrc_number" value="{{ old('nrc_number') }}" maxlength="100" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="{{ t('score_optional_placeholder', 'Optional') }}">
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label for="sangha_password" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Password *</label>
-                                <div class="relative" data-password-toggle-ignore="1">
-                                    <input type="password" name="password" id="sangha_password" required class="w-full px-4 py-3 pr-12 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
-                                    <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 p-1 text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 rounded transition-colors w-9 h-9 flex items-center justify-center z-10" aria-label="Show password" tabindex="-1">
-                                        <span class="icon-eye absolute inset-0 flex items-center justify-center">@include('partials.icon', ['name' => 'eye', 'class' => 'w-5 h-5'])</span>
-                                        <span class="icon-eye-off absolute inset-0 flex items-center justify-center" style="display: none">@include('partials.icon', ['name' => 'eye-off', 'class' => 'w-5 h-5'])</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="sangha_password_confirmation" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Confirm Password *</label>
-                                <div class="relative" data-password-toggle-ignore="1">
-                                    <input type="password" name="password_confirmation" id="sangha_password_confirmation" required class="w-full px-4 py-3 pr-12 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
-                                    <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 p-1 text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 rounded transition-colors w-9 h-9 flex items-center justify-center z-10" aria-label="Show password" tabindex="-1">
-                                        <span class="icon-eye absolute inset-0 flex items-center justify-center">@include('partials.icon', ['name' => 'eye', 'class' => 'w-5 h-5'])</span>
-                                        <span class="icon-eye-off absolute inset-0 flex items-center justify-center" style="display: none">@include('partials.icon', ['name' => 'eye-off', 'class' => 'w-5 h-5'])</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <p class="text-xs text-stone-500 dark:text-slate-400">{{ t('sangha_portal_no_student_id_hint', 'Student Id for login is assigned by an administrator after review.') }}</p>
                         <div>
                             <label for="sangha_exam_id" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Exam (optional)</label>
-                            <select name="exam_id" id="sangha_exam_id" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                            <select name="exam_id" id="sangha_exam_id" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
                                 <option value="">Select exam</option>
                                 @foreach($exams as $exam)
                                     <option value="{{ $exam->id }}" {{ old('exam_id') == $exam->id ? 'selected' : '' }}>{{ $exam->name }}{{ $exam->exam_date ? ' (' . $exam->exam_date->format('M d, Y') . ')' : '' }}</option>
@@ -167,7 +150,7 @@
                         </div>
                         <div>
                             <label for="sangha_description" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">Description</label>
-                            <textarea name="description" id="sangha_description" rows="3" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">{{ old('description') }}</textarea>
+                            <textarea name="description" id="sangha_description" rows="3" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors">{{ old('description') }}</textarea>
                         </div>
 
                         @if($sanghaCustomFields->isNotEmpty())
@@ -179,7 +162,7 @@
                             </div>
                         @endif
 
-                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-colors">
+                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-yellow-500 text-white font-semibold hover:bg-yellow-600 focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition-colors">
                             Register Sangha
                         </button>
                     </form>
@@ -226,12 +209,12 @@
         tabs.forEach(function(tab) {
             var isActive = (isMonastery && tab === monasteryTab) || (!isMonastery && tab === sanghaTab);
             tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
-            tab.classList.toggle('text-amber-600', isActive);
-            tab.classList.toggle('dark:text-amber-400', isActive);
-            tab.classList.toggle('bg-amber-50/80', isActive);
-            tab.classList.toggle('dark:bg-amber-900/20', isActive);
+            tab.classList.toggle('text-yellow-600', isActive);
+            tab.classList.toggle('dark:text-yellow-400', isActive);
+            tab.classList.toggle('bg-yellow-50/80', isActive);
+            tab.classList.toggle('dark:bg-yellow-900/20', isActive);
             tab.classList.toggle('border-b-2', isActive);
-            tab.classList.toggle('border-amber-500', isActive);
+            tab.classList.toggle('border-yellow-500', isActive);
 
             tab.classList.toggle('text-stone-500', !isActive);
             tab.classList.toggle('dark:text-slate-400', !isActive);

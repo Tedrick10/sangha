@@ -67,16 +67,6 @@
                 </div>
             </div>
         @endif
-        <div class="flex items-center gap-6 pt-2">
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} class="admin-checkbox">
-                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Active</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="approved" id="approved" value="1" {{ old('approved') ? 'checked' : '' }} class="admin-checkbox">
-                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Approved</span>
-            </label>
-        </div>
     </div>
     <div class="admin-form-actions">
         <button type="submit" class="admin-btn-primary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'check', 'class' => 'w-5 h-5']) Create Monastery</button>

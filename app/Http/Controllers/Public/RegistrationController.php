@@ -80,25 +80,28 @@ class RegistrationController extends Controller
         $customFields = CustomField::forEntity('sangha')
             ->where('is_built_in', false)
             ->get();
+        $bySlug = CustomField::sanghaDefinitionsBySlug();
 
-        $validated = $request->validate(array_merge([
-            'monastery_id' => [
-                'required',
-                Rule::exists('monasteries', 'id')->where(fn ($query) => $query->where('is_active', true)),
-            ],
-            'exam_id' => ['nullable', 'exists:exams,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:sanghas,username'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'description' => ['nullable', 'string'],
-        ], $this->customFieldRules($customFields)));
+        $validated = $request->validate(array_merge(
+            CustomField::sanghaCoreValidationRules($bySlug, [
+                'monastery_id',
+                'exam_id',
+                'name',
+                'father_name',
+                'nrc_number',
+                'description',
+            ], null, 'active_only'),
+            $this->customFieldRules($customFields)
+        ));
 
         $sangha = Sangha::create([
             'monastery_id' => $validated['monastery_id'],
             'exam_id' => $validated['exam_id'] ?? null,
             'name' => $validated['name'],
-            'username' => $validated['username'],
-            'password' => $validated['password'],
+            'father_name' => $validated['father_name'] ?? null,
+            'nrc_number' => $validated['nrc_number'] ?? null,
+            'username' => null,
+            'password' => null,
             'description' => $validated['description'] ?? null,
             'is_active' => true,
             'approved' => false,
@@ -116,7 +119,7 @@ class RegistrationController extends Controller
 
         return redirect()
             ->route('website.login', ['type' => 'sangha'])
-            ->with('success', 'Sangha registration submitted successfully. You can now log in.');
+            ->with('success', t('sangha_registered_wait_student_id', 'Registration submitted. An administrator will assign your Student Id; you can log in after it has been set.'));
     }
 
     /**

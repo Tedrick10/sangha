@@ -16,7 +16,7 @@
     <form method="POST" action="{{ route('sangha.login') }}" class="space-y-4">
         @csrf
         <div>
-            <label for="username" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ t('username') }}</label>
+            <label for="username" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ t('user_id', 'Student Id') }}</label>
             <input type="text" name="username" id="username" value="{{ old('username') }}" required autofocus
                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
         </div>

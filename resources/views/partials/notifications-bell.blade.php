@@ -6,7 +6,7 @@
     $items = $notifiable->notifications()->limit(15)->get();
 @endphp
 <div
-    class="js-notifications-bell-root"
+    class="js-notifications-bell-root shrink-0"
     data-json-url="{{ route($jsonRouteName) }}"
     data-empty-text="{{ e(t('no_notifications', 'No notifications yet.')) }}"
 >

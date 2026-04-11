@@ -24,6 +24,8 @@ class SanghaController extends Controller
             $query->where(function ($qry) use ($search) {
                 $qry->where('name', 'like', "%{$search}%")
                     ->orWhere('username', 'like', "%{$search}%")
+                    ->orWhere('father_name', 'like', "%{$search}%")
+                    ->orWhere('nrc_number', 'like', "%{$search}%")
                     ->orWhereHas('monastery', fn ($m) => $m->where('name', 'like', "%{$search}%"));
             });
         }
@@ -32,12 +34,6 @@ class SanghaController extends Controller
         }
         if ($request->filled('exam_id')) {
             $query->where('exam_id', $request->exam_id);
-        }
-        if ($request->filled('is_active')) {
-            $query->where('is_active', $request->is_active === '1');
-        }
-        if ($request->filled('approved')) {
-            $query->where('approved', $request->approved === '1');
         }
         if ($request->filled('moderation_status')) {
             if ($request->moderation_status === 'approved') {
@@ -51,7 +47,7 @@ class SanghaController extends Controller
 
         $sort = $request->get('sort', 'created_at');
         $order = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
-        $sortCols = ['name', 'username', 'is_active', 'approved', 'created_at'];
+        $sortCols = ['name', 'username', 'created_at'];
         if ($sort === 'monastery') {
             $query->join('monasteries', 'sanghas.monastery_id', '=', 'monasteries.id')
                 ->orderBy('monasteries.name', $order)
@@ -98,26 +94,31 @@ class SanghaController extends Controller
         $monasteries = Monastery::where('is_active', true)->orderBy('name')->get();
         $exams = Exam::where('is_active', true)->orderBy('exam_date', 'desc')->orderBy('name')->get();
         $customFields = CustomField::forEntity('sangha')->where('is_built_in', false)->get();
+        $sanghaFieldMeta = CustomField::sanghaDefinitionsBySlug();
 
-        return view('admin.sanghas.create', compact('monasteries', 'exams', 'customFields'));
+        return view('admin.sanghas.create', compact('monasteries', 'exams', 'customFields', 'sanghaFieldMeta'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'monastery_id' => 'required|exists:monasteries,id',
-            'exam_id' => 'nullable|exists:exams,id',
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:sanghas,username',
-            'password' => 'required|string|min:8|confirmed',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'approved' => 'boolean',
-            'moderation_status' => 'nullable|in:pending,approved,rejected',
-            'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
-        ]);
-        $validated['is_active'] = $request->boolean('is_active');
-        $this->applyModerationState($validated, $request);
+        $bySlug = CustomField::sanghaDefinitionsBySlug();
+        $validated = $request->validate(
+            CustomField::sanghaCoreValidationRules($bySlug, [
+                'monastery_id',
+                'exam_id',
+                'name',
+                'father_name',
+                'nrc_number',
+                'username',
+                'description',
+            ], null, 'any')
+        );
+        if (($validated['username'] ?? null) === '') {
+            $validated['username'] = null;
+        }
+        $validated['is_active'] = true;
+        $validated['approved'] = false;
+        $validated['rejection_reason'] = null;
 
         $sangha = Sangha::create($validated);
         $sangha->setCustomFieldValues($request->input('custom_fields', []), $request);
@@ -131,28 +132,32 @@ class SanghaController extends Controller
         $exams = Exam::where('is_active', true)->orderBy('exam_date', 'desc')->orderBy('name')->get();
         $customFields = CustomField::forEntity('sangha')->where('is_built_in', false)->get();
         $customFieldValues = $sangha->getCustomFieldValuesArray();
+        $sanghaFieldMeta = CustomField::sanghaDefinitionsBySlug();
 
-        return view('admin.sanghas.edit', compact('sangha', 'monasteries', 'exams', 'customFields', 'customFieldValues'));
+        return view('admin.sanghas.edit', compact('sangha', 'monasteries', 'exams', 'customFields', 'customFieldValues', 'sanghaFieldMeta'));
     }
 
     public function update(Request $request, Sangha $sangha): RedirectResponse
     {
-        $validated = $request->validate([
-            'monastery_id' => 'required|exists:monasteries,id',
-            'exam_id' => 'nullable|exists:exams,id',
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:sanghas,username,'.$sangha->id,
-            'password' => 'nullable|string|min:8|confirmed',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'approved' => 'boolean',
-            'moderation_status' => 'nullable|in:pending,approved,rejected',
-            'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
-        ]);
-        $validated['is_active'] = $request->boolean('is_active');
-        $this->applyModerationState($validated, $request);
-        if (empty($validated['password'])) {
-            unset($validated['password']);
+        $bySlug = CustomField::sanghaDefinitionsBySlug();
+        $validated = $request->validate(array_merge(
+            CustomField::sanghaCoreValidationRules($bySlug, [
+                'monastery_id',
+                'exam_id',
+                'name',
+                'father_name',
+                'nrc_number',
+                'username',
+                'description',
+            ], $sangha->id, 'any'),
+            [
+                'moderation_status' => 'nullable|in:pending,approved,rejected',
+                'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
+            ]
+        ));
+        $this->applyModerationState($validated, $request, $sangha);
+        if (($validated['username'] ?? null) === '') {
+            $validated['username'] = null;
         }
 
         $beforeStatus = $sangha->moderationStatus();
@@ -188,11 +193,11 @@ class SanghaController extends Controller
         return redirect()->route('admin.sanghas.index')->with('success', 'Sangha deleted successfully.');
     }
 
-    private function applyModerationState(array &$validated, Request $request): void
+    private function applyModerationState(array &$validated, Request $request, ?Sangha $existing = null): void
     {
         $status = $request->input('moderation_status');
         if (! in_array($status, ['pending', 'approved', 'rejected'], true)) {
-            $status = $request->boolean('approved') ? 'approved' : 'pending';
+            $status = $existing ? $existing->moderationStatus() : 'pending';
         }
 
         $validated['approved'] = $status === 'approved';

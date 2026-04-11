@@ -19,7 +19,6 @@ class PageController extends Controller
     {
         $upcomingExams = Exam::query()
             ->where('is_active', true)
-            ->where('approved', true)
             ->whereNotNull('exam_date')
             ->whereDate('exam_date', '>=', now()->toDateString())
             ->orderBy('exam_date')
@@ -30,7 +29,6 @@ class PageController extends Controller
         if ($upcomingExams->isEmpty()) {
             $upcomingExams = Exam::query()
                 ->where('is_active', true)
-                ->where('approved', true)
                 ->orderByDesc('exam_date')
                 ->with(['monastery', 'examType'])
                 ->take(6)
@@ -40,7 +38,7 @@ class PageController extends Controller
         $stats = [
             'monasteries' => Monastery::where('is_active', true)->count(),
             'sanghas' => Sangha::where('is_active', true)->count(),
-            'exams' => Exam::where('is_active', true)->where('approved', true)->count(),
+            'exams' => Exam::where('is_active', true)->count(),
         ];
 
         $featuredPages = Website::query()
@@ -73,12 +71,14 @@ class PageController extends Controller
         $sanghaCustomFields = CustomField::forEntity('sangha')
             ->where('is_built_in', false)
             ->get();
+        $sanghaFieldMeta = CustomField::sanghaDefinitionsBySlug();
         $monasteries = Monastery::where('is_active', true)->orderBy('name')->get();
         $exams = Exam::where('is_active', true)->orderBy('exam_date', 'desc')->orderBy('name')->get();
 
         return view('website.login', compact(
             'monasteryCustomFields',
             'sanghaCustomFields',
+            'sanghaFieldMeta',
             'monasteries',
             'exams'
         ));
@@ -99,7 +99,6 @@ class PageController extends Controller
         if ($slug === 'exam-schedule') {
             $scheduleExams = Exam::query()
                 ->where('is_active', true)
-                ->where('approved', true)
                 ->orderByRaw('CASE WHEN exam_date IS NULL THEN 1 ELSE 0 END')
                 ->orderBy('exam_date')
                 ->orderBy('name')

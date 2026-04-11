@@ -1,31 +1,31 @@
 @if ($paginator->hasPages())
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}">
 
-        <div class="flex gap-2 items-center justify-between sm:hidden">
+        <div class="flex w-full min-w-0 gap-2 items-stretch justify-between sm:hidden">
 
             @if ($paginator->onFirstPage())
-                <span class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 cursor-not-allowed rounded-xl">
+                <span class="inline-flex min-h-11 flex-1 items-center justify-center px-3 py-2.5 text-sm font-medium text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 cursor-not-allowed rounded-xl">
                     {!! __('pagination.previous') !!}
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition">
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="inline-flex min-h-11 flex-1 items-center justify-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition">
                     {!! __('pagination.previous') !!}
                 </a>
             @endif
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition">
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="inline-flex min-h-11 flex-1 items-center justify-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition">
                     {!! __('pagination.next') !!}
                 </a>
             @else
-                <span class="inline-flex items-center px-4 py-2.5 text-sm font-medium text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 cursor-not-allowed rounded-xl">
+                <span class="inline-flex min-h-11 flex-1 items-center justify-center px-3 py-2.5 text-sm font-medium text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 cursor-not-allowed rounded-xl">
                     {!! __('pagination.next') !!}
                 </span>
             @endif
 
         </div>
 
-        <div class="hidden sm:flex-1 sm:flex sm:gap-2 sm:items-center sm:justify-between">
+        <div class="hidden min-w-0 sm:flex sm:flex-1 sm:gap-3 sm:items-center sm:justify-between">
 
             <div>
                 <p class="text-sm text-slate-600 dark:text-slate-400 leading-5">
@@ -43,8 +43,8 @@
                 </p>
             </div>
 
-            <div>
-                <span class="inline-flex rtl:flex-row-reverse shadow-sm rounded-xl overflow-hidden">
+            <div class="min-w-0 max-w-full flex-1 sm:flex-none sm:max-w-none">
+                <span class="inline-flex max-w-full flex-nowrap rtl:flex-row-reverse overflow-x-auto rounded-xl shadow-sm [-webkit-overflow-scrolling:touch] pb-px">
 
                     {{-- Previous Page Link --}}
                     @if ($paginator->onFirstPage())

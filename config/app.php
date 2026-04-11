@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => ($__appName = trim((string) env('APP_NAME', ''))) !== '' && strcasecmp($__appName, 'Laravel') !== 0
+        ? $__appName
+        : 'နာဂပုရသာသနာလင်္ကာရသာမဏေကျော် စာမေးပွဲ',
 
     /*
     |--------------------------------------------------------------------------
@@ -78,7 +80,7 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'my'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 

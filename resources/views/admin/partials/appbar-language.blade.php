@@ -27,11 +27,11 @@
     };
     $currentFlag = $flagFromValue($currentLanguage?->flag, $currentLanguage?->code ?? $currentLocale);
 @endphp
-<div class="relative inline-block" id="admin-language-dropdown">
-    <button type="button" id="admin-language-btn" aria-haspopup="true" aria-expanded="false" class="admin-dropdown-trigger whitespace-nowrap">
+<div class="relative shrink-0" id="admin-language-dropdown">
+    <button type="button" id="admin-language-btn" aria-haspopup="true" aria-expanded="false" aria-label="{{ t('language', 'Language') }}: {{ $currentLangName }}" class="admin-dropdown-trigger admin-header-dropdown-trigger whitespace-nowrap">
         <span class="text-base leading-none shrink-0">{{ $currentFlag }}</span>
-        <span>{{ $currentLangName }}</span>
-        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        <span class="hidden sm:inline">{{ $currentLangName }}</span>
+        <svg class="h-3.5 w-3.5 shrink-0 text-slate-400 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
     </button>
     <div id="admin-language-menu" class="admin-dropdown-panel w-52 hidden" role="menu">
         @foreach($languages as $lang)

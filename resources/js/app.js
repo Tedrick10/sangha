@@ -1,9 +1,10 @@
 import './bootstrap';
 import './column-visibility';
+import { initSearchableSelects } from './searchable-selects';
 import { initCrossTabPreferenceSync, broadcastAppTheme, broadcastAppLocale } from './preferences-sync';
 import { initNotificationsPoll } from './notifications-poll';
-import { initMessageThreadPoll } from './message-thread-poll';
 
+window.sanghaInitSearchableSelects = initSearchableSelects;
 initCrossTabPreferenceSync();
 window.sanghaBroadcastAppTheme = broadcastAppTheme;
 window.sanghaBroadcastAppLocale = broadcastAppLocale;
@@ -113,7 +114,8 @@ if (document.readyState === 'loading') {
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMessageThreadPoll);
+    document.addEventListener('DOMContentLoaded', () => initSearchableSelects(document));
 } else {
-    initMessageThreadPoll();
+    initSearchableSelects(document);
 }
+

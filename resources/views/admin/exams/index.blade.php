@@ -35,17 +35,9 @@
             <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Inactive</option>
         </select>
     </div>
-    <div class="admin-filter-group">
-        <label for="approved" class="admin-filter-label">Approved</label>
-        <select name="approved" id="approved" class="admin-select">
-            <option value="">All</option>
-            <option value="1" {{ request('approved') === '1' ? 'selected' : '' }}>Yes</option>
-            <option value="0" {{ request('approved') === '0' ? 'selected' : '' }}>No</option>
-        </select>
-    </div>
     <div class="flex gap-2">
         <button type="submit" class="admin-btn-filter">@include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4']) Filter</button>
-        @if(request()->hasAny(['search', 'exam_type_id', 'is_active', 'approved']))
+        @if(request()->hasAny(['search', 'exam_type_id', 'is_active']))
             <a href="{{ route('admin.exams.index') }}" class="admin-btn-clear">@include('partials.icon', ['name' => 'x', 'class' => 'w-4 h-4']) Clear</a>
         @endif
     </div>
@@ -61,7 +53,6 @@
                 ['id' => 'date', 'label' => 'Date'],
                 ['id' => 'exam_type_location', 'label' => 'Exam Type / Location'],
                 ['id' => 'status', 'label' => 'Status'],
-                ['id' => 'approved', 'label' => 'Approved'],
             ],
         ])
     </div>
@@ -73,7 +64,6 @@
                 @include('admin.partials.sortable-th', ['key' => 'exam_date', 'label' => 'Date', 'dataColumn' => 'date'])
                 @include('admin.partials.sortable-th', ['key' => 'exam_type_location', 'label' => 'Exam Type / Location', 'dataColumn' => 'exam_type_location'])
                 @include('admin.partials.sortable-th', ['key' => 'is_active', 'label' => 'Status', 'dataColumn' => 'status'])
-                @include('admin.partials.sortable-th', ['key' => 'approved', 'label' => 'Approved', 'dataColumn' => 'approved'])
                 <th class="text-right">Actions</th>
             </tr>
         </thead>
@@ -91,14 +81,8 @@
                             <span class="admin-badge-inactive">Inactive</span>
                         @endif
                     </td>
-                    <td data-column="approved">
-                        @if($exam->approved)
-                            <span class="admin-badge-yes">Yes</span>
-                        @else
-                            <span class="admin-badge-no">No</span>
-                        @endif
-                    </td>
-                    <td class="text-right">
+                    <td class="text-right whitespace-nowrap">
+                        <a href="{{ route('admin.exams.entrances', $exam) }}" class="admin-action-link admin-action-view">{{ t('exam_entrance_short', 'Entrance') }}</a>
                         <a href="{{ route('admin.exams.edit', $exam) }}" class="admin-action-link admin-action-edit">@include('partials.icon', ['name' => 'pencil', 'class' => 'w-4 h-4']) Edit</a>
                         <form action="{{ route('admin.exams.destroy', $exam) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('Delete this exam?');">
                             @csrf
@@ -109,7 +93,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="admin-table-empty">No exams yet. <a href="{{ route('admin.exams.create') }}">Create one</a>.</td>
+                    <td colspan="6" class="admin-table-empty">No exams yet. <a href="{{ route('admin.exams.create') }}">Create one</a>.</td>
                 </tr>
             @endforelse
         </tbody>

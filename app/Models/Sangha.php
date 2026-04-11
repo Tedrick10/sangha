@@ -12,7 +12,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sangha extends Model implements AuthenticatableContract
 {
-    use Authenticatable, HasFactory, HasCustomFields;
+    use Authenticatable, HasCustomFields, HasFactory;
+
+    protected static function booted(): void
+    {
+        static::saving(function (Sangha $sangha): void {
+            if ($sangha->isDirty('exam_id')) {
+                $sangha->desk_number = null;
+            }
+        });
+    }
 
     protected function getCustomFieldEntityType(): string
     {
@@ -22,7 +31,10 @@ class Sangha extends Model implements AuthenticatableContract
     protected $fillable = [
         'monastery_id',
         'exam_id',
+        'desk_number',
         'name',
+        'father_name',
+        'nrc_number',
         'username',
         'password',
         'type',

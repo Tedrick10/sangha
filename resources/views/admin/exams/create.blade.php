@@ -8,7 +8,7 @@
     <h1 class="admin-page-title">Add Exam</h1>
 </div>
 
-<form action="{{ route('admin.exams.store') }}" method="POST" enctype="multipart/form-data" class="admin-form-card">
+<form action="{{ route('admin.exams.store') }}" method="POST" enctype="multipart/form-data" class="admin-form-card" data-admin-submit-once>
     @csrf
     <div class="space-y-5">
         <div class="admin-form-group">
@@ -66,10 +66,6 @@
             <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} class="admin-checkbox">
                 <span class="text-sm font-medium text-slate-700">Active</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="approved" id="approved" value="1" {{ old('approved') ? 'checked' : '' }} class="admin-checkbox">
-                <span class="text-sm font-medium text-slate-700">Approved</span>
             </label>
         </div>
     </div>

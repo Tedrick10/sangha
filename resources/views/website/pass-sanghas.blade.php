@@ -22,8 +22,12 @@
                     <thead>
                         <tr class="border-b border-stone-200 dark:border-slate-700">
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">No.</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('score_candidate_ref_label', 'Student Id') }}</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('desk_number', 'Desk No.') }}</th>
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">Sangha</th>
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">Monastery</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">Father</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">NRC</th>
                             <th class="text-left py-3 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">Result</th>
                         </tr>
                     </thead>
@@ -31,13 +35,17 @@
                         @forelse($passSanghas as $sangha)
                             <tr class="border-b border-stone-100 dark:border-slate-800">
                                 <td class="py-3 pr-4 text-stone-500 dark:text-slate-400">{{ $loop->iteration }}</td>
+                                <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $sangha['candidate_ref'] ?? '—' }}</td>
+                                <td class="py-3 pr-4 font-semibold tabular-nums text-yellow-700 dark:text-yellow-400">{{ isset($sangha['desk_number']) && $sangha['desk_number'] !== null ? $sangha['desk_number'] : '—' }}</td>
                                 <td class="py-3 pr-4 font-medium text-stone-900 dark:text-slate-100">{{ $sangha['name'] ?? '—' }}</td>
                                 <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $sangha['monastery_name'] ?? '—' }}</td>
+                                <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $sangha['father_name'] ?? '—' }}</td>
+                                <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $sangha['nrc_number'] ?? '—' }}</td>
                                 <td class="py-3"><span class="inline-flex rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">Pass</span></td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-8 text-center text-stone-500 dark:text-slate-400">No generated data yet. Admin needs to click Generate in Scores > Pass screen.</td>
+                                <td colspan="8" class="py-8 text-center text-stone-500 dark:text-slate-400">No generated data yet. Admin needs to click Generate in Scores > Pass screen.</td>
                             </tr>
                         @endforelse
                     </tbody>

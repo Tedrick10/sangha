@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ExamEligibleSnapshot;
 use App\Traits\HasCustomFields;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Exam extends Model
 {
-    use HasFactory, HasCustomFields;
+    use HasCustomFields, HasFactory;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Exam $exam): void {
+            Sangha::where('exam_id', $exam->id)->update(['desk_number' => null]);
+            ExamEligibleSnapshot::removeForExam($exam->id);
+        });
+    }
 
     protected $fillable = [
         'name',
@@ -22,6 +31,7 @@ class Exam extends Model
         'location',
         'is_active',
         'approved',
+        'desk_number_prefix',
     ];
 
     protected function casts(): array
@@ -46,6 +56,18 @@ class Exam extends Model
     public function sanghas(): HasMany
     {
         return $this->hasMany(Sangha::class);
+    }
+
+    /** Registered for this exam but not yet assigned a hall desk (entrance tab). */
+    public function sanghasPendingEntrance(): HasMany
+    {
+        return $this->hasMany(Sangha::class)->whereNull('desk_number');
+    }
+
+    /** Confirmed for entrance with an assigned desk number (approved tab). */
+    public function sanghasSeated(): HasMany
+    {
+        return $this->hasMany(Sangha::class)->whereNotNull('desk_number')->orderBy('desk_number');
     }
 
     public function subjects(): BelongsToMany

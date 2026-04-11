@@ -10,7 +10,7 @@ class LanguageTranslationSeeder extends Seeder
 {
     public function run(): void
     {
-        $keys = $this->collectTranslationKeys();
+        $keys = self::collectTranslationKeys();
         $languages = Language::query()->where('is_active', true)->get();
 
         foreach ($languages as $language) {
@@ -25,9 +25,11 @@ class LanguageTranslationSeeder extends Seeder
     }
 
     /**
+     * Canonical English defaults plus every t('key') discovered in views/app.
+     *
      * @return array<string, string>
      */
-    private function collectTranslationKeys(): array
+    public static function collectTranslationKeys(): array
     {
         $keys = config('translation-keys', []);
         $paths = [
@@ -63,4 +65,3 @@ class LanguageTranslationSeeder extends Seeder
         return $keys;
     }
 }
-

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subject;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SubjectController extends Controller
@@ -34,6 +35,7 @@ class SubjectController extends Controller
             $query->orderBy('name');
         }
         $subjects = $query->paginate(admin_per_page(10))->withQueryString();
+
         return view('admin.subjects.index', compact('subjects'));
     }
 
@@ -45,7 +47,7 @@ class SubjectController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('subjects', 'name')],
             'description' => 'nullable|string',
             'moderation_mark' => 'nullable|numeric|min:0',
             'full_mark' => 'nullable|numeric|min:0',
@@ -55,6 +57,7 @@ class SubjectController extends Controller
         $validated['is_active'] = $request->boolean('is_active');
 
         Subject::create($validated);
+
         return redirect()->route('admin.subjects.index')->with('success', 'Subject created successfully.');
     }
 
@@ -66,7 +69,7 @@ class SubjectController extends Controller
     public function update(Request $request, Subject $subject): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('subjects', 'name')->ignore($subject->id)],
             'description' => 'nullable|string',
             'moderation_mark' => 'nullable|numeric|min:0',
             'full_mark' => 'nullable|numeric|min:0',
@@ -76,12 +79,14 @@ class SubjectController extends Controller
         $validated['is_active'] = $request->boolean('is_active');
 
         $subject->update($validated);
+
         return redirect()->route('admin.subjects.index')->with('success', 'Subject updated successfully.');
     }
 
     public function destroy(Subject $subject): RedirectResponse
     {
         $subject->delete();
+
         return redirect()->route('admin.subjects.index')->with('success', 'Subject deleted successfully.');
     }
 }

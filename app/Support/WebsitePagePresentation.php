@@ -96,7 +96,6 @@ class WebsitePagePresentation
         if ($slug === 'events') {
             $e['eventsExams'] = Exam::query()
                 ->where('is_active', true)
-                ->where('approved', true)
                 ->orderByRaw('CASE WHEN exam_date IS NULL THEN 1 ELSE 0 END')
                 ->orderBy('exam_date')
                 ->orderBy('name')
@@ -108,7 +107,7 @@ class WebsitePagePresentation
         if ($slug === 'about') {
             $e['aboutStats'] = [
                 'monasteries' => Monastery::query()->where('is_active', true)->count(),
-                'exams' => Exam::query()->where('is_active', true)->where('approved', true)->count(),
+                'exams' => Exam::query()->where('is_active', true)->count(),
                 'sanghas' => Sangha::query()->where('is_active', true)->count(),
             ];
         }

@@ -8,13 +8,18 @@
     <h1 class="admin-page-title">Add Exam Type</h1>
 </div>
 
-<form action="{{ route('admin.exam-types.store') }}" method="POST" enctype="multipart/form-data" class="admin-form-card">
+<form action="{{ route('admin.exam-types.store') }}" method="POST" enctype="multipart/form-data" class="admin-form-card" data-admin-submit-once>
     @csrf
     <div class="space-y-5">
         <div class="admin-form-group">
             <label for="name" class="admin-form-label">Name *</label>
             <input type="text" name="name" id="name" value="{{ old('name') }}" required class="admin-input" placeholder="e.g. Pathamabyan, Dhammacariya">
             @error('name')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
+        <div class="admin-form-group">
+            <label for="description" class="admin-form-label">Description</label>
+            <textarea name="description" id="description" rows="3" class="admin-textarea" placeholder="Brief description of the exam type">{{ old('description') }}</textarea>
+            @error('description')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
         @if($customFields->isNotEmpty())
             <div class="admin-form-section">
@@ -24,19 +29,10 @@
                 </div>
             </div>
         @endif
-        <div class="admin-form-group">
-            <label for="description" class="admin-form-label">Description</label>
-            <textarea name="description" id="description" rows="3" class="admin-textarea" placeholder="Brief description of the exam type">{{ old('description') }}</textarea>
-            @error('description')<p class="admin-form-error">{{ $message }}</p>@enderror
-        </div>
         <div class="flex items-center gap-6 pt-2">
             <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} class="admin-checkbox">
                 <span class="text-sm font-medium text-slate-700">Active</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="approved" id="approved" value="1" {{ old('approved') ? 'checked' : '' }} class="admin-checkbox">
-                <span class="text-sm font-medium text-slate-700">Approved</span>
             </label>
         </div>
     </div>

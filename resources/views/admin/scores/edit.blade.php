@@ -41,11 +41,34 @@
                 @endforeach
             </select>
             @error('exam_id')<p class="admin-form-error">{{ $message }}</p>@enderror
+            <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{{ t('score_triplet_unique_hint', 'Only one score row is allowed per sangha, subject, and exam.') }}</p>
+        </div>
+        <div class="admin-form-group">
+            <label for="desk_number" class="admin-form-label">{{ t('desk_number', 'Desk No.') }}</label>
+            <input type="text" name="desk_number" id="desk_number" value="{{ old('desk_number', $deskNumberEditValue ?? '') }}" maxlength="120" class="admin-input" placeholder="{{ t('score_optional_placeholder', 'Optional') }}" autocomplete="off">
+            @error('desk_number')<p class="admin-form-error">{{ $message }}</p>@enderror
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ t('score_desk_hint', 'Optional. Stored on this score row for lists and records.') }}</p>
         </div>
         <div class="admin-form-group">
             <label for="value" class="admin-form-label">Score Value *</label>
             <input type="number" name="value" id="value" value="{{ old('value', $score->value) }}" step="0.01" min="0" required class="admin-input" placeholder="e.g. 85.5">
             @error('value')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
+        <div class="admin-form-group">
+            <label for="father_name" class="admin-form-label">{{ t('score_father_name_label', 'Father name') }}</label>
+            <input type="text" name="father_name" id="father_name" value="{{ old('father_name', $score->father_name) }}" maxlength="255" class="admin-input" placeholder="{{ t('score_optional_placeholder', 'Optional') }}">
+            @error('father_name')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
+        <div class="admin-form-group">
+            <label for="nrc_number" class="admin-form-label">{{ t('score_nrc_label', 'NRC number') }}</label>
+            <input type="text" name="nrc_number" id="nrc_number" value="{{ old('nrc_number', $score->nrc_number) }}" maxlength="100" class="admin-input" placeholder="{{ t('score_optional_placeholder', 'Optional') }}">
+            @error('nrc_number')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
+        <div class="admin-form-group">
+            <label for="candidate_ref" class="admin-form-label">{{ t('score_candidate_ref_label', 'Student Id') }}</label>
+            <input type="text" name="candidate_ref" id="candidate_ref" value="{{ old('candidate_ref', $score->candidate_ref) }}" maxlength="120" class="admin-input" placeholder="{{ t('score_candidate_ref_placeholder', 'e.g. ရသမဏ၁') }}" dir="auto">
+            @error('candidate_ref')<p class="admin-form-error">{{ $message }}</p>@enderror
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ t('score_candidate_ref_hint', 'Shown on lists and exports; optional.') }}</p>
         </div>
         <div class="admin-form-group">
             <label for="moderation_decision" class="admin-form-label">Moderation Decision</label>

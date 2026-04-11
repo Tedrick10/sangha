@@ -7,9 +7,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $content = <<<'HTML'
+        $appName = config('app.name');
+        $content = <<<HTML
 <h2>Summary</h2>
-<p>This Privacy Policy describes how Sangha Exam (the &ldquo;platform&rdquo;) handles personal information when monasteries and Sangha members use registration, examination, and results features. It applies to the public website and the monastery and Sangha portals unless a separate notice says otherwise.</p>
+<p>This Privacy Policy describes how {$appName} (the &ldquo;platform&rdquo;) handles personal information when monasteries and Sangha members use registration, examination, and results features. It applies to the public website and the monastery and Sangha portals unless a separate notice says otherwise.</p>
 <p><strong>Demo notice:</strong> Replace this entire document with counsel-approved text before relying on it in production.</p>
 
 <h2>Who we are</h2>

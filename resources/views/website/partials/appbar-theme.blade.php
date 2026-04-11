@@ -3,34 +3,34 @@
     $themeLabels = ['light' => t('theme_light'), 'dark' => t('theme_dark'), 'system' => t('theme_system')];
     $currentLabel = $themeLabels[$theme] ?? t('theme_system');
 @endphp
-<div class="relative inline-block" id="website-theme-dropdown">
-    <button type="button" id="website-theme-btn" aria-haspopup="true" aria-expanded="false" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-stone-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800 hover:text-stone-900 dark:hover:text-slate-100 transition-colors border border-transparent hover:border-stone-200/80 dark:hover:border-slate-700/80">
+<div class="relative shrink-0" id="website-theme-dropdown">
+    <button type="button" id="website-theme-btn" aria-haspopup="true" aria-expanded="false" aria-label="{{ $currentLabel }}" class="inline-flex items-center gap-2 rounded-lg border-0 bg-stone-100/90 px-2.5 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-200/90 hover:text-stone-950 2xl:px-3.5 2xl:py-2.5 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:bg-slate-700 dark:hover:text-white">
         <span id="website-theme-icon-slot" class="shrink-0" aria-hidden="true">
-            @if($theme === 'light')
-                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            @elseif($theme === 'dark')
+        @if($theme === 'light')
+                <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+        @elseif($theme === 'dark')
                 <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-            @else
+        @else
                 <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-            @endif
+        @endif
         </span>
-        <span id="website-theme-label">{{ $currentLabel }}</span>
-        <svg class="w-4 h-4 shrink-0 text-stone-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        <span id="website-theme-label" class="hidden 2xl:inline">{{ $currentLabel }}</span>
+        <svg class="h-4 w-4 shrink-0 text-stone-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
     </button>
     <div id="website-theme-menu" class="absolute right-0 top-full z-[100] mt-2 hidden min-w-[11rem] rounded-xl border border-stone-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 shadow-xl shadow-stone-200/50 dark:shadow-black/40" role="menu">
         @foreach(['light', 'dark', 'system'] as $opt)
-            <button type="button" role="menuitem" data-website-theme="{{ $opt }}" class="website-theme-choice flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm text-stone-700 dark:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-800/90 transition-colors {{ $theme === $opt ? 'bg-amber-50/90 dark:bg-amber-900/25 text-amber-800 dark:text-amber-300' : '' }}">
+            <button type="button" role="menuitem" data-website-theme="{{ $opt }}" class="website-theme-choice flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm text-stone-700 dark:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-800/90 transition-colors {{ $theme === $opt ? 'bg-yellow-50/90 dark:bg-yellow-900/25 text-yellow-800 dark:text-yellow-300' : '' }}">
                 <span class="flex items-center gap-2.5">
                     @if($opt === 'light')
-                        <svg class="w-4 h-4 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <svg class="w-4 h-4 shrink-0 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                     @elseif($opt === 'dark')
-                        <svg class="w-4 h-4 shrink-0 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    <svg class="w-4 h-4 shrink-0 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                     @else
-                        <svg class="w-4 h-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    <svg class="w-4 h-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     @endif
                     <span class="website-theme-choice-label {{ $theme === $opt ? 'font-semibold' : 'font-normal' }}">{{ $themeLabels[$opt] }}</span>
                 </span>
-                <svg class="website-theme-check h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 {{ $theme === $opt ? '' : 'hidden' }}" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                <svg class="website-theme-check h-4 w-4 shrink-0 text-yellow-600 dark:text-yellow-400 {{ $theme === $opt ? '' : 'hidden' }}" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
             </button>
         @endforeach
     </div>
@@ -44,7 +44,7 @@
     var themeUrl = @json(route('app.set-theme'));
     var labels = @json($themeLabels);
     var icons = {
-        light: '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>',
+        light: '<svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>',
         dark: '<svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>',
         system: '<svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>'
     };
@@ -62,10 +62,10 @@
         document.querySelectorAll('.website-theme-choice').forEach(function (el) {
             var t = el.getAttribute('data-website-theme');
             var active = t === theme;
-            el.classList.toggle('bg-amber-50/90', active);
-            el.classList.toggle('dark:bg-amber-900/25', active);
-            el.classList.toggle('text-amber-800', active);
-            el.classList.toggle('dark:text-amber-300', active);
+            el.classList.toggle('bg-yellow-50/90', active);
+            el.classList.toggle('dark:bg-yellow-900/25', active);
+            el.classList.toggle('text-yellow-800', active);
+            el.classList.toggle('dark:text-yellow-300', active);
             var chk = el.querySelector('.website-theme-check');
             if (chk) chk.classList.toggle('hidden', !active);
             var lbl = el.querySelector('.website-theme-choice-label');
@@ -124,6 +124,10 @@
         if (isOpen) {
             var other = document.getElementById('website-language-menu');
             if (other) other.classList.add('hidden');
+            var loginMenu = document.getElementById('website-login-menu');
+            var loginBtn = document.getElementById('website-login-btn');
+            if (loginMenu) loginMenu.classList.add('hidden');
+            if (loginBtn) loginBtn.setAttribute('aria-expanded', 'false');
         }
     });
     document.addEventListener('click', function () {

@@ -4,14 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
-        @php
-            $favicon = \App\Models\SiteSetting::imageUrl('favicon');
-            $ogImage = \App\Models\SiteSetting::imageUrl('og_image');
-        @endphp
-        @if($favicon)
-            <link rel="icon" href="{{ $favicon }}" type="image/x-icon">
-        @endif
+        <title>{{ config('app.name') }}</title>
+        @include('partials.favicon')
+        @php $ogImage = \App\Models\SiteSetting::imageUrl('og_image'); @endphp
         @if($ogImage)
             <meta property="og:image" content="{{ url($ogImage) }}">
         @endif

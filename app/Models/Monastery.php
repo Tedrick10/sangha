@@ -62,6 +62,11 @@ class Monastery extends Model implements AuthenticatableContract
         return $this->hasMany(MonasteryMessage::class);
     }
 
+    public function formRequests(): HasMany
+    {
+        return $this->hasMany(MonasteryFormRequest::class);
+    }
+
     public function moderationStatus(): string
     {
         if ($this->approved) {

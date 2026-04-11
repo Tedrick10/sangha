@@ -13,6 +13,12 @@
     @method('PUT')
     <div class="space-y-5">
         <input type="hidden" name="entity_type" value="{{ old('entity_type', $customField->entity_type) }}">
+        @if($customField->is_built_in)
+            <p class="text-sm text-slate-600 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40 px-4 py-3">
+                <span class="font-medium text-slate-800 dark:text-slate-200">Built-in field</span>
+                — internal key <code class="text-xs bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">{{ $customField->slug }}</code> is fixed; you can change the label, type, placeholder, and required below.
+            </p>
+        @endif
         <div class="admin-form-group">
             <label for="name" class="admin-form-label">Label *</label>
             <input type="text" name="name" id="name" value="{{ old('name', $customField->name) }}" required class="admin-input" placeholder="e.g. Email, Phone Number">

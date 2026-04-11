@@ -17,6 +17,11 @@
             <input type="text" name="name" id="name" value="{{ old('name', $examType->name) }}" required class="admin-input" placeholder="e.g. Pathamabyan, Dhammacariya">
             @error('name')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
+        <div class="admin-form-group">
+            <label for="description" class="admin-form-label">Description</label>
+            <textarea name="description" id="description" rows="3" class="admin-textarea" placeholder="Brief description of the exam type">{{ old('description', $examType->description) }}</textarea>
+            @error('description')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
         @if($customFields->isNotEmpty())
             <div class="admin-form-section">
                 <h3 class="admin-form-section-title">Custom Fields</h3>
@@ -25,19 +30,10 @@
                 </div>
             </div>
         @endif
-        <div class="admin-form-group">
-            <label for="description" class="admin-form-label">Description</label>
-            <textarea name="description" id="description" rows="3" class="admin-textarea" placeholder="Brief description of the exam type">{{ old('description', $examType->description) }}</textarea>
-            @error('description')<p class="admin-form-error">{{ $message }}</p>@enderror
-        </div>
         <div class="flex items-center gap-6 pt-2">
             <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $examType->is_active) ? 'checked' : '' }} class="admin-checkbox">
                 <span class="text-sm font-medium text-slate-700">Active</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="approved" id="approved" value="1" {{ old('approved', $examType->approved) ? 'checked' : '' }} class="admin-checkbox">
-                <span class="text-sm font-medium text-slate-700">Approved</span>
             </label>
         </div>
     </div>

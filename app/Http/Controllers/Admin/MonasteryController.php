@@ -26,12 +26,6 @@ class MonasteryController extends Controller
                     ->orWhere('username', 'like', "%{$search}%");
             });
         }
-        if ($request->filled('is_active')) {
-            $query->where('is_active', $request->is_active === '1');
-        }
-        if ($request->filled('approved')) {
-            $query->where('approved', $request->approved === '1');
-        }
         if ($request->filled('moderation_status')) {
             if ($request->moderation_status === 'approved') {
                 $query->where('approved', true);
@@ -42,7 +36,7 @@ class MonasteryController extends Controller
             }
         }
 
-        $sortCols = ['name', 'username', 'region', 'city', 'is_active', 'approved', 'created_at'];
+        $sortCols = ['name', 'username', 'region', 'city', 'created_at'];
         $sort = $request->get('sort', 'created_at');
         $order = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
         if ($sort === 'region_city') {
@@ -75,12 +69,10 @@ class MonasteryController extends Controller
             'region' => 'nullable|string|max:100',
             'city' => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'approved' => 'boolean',
             'moderation_status' => 'nullable|in:pending,approved,rejected',
             'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
         ]);
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_active'] = true;
         $this->applyModerationState($validated, $request);
 
         $monastery = Monastery::create($validated);
@@ -108,12 +100,9 @@ class MonasteryController extends Controller
             'region' => 'nullable|string|max:100',
             'city' => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'approved' => 'boolean',
             'moderation_status' => 'nullable|in:pending,approved,rejected',
             'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
         ]);
-        $validated['is_active'] = $request->boolean('is_active');
         $this->applyModerationState($validated, $request);
         if (empty($validated['password'])) {
             unset($validated['password']);
