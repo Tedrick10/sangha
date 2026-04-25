@@ -9,6 +9,7 @@ use App\Notifications\Monastery\MonasteryAccountDecidedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MonasteryController extends Controller
@@ -60,20 +61,13 @@ class MonasteryController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:monasteries,username',
-            'password' => 'required|string|min:8|confirmed',
-            'address' => 'nullable|string',
-            'phone' => 'nullable|string|max:50',
-            'region' => 'nullable|string|max:100',
-            'city' => 'nullable|string|max:100',
-            'description' => 'nullable|string',
-            'moderation_status' => 'nullable|in:pending,approved,rejected',
-            'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
-        ]);
+        $validated = $request->validate($this->monasteryValidationRules());
+        $this->applyMonasteryDefaultsForSuppressedBuiltIns($validated, isCreate: true);
         $validated['is_active'] = true;
-        $this->applyModerationState($validated, $request);
+        // Admin-created monasteries: approved by default (create form has no moderation UI; public registration stays pending elsewhere).
+        $validated['approved'] = true;
+        $validated['rejection_reason'] = null;
+        unset($validated['moderation_status']);
 
         $monastery = Monastery::create($validated);
         $monastery->setCustomFieldValues($request->input('custom_fields', []), $request);
@@ -91,18 +85,8 @@ class MonasteryController extends Controller
 
     public function update(Request $request, Monastery $monastery): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:monasteries,username,'.$monastery->id,
-            'password' => 'nullable|string|min:8|confirmed',
-            'address' => 'nullable|string',
-            'phone' => 'nullable|string|max:50',
-            'region' => 'nullable|string|max:100',
-            'city' => 'nullable|string|max:100',
-            'description' => 'nullable|string',
-            'moderation_status' => 'nullable|in:pending,approved,rejected',
-            'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
-        ]);
+        $validated = $request->validate($this->monasteryValidationRules($monastery));
+        $this->applyMonasteryDefaultsForSuppressedBuiltIns($validated, isCreate: false, monastery: $monastery);
         $this->applyModerationState($validated, $request);
         if (empty($validated['password'])) {
             unset($validated['password']);
@@ -134,6 +118,73 @@ class MonasteryController extends Controller
         $monastery->delete();
 
         return redirect()->route('admin.monasteries.index')->with('success', 'Monastery deleted successfully.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function monasteryValidationRules(?Monastery $monastery = null): array
+    {
+        $id = $monastery?->id;
+        $usernameUnique = Rule::unique('monasteries', 'username')->ignore($id);
+
+        $nameRule = CustomField::isBuiltInSlugSuppressed('monastery', 'name')
+            ? 'nullable|string|max:255'
+            : 'required|string|max:255';
+
+        $usernameRule = CustomField::isBuiltInSlugSuppressed('monastery', 'username')
+            ? ['nullable', 'string', 'max:255', $usernameUnique]
+            : ['required', 'string', 'max:255', $usernameUnique];
+
+        $passwordRule = $monastery === null
+            ? (CustomField::isBuiltInSlugSuppressed('monastery', 'password')
+                ? 'nullable|string|min:8|confirmed'
+                : 'required|string|min:8|confirmed')
+            : 'nullable|string|min:8|confirmed';
+
+        return [
+            'name' => $nameRule,
+            'username' => $usernameRule,
+            'password' => $passwordRule,
+            'address' => 'nullable|string',
+            'phone' => 'nullable|string|max:50',
+            'region' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'description' => 'nullable|string',
+            'moderation_status' => 'nullable|in:pending,approved,rejected',
+            'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function applyMonasteryDefaultsForSuppressedBuiltIns(array &$validated, bool $isCreate, ?Monastery $monastery = null): void
+    {
+        if (CustomField::isBuiltInSlugSuppressed('monastery', 'name')) {
+            $n = trim((string) ($validated['name'] ?? ''));
+            if ($n === '' && $monastery !== null) {
+                $validated['name'] = $monastery->name;
+            } elseif ($n === '') {
+                $validated['name'] = 'Monastery '.Str::upper(Str::random(6));
+            }
+        }
+
+        if (CustomField::isBuiltInSlugSuppressed('monastery', 'username')) {
+            $u = trim((string) ($validated['username'] ?? ''));
+            if ($u === '' && $monastery !== null) {
+                $validated['username'] = $monastery->username;
+            } elseif ($u === '') {
+                do {
+                    $u = 'm_'.Str::lower(Str::random(12));
+                } while (Monastery::where('username', $u)->exists());
+                $validated['username'] = $u;
+            }
+        }
+
+        if (CustomField::isBuiltInSlugSuppressed('monastery', 'password')) {
+            unset($validated['password']);
+        }
     }
 
     private function applyModerationState(array &$validated, Request $request): void

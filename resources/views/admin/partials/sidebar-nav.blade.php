@@ -15,10 +15,6 @@
     $sanghaStatus = $isSanghas ? request('moderation_status') : null;
     $mrGeneralActive = $isMonasteryRequests && $requestFormScope === 'general';
     $mrExamActive = $isMonasteryRequests && $requestFormScope === 'exam';
-    $examTypesSidebar = \App\Models\ExamType::query()
-        ->whereIn('name', \App\Models\ExamType::CANONICAL_NAME_ORDER)
-        ->orderByCanonical()
-        ->get();
 @endphp
 <nav class="admin-sidebar-nav flex flex-1 flex-col gap-0.5 overflow-y-auto overflow-x-hidden p-2 pb-4">
     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-amber-500/15 text-amber-900 ring-1 ring-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/30' : 'text-stone-700 hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-amber-200' }}">
@@ -113,17 +109,6 @@
                 <a href="{{ route('admin.monastery-requests.index', ['form_scope' => 'exam', 'request_status' => 'pending']) }}" class="block px-3 py-2 rounded-lg text-sm transition-colors duration-200 {{ $mrExamActive && $monasteryRequestStatus === 'pending' ? 'bg-amber-500/15 text-amber-900 ring-1 ring-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/30' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-amber-200' }}">{{ t('status_pending', 'Pending') }}</a>
                 <a href="{{ route('admin.monastery-requests.index', ['form_scope' => 'exam', 'request_status' => 'approved']) }}" class="block px-3 py-2 rounded-lg text-sm transition-colors duration-200 {{ $mrExamActive && $monasteryRequestStatus === 'approved' ? 'bg-amber-500/15 text-amber-900 ring-1 ring-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/30' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-amber-200' }}">{{ t('status_approved', 'Approved') }}</a>
                 <a href="{{ route('admin.monastery-requests.index', ['form_scope' => 'exam', 'request_status' => 'rejected']) }}" class="block px-3 py-2 rounded-lg text-sm transition-colors duration-200 {{ $mrExamActive && $monasteryRequestStatus === 'rejected' ? 'bg-amber-500/15 text-amber-900 ring-1 ring-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-400/30' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-amber-200' }}">{{ t('status_rejected', 'Rejected') }}</a>
-                <p class="px-3 pt-2 text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-slate-500">{{ t('exam_programme', 'Programme') }}</p>
-                @foreach($examTypesSidebar as $etNav)
-                    @php $etActive = $mrExamActive && (int) request('exam_type_id') === (int) $etNav->id; @endphp
-                    @php
-                        $etNavParams = ['form_scope' => 'exam', 'exam_type_id' => $etNav->id];
-                        if (in_array(request('request_status'), ['pending', 'approved', 'rejected'], true)) {
-                            $etNavParams['request_status'] = request('request_status');
-                        }
-                    @endphp
-                    <a href="{{ route('admin.monastery-requests.index', $etNavParams) }}" class="block px-3 py-1.5 rounded-lg text-xs transition-colors duration-200 {{ $etActive ? 'bg-amber-500/15 text-amber-900 ring-1 ring-amber-500/25 dark:bg-amber-500/12 dark:text-amber-100 dark:ring-amber-400/35' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-amber-200' }}">{{ $etNav->name }}</a>
-                @endforeach
             </div>
             </div>
         </div>

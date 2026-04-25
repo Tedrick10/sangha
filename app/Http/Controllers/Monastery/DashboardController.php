@@ -89,12 +89,16 @@ class DashboardController extends Controller
         $sanghaCustomFields = CustomField::forEntity('sangha')
             ->where('is_built_in', false)
             ->get();
-        $requestCustomFields = CustomField::forEntity('request')
-            ->where('is_built_in', false)
-            ->get();
-        $monasteryExamCustomFields = CustomField::forEntity('monastery_exam')
-            ->where('is_built_in', false)
-            ->get();
+        if ($screen === 'request' || $tab === 'exam') {
+            CustomField::syncBuiltInFieldDefinitions();
+        }
+        $requestCustomFields = CustomField::forEntity('request')->get();
+        $monasteryExamCustomFields = CustomField::forEntity('monastery_exam')->get();
+        $monasteryExamApprovedSanghas = $monastery->sanghas()
+            ->with('exam:id,name')
+            ->where('approved', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'username', 'exam_id']);
 
         $myFormRequests = $monastery->formRequests()->whereNull('exam_type_id')->latest()->limit(25)->get();
 
@@ -114,6 +118,14 @@ class DashboardController extends Controller
         $myExamFormRequests = $tab === 'exam' && $examTypeId > 0
             ? $monastery->formRequests()->where('exam_type_id', $examTypeId)->latest()->limit(25)->get()
             : collect();
+
+        $monasteryExamCatalogYears = [];
+        $monasteryExamCatalogByYear = [];
+        if ($tab === 'exam') {
+            $catalog = Exam::monasteryExamFormCatalog();
+            $monasteryExamCatalogYears = $catalog['years'];
+            $monasteryExamCatalogByYear = $catalog['byYear'];
+        }
 
         $resultsRaw = SiteSetting::get(MonasteryPortalResultsSnapshot::key());
         $resultsDecoded = $resultsRaw ? json_decode($resultsRaw, true) : null;
@@ -137,6 +149,23 @@ class DashboardController extends Controller
                 ->values();
         }
 
+        $editingRejectedSangha = null;
+        $sanghaEditCustomFieldDefaults = [];
+        if ($screen === 'register' && $request->filled('edit')) {
+            $editId = (int) $request->query('edit');
+            if ($editId > 0) {
+                $candidate = $monastery->sanghas()->whereKey($editId)->first();
+                if ($candidate
+                    && ! $candidate->approved
+                    && filled($candidate->rejection_reason)) {
+                    $editingRejectedSangha = $candidate->load('exam');
+                    foreach ($sanghaCustomFields as $cf) {
+                        $sanghaEditCustomFieldDefaults[$cf->slug] = $editingRejectedSangha->getCustomFieldValue($cf->slug);
+                    }
+                }
+            }
+        }
+
         return view('monastery.dashboard', compact(
             'monastery',
             'tab',
@@ -154,6 +183,7 @@ class DashboardController extends Controller
             'sanghaCustomFields',
             'requestCustomFields',
             'monasteryExamCustomFields',
+            'monasteryExamApprovedSanghas',
             'myFormRequests',
             'examTypesCanonical',
             'examTypeId',
@@ -162,7 +192,11 @@ class DashboardController extends Controller
             'passSanghas',
             'failSanghas',
             'resultsPublishedAt',
-            'recentChatMessages'
+            'recentChatMessages',
+            'monasteryExamCatalogYears',
+            'monasteryExamCatalogByYear',
+            'editingRejectedSangha',
+            'sanghaEditCustomFieldDefaults'
         ));
     }
 
@@ -176,13 +210,18 @@ class DashboardController extends Controller
 
         $validated = $request->validate(array_merge(
             CustomField::sanghaCoreValidationRules($bySlug, ['exam_id', 'name', 'father_name', 'nrc_number', 'description']),
-            $this->customFieldRules($customFields)
+            $this->customFieldRules($customFields, $request)
         ));
+
+        $name = trim((string) ($validated['name'] ?? ''));
+        if ($name === '') {
+            $name = 'Candidate '.Str::upper(Str::random(8));
+        }
 
         $sangha = Sangha::create([
             'monastery_id' => $monastery->id,
             'exam_id' => $validated['exam_id'] ?? null,
-            'name' => $validated['name'],
+            'name' => $name,
             'father_name' => $validated['father_name'] ?? null,
             'nrc_number' => $validated['nrc_number'] ?? null,
             'username' => null,
@@ -206,12 +245,56 @@ class DashboardController extends Controller
             ->with('success', t('sangha_application_submitted', 'Sangha application submitted successfully. An administrator will assign a Student Id before the candidate can log in.'));
     }
 
+    public function updateRejectedSangha(Request $request, Sangha $sangha): RedirectResponse
+    {
+        $monastery = Auth::guard('monastery')->user();
+        abort_unless((int) $sangha->monastery_id === (int) $monastery->id, 403);
+        abort_unless(! $sangha->approved && filled($sangha->rejection_reason), 403);
+
+        $customFields = CustomField::forEntity('sangha')
+            ->where('is_built_in', false)
+            ->get();
+        $bySlug = CustomField::sanghaDefinitionsBySlug();
+
+        $validated = $request->validate(array_merge(
+            CustomField::sanghaCoreValidationRules($bySlug, ['exam_id', 'name', 'father_name', 'nrc_number', 'description']),
+            $this->customFieldRules($customFields, $request, $sangha)
+        ));
+
+        $name = trim((string) ($validated['name'] ?? ''));
+        if ($name === '') {
+            $name = 'Candidate '.Str::upper(Str::random(8));
+        }
+
+        $sangha->update([
+            'exam_id' => $validated['exam_id'] ?? null,
+            'name' => $name,
+            'father_name' => $validated['father_name'] ?? null,
+            'nrc_number' => $validated['nrc_number'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'rejection_reason' => null,
+            'approved' => false,
+        ]);
+
+        $sangha->setCustomFieldValues($request->input('custom_fields', []), $request);
+
+        AdminNotifications::notifyAll(new NewPendingSanghaNotification(
+            $sangha->name,
+            $monastery->name,
+            t('notif_source_monastery_portal', 'Monastery portal'),
+            route('admin.sanghas.edit', $sangha),
+        ));
+
+        return redirect()
+            ->route('monastery.dashboard', ['tab' => 'main', 'screen' => 'pending'])
+            ->with('success', t('sangha_application_resubmitted', 'Application updated and resubmitted. It is pending review again.'));
+    }
+
     public function storeFormRequest(Request $request): RedirectResponse
     {
         $monastery = Auth::guard('monastery')->user();
-        $requestCustomFields = CustomField::forEntity('request')
-            ->where('is_built_in', false)
-            ->get();
+        CustomField::syncBuiltInFieldDefinitions();
+        $requestCustomFields = CustomField::forEntity('request')->get();
 
         if ($requestCustomFields->isEmpty()) {
             return redirect()
@@ -219,7 +302,15 @@ class DashboardController extends Controller
                 ->with('error', t('no_request_fields_configured', 'No request form fields are configured yet. Please contact the administrator.'));
         }
 
-        $request->validate($this->customFieldRules($requestCustomFields));
+        if ($requestCustomFields->firstWhere('slug', 'transfer_from')) {
+            $cfIn = $request->input('custom_fields', []);
+            if (! isset($cfIn['transfer_from']) || $cfIn['transfer_from'] === '' || $cfIn['transfer_from'] === null) {
+                $cfIn['transfer_from'] = $monastery->name;
+                $request->merge(['custom_fields' => $cfIn]);
+            }
+        }
+
+        $request->validate($this->customFieldRules($requestCustomFields, $request));
 
         if (! $this->portalRequestHasAnyInput($request, $requestCustomFields)) {
             return redirect()
@@ -258,9 +349,8 @@ class DashboardController extends Controller
             ->pluck('id')
             ->all();
 
-        $monasteryExamCustomFields = CustomField::forEntity('monastery_exam')
-            ->where('is_built_in', false)
-            ->get();
+        CustomField::syncBuiltInFieldDefinitions();
+        $monasteryExamCustomFields = CustomField::forEntity('monastery_exam')->get();
 
         if ($monasteryExamCustomFields->isEmpty()) {
             return redirect()
@@ -270,7 +360,7 @@ class DashboardController extends Controller
 
         $request->validate(array_merge(
             ['exam_type_id' => ['required', 'integer', Rule::in($allowedExamTypeIds)]],
-            $this->customFieldRules($monasteryExamCustomFields)
+            $this->customFieldRules($monasteryExamCustomFields, $request)
         ));
 
         if (! $this->portalRequestHasAnyInput($request, $monasteryExamCustomFields)) {
@@ -279,9 +369,18 @@ class DashboardController extends Controller
                 ->with('error', t('exam_form_fill_one', 'Please complete the exam form before submitting.'));
         }
 
+        $resolvedExamTypeId = (int) $request->input('exam_type_id');
+        $sessionExamId = $request->input('custom_fields.exam_session');
+        if (filled($sessionExamId) && ctype_digit((string) $sessionExamId)) {
+            $picked = Exam::query()->find((int) $sessionExamId);
+            if ($picked && $picked->exam_type_id !== null && in_array((int) $picked->exam_type_id, $allowedExamTypeIds, true)) {
+                $resolvedExamTypeId = (int) $picked->exam_type_id;
+            }
+        }
+
         $submission = MonasteryFormRequest::create([
             'monastery_id' => $monastery->id,
-            'exam_type_id' => (int) $request->input('exam_type_id'),
+            'exam_type_id' => $resolvedExamTypeId,
             'status' => MonasteryFormRequest::STATUS_PENDING,
         ]);
 
@@ -331,7 +430,7 @@ class DashboardController extends Controller
     /**
      * @return array<string, array<int, mixed>>
      */
-    private function customFieldRules(Collection $fields): array
+    private function customFieldRules(Collection $fields, Request $request, ?Sangha $resubmitTarget = null): array
     {
         $rules = [];
 
@@ -361,26 +460,100 @@ class DashboardController extends Controller
                     break;
                 case 'select':
                     $fieldRules[] = 'string';
-                    if (! empty($field->options) && is_array($field->options)) {
-                        $fieldRules[] = Rule::in($field->options);
+                    if ($field->entity_type === 'monastery_exam' && $field->slug === 'exam_year') {
+                        $years = Exam::monasteryExamFormCatalog()['years'];
+                        if ($years !== []) {
+                            $fieldRules[] = Rule::in($years);
+                        } elseif (! empty($field->options) && is_array($field->options)) {
+                            $fieldRules[] = Rule::in(array_values($field->options));
+                        }
+                    } elseif (! empty($field->options) && is_array($field->options)) {
+                        $fieldRules[] = Rule::in(array_values($field->options));
                     }
                     break;
+                case 'dependent_select':
+                    $parentSlug = CustomField::dependentSelectParentSlug($field);
+                    if ($field->entity_type === 'monastery_exam' && $field->slug === 'exam_session') {
+                        $fieldRules[] = 'integer';
+                        if ($parentSlug) {
+                            $fieldRules[] = function (string $attribute, mixed $value, \Closure $fail) use ($request, $parentSlug) {
+                                if ($value === null || $value === '') {
+                                    return;
+                                }
+                                $year = $request->input('custom_fields.'.$parentSlug);
+                                if (! filled($year)) {
+                                    $fail(t('validation_exam_year_before_session', 'Choose a year before selecting an exam.'));
+
+                                    return;
+                                }
+                                $ok = Exam::query()
+                                    ->whereKey((int) $value)
+                                    ->where('is_active', true)
+                                    ->whereYear('exam_date', (int) $year)
+                                    ->exists();
+                                if (! $ok) {
+                                    $fail(t('validation_exam_session_must_match_year', 'The selected exam is not valid for the chosen year.'));
+                                }
+                            };
+                        }
+                    } else {
+                        $fieldRules[] = 'string';
+                        if ($parentSlug) {
+                            $fieldRules[] = function (string $attribute, mixed $value, \Closure $fail) use ($request, $field, $parentSlug) {
+                                if ($value === null || $value === '') {
+                                    return;
+                                }
+                                $year = $request->input('custom_fields.'.$parentSlug);
+                                if (! filled($year)) {
+                                    $fail(t('validation_exam_year_before_session', 'Choose a year before selecting an exam.'));
+
+                                    return;
+                                }
+                                $map = is_array($field->options) ? $field->options : [];
+                                $allowed = $map[(string) $year] ?? [];
+                                if (! is_array($allowed)) {
+                                    $allowed = [];
+                                }
+                                $allowedStr = array_map('strval', $allowed);
+                                if (! in_array((string) $value, $allowedStr, true)) {
+                                    $fail(t('validation_exam_session_must_match_year', 'The selected exam is not valid for the chosen year.'));
+                                }
+                            };
+                        }
+                    }
+                    break;
+                case 'approved_sangha':
+                    $fieldRules[] = 'integer';
+                    $fieldRules[] = Rule::exists('sanghas', 'id')->where(
+                        fn ($q) => $q->where('monastery_id', Auth::guard('monastery')->id())
+                            ->where('approved', true)
+                    );
+                    break;
                 case 'media':
-                    if (! $field->required) {
+                    $hasExistingFile = $resubmitTarget && filled($resubmitTarget->getCustomFieldValue($field->slug));
+                    if ($field->required && ! $hasExistingFile) {
+                        $fieldRules = ['required'];
+                    } else {
                         $fieldRules = ['nullable'];
                     }
                     $fieldRules[] = 'image';
                     $fieldRules[] = 'max:5120';
                     break;
                 case 'document':
-                    if (! $field->required) {
+                    $hasExistingFile = $resubmitTarget && filled($resubmitTarget->getCustomFieldValue($field->slug));
+                    if ($field->required && ! $hasExistingFile) {
+                        $fieldRules = ['required'];
+                    } else {
                         $fieldRules = ['nullable'];
                     }
                     $fieldRules[] = 'file';
                     $fieldRules[] = 'max:51200';
                     break;
                 case 'video':
-                    if (! $field->required) {
+                    $hasExistingFile = $resubmitTarget && filled($resubmitTarget->getCustomFieldValue($field->slug));
+                    if ($field->required && ! $hasExistingFile) {
+                        $fieldRules = ['required'];
+                    } else {
                         $fieldRules = ['nullable'];
                     }
                     $fieldRules[] = 'file';

@@ -45,7 +45,8 @@
                     {{ auth()->guard('monastery')->user()->name ?? t('monastery') }}<span class="monastery-header-kicker font-medium text-slate-500 dark:text-amber-200"> · {{ t('monastery_portal') }}</span>
                 </p>
             </div>
-            <div class="monastery-header-toolbar flex shrink-0 flex-nowrap items-center justify-end gap-1 overflow-x-auto [-webkit-overflow-scrolling:touch] sm:gap-2 no-scrollbar">
+            {{-- No overflow-x-auto here: it forces overflow-y to clip and breaks language/theme dropdown panels below the toolbar. --}}
+            <div class="monastery-header-toolbar flex min-w-0 shrink-0 flex-nowrap items-center justify-end gap-1 sm:gap-2">
                 @include('partials.notifications-bell', ['notifiable' => auth()->guard('monastery')->user(), 'goRouteName' => 'monastery.notifications.go', 'readAllRouteName' => 'monastery.notifications.read-all', 'jsonRouteName' => 'monastery.notifications.recent'])
                 @include('website.partials.appbar-language')
                 @include('website.partials.appbar-theme')

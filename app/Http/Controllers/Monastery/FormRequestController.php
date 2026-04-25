@@ -17,14 +17,12 @@ class FormRequestController extends Controller
         $this->authorizeMonastery($monasteryFormRequest);
         $monasteryFormRequest->load('examType');
 
+        CustomField::syncBuiltInFieldDefinitions();
+
         $entityType = $monasteryFormRequest->portalCustomFieldEntityType();
-        $fields = CustomField::forEntity($entityType)
-            ->where('is_built_in', false)
-            ->get();
+        $fields = CustomField::forEntity($entityType)->get();
         if ($fields->isEmpty() && $monasteryFormRequest->isExamFormSubmission()) {
-            $fields = CustomField::forEntity('request')
-                ->where('is_built_in', false)
-                ->get();
+            $fields = CustomField::forEntity('request')->get();
         }
 
         return view('monastery.form-request-show', [

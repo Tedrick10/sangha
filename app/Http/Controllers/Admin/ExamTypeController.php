@@ -7,6 +7,7 @@ use App\Models\CustomField;
 use App\Models\ExamType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -51,12 +52,8 @@ class ExamTypeController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('exam_types', 'name')],
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated = $request->validate($this->examTypeValidationRules());
+        $this->applyExamTypeBuiltInDefaults($validated, $request, null);
 
         $examType = ExamType::create($validated);
         $examType->setCustomFieldValues($request->input('custom_fields', []), $request);
@@ -74,12 +71,8 @@ class ExamTypeController extends Controller
 
     public function update(Request $request, ExamType $examType): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('exam_types', 'name')->ignore($examType->id)],
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated = $request->validate($this->examTypeValidationRules($examType));
+        $this->applyExamTypeBuiltInDefaults($validated, $request, $examType);
 
         $examType->update($validated);
         $examType->setCustomFieldValues($request->input('custom_fields', []), $request);
@@ -92,5 +85,54 @@ class ExamTypeController extends Controller
         $examType->delete();
 
         return redirect()->route('admin.exam-types.index')->with('success', 'Exam type deleted successfully.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function examTypeValidationRules(?ExamType $examType = null): array
+    {
+        $unique = Rule::unique('exam_types', 'name');
+        if ($examType !== null) {
+            $unique = $unique->ignore($examType->id);
+        }
+
+        $name = CustomField::isBuiltInSlugSuppressed('exam_type', 'name')
+            ? ['nullable', 'string', 'max:255', $unique]
+            : ['required', 'string', 'max:255', $unique];
+
+        $rules = [
+            'name' => $name,
+            'description' => 'nullable|string',
+        ];
+        if (! CustomField::isBuiltInSlugSuppressed('exam_type', 'is_active')) {
+            $rules['is_active'] = 'boolean';
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function applyExamTypeBuiltInDefaults(array &$validated, Request $request, ?ExamType $examType): void
+    {
+        if (CustomField::isBuiltInSlugSuppressed('exam_type', 'name')) {
+            $n = trim((string) ($validated['name'] ?? ''));
+            if ($n === '' && $examType !== null) {
+                $validated['name'] = $examType->name;
+            } elseif ($n === '') {
+                do {
+                    $candidate = substr('Exam type '.Str::uuid()->toString(), 0, 255);
+                } while (ExamType::where('name', $candidate)->exists());
+                $validated['name'] = $candidate;
+            }
+        }
+
+        if (CustomField::isBuiltInSlugSuppressed('exam_type', 'is_active')) {
+            $validated['is_active'] = $examType !== null ? $examType->is_active : true;
+        } else {
+            $validated['is_active'] = $request->boolean('is_active');
+        }
     }
 }

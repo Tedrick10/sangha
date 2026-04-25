@@ -150,6 +150,73 @@ class MonasteryFormRequest extends Model
         return null;
     }
 
+    /**
+     * Load the Sangha row for an approved_sangha field value (must belong to this request’s monastery).
+     */
+    public function approvedSanghaForFieldValue(?string $raw): ?Sangha
+    {
+        if (! filled($raw) || ! ctype_digit((string) $raw)) {
+            return null;
+        }
+
+        return Sangha::query()
+            ->whereKey((int) $raw)
+            ->where('monastery_id', $this->monastery_id)
+            ->with(['monastery:id,name', 'exam:id,name,exam_date'])
+            ->first();
+    }
+
+    /**
+     * Load the Exam row for monastery_exam exam_session (stored value is exam id).
+     */
+    public function examForSessionFieldValue(?string $raw): ?Exam
+    {
+        if (! filled($raw) || ! ctype_digit((string) $raw)) {
+            return null;
+        }
+
+        return Exam::query()
+            ->whereKey((int) $raw)
+            ->with(['examType:id,name', 'subjects'])
+            ->first();
+    }
+
+    /**
+     * Human-readable value for portal / admin detail views (e.g. approved sangha id → name).
+     */
+    public function displaySubmittedValue(CustomField $field, ?string $raw): string
+    {
+        if (! filled($raw)) {
+            return '';
+        }
+
+        if ($field->type === 'approved_sangha' && ctype_digit((string) $raw)) {
+            $row = Sangha::query()
+                ->where('id', (int) $raw)
+                ->where('monastery_id', $this->monastery_id)
+                ->first(['name', 'username']);
+
+            if ($row) {
+                $label = (string) $row->name;
+                if (filled($row->username)) {
+                    $label .= ' ('.$row->username.')';
+                }
+
+                return $label;
+            }
+
+            return '#'.$raw;
+        }
+
+        if ($field->entity_type === 'monastery_exam' && $field->slug === 'exam_session' && ctype_digit((string) $raw)) {
+            $name = Exam::query()->whereKey((int) $raw)->value('name');
+
+            return $name ? (string) $name : '#'.$raw;
+        }
+
+        return (string) $raw;
+    }
+
     private function existingValueForField(CustomField $field): ?string
     {
         return $this->getRequestFieldValue($field);
@@ -159,6 +226,23 @@ class MonasteryFormRequest extends Model
     {
         $entityType = $this->portalCustomFieldEntityType();
         $fields = CustomField::forEntity($entityType)->orderBy('sort_order')->orderBy('name')->get();
+
+        if ($entityType === 'request') {
+            $previewOrder = [
+                'transfer_subject',
+                'transfer_to',
+                'transfer_from',
+                'transfer_date',
+                'transfer_sangha_id',
+                'transfer_details',
+                'transfer_attachment',
+            ];
+            $fields = $fields->sortBy(function ($f) use ($previewOrder) {
+                $pos = array_search($f->slug, $previewOrder, true);
+
+                return $pos !== false ? $pos : 1000;
+            })->values();
+        }
 
         // Before "Monastery exam" fields existed, exam uploads stored values against request definitions.
         if ($fields->isEmpty() && $this->isExamFormSubmission()) {
@@ -188,6 +272,16 @@ class MonasteryFormRequest extends Model
             }
             if (in_array($field->type, ['media', 'document', 'video'], true)) {
                 return Str::limit($field->name.': file', 80);
+            }
+            if ($field->type === 'approved_sangha') {
+                $label = $this->displaySubmittedValue($field, $v);
+
+                return Str::limit($field->name.': '.$label, 120);
+            }
+            if ($field->entity_type === 'monastery_exam' && $field->slug === 'exam_session') {
+                $label = $this->displaySubmittedValue($field, $v);
+
+                return Str::limit($field->name.': '.$label, 120);
             }
 
             return Str::limit((string) $v, 80);

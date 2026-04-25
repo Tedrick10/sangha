@@ -10,6 +10,9 @@ use Illuminate\Validation\Rule;
 
 class CustomField extends Model
 {
+    /** JSON map in {@see SiteSetting}: entity_type => list of built-in slugs admins removed (sync will not recreate). */
+    public const SUPPRESSED_BUILTINS_SITE_KEY = 'custom_field_suppressed_builtins';
+
     protected $fillable = [
         'entity_type',
         'name',
@@ -67,11 +70,54 @@ class CustomField extends Model
                 ['name' => 'Exam', 'slug' => 'exam_id', 'type' => 'select', 'required' => false, 'placeholder' => null],
                 ['name' => 'Description', 'slug' => 'description', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter description'],
             ],
-            'monastery_exam' => [],
+            'request' => [
+                ['name' => 'From (monastery)', 'slug' => 'transfer_from', 'type' => 'text', 'required' => false, 'placeholder' => 'Filled automatically from your monastery account'],
+                ['name' => 'To (destination)', 'slug' => 'transfer_to', 'type' => 'text', 'required' => true, 'placeholder' => 'Destination monastery, hall, or route for administrators'],
+                ['name' => 'Request subject', 'slug' => 'transfer_subject', 'type' => 'text', 'required' => true, 'placeholder' => 'Short title (e.g. transfer list, hall change)'],
+                ['name' => 'Transfer date', 'slug' => 'transfer_date', 'type' => 'date', 'required' => true, 'placeholder' => null],
+                [
+                    'name' => 'Sangha to transfer',
+                    'slug' => 'transfer_sangha_id',
+                    'type' => 'approved_sangha',
+                    'required' => true,
+                    'placeholder' => 'Select an approved sangha member',
+                ],
+                ['name' => 'Additional details', 'slug' => 'transfer_details', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Optional: other notes for the secretariat'],
+                ['name' => 'Supporting document', 'slug' => 'transfer_attachment', 'type' => 'document', 'required' => false, 'placeholder' => 'Optional PDF or scan'],
+            ],
+            'monastery_exam' => [
+                [
+                    'name' => 'Approved student',
+                    'slug' => 'approved_sangha_id',
+                    'type' => 'approved_sangha',
+                    'required' => false,
+                    'placeholder' => 'Select an approved student',
+                ],
+                [
+                    'name' => 'Year',
+                    'slug' => 'exam_year',
+                    'type' => 'select',
+                    'required' => false,
+                    'placeholder' => 'Select year',
+                    'options' => ['2024', '2025', '2026'],
+                ],
+                [
+                    'name' => 'Exam',
+                    'slug' => 'exam_session',
+                    'type' => 'dependent_select',
+                    'required' => false,
+                    'placeholder' => 'Select exam',
+                    'options' => [
+                        '2024' => ['မူလတန်း စာမေးပွဲ (၂၀၂၄)', 'ဒုတိယတန်း စာမေးပွဲ (၂၀၂၄)'],
+                        '2025' => ['မူလတန်း စာမေးပွဲ (၂၀၂၅)'],
+                        '2026' => ['မူလတန်း စာမေးပွဲ (၂၀၂၆)', 'ဒုတိယတန်း စာမေးပွဲ (၂၀၂၆)'],
+                    ],
+                ],
+            ],
             'exam' => [
                 ['name' => 'Name', 'slug' => 'name', 'type' => 'text', 'required' => true, 'placeholder' => 'Enter exam name'],
                 ['name' => 'Exam Date', 'slug' => 'exam_date', 'type' => 'date', 'required' => false, 'placeholder' => null],
-                ['name' => 'Exam Type', 'slug' => 'exam_type_id', 'type' => 'select', 'required' => false, 'placeholder' => null],
+                ['name' => 'Exam Type', 'slug' => 'exam_type_id', 'type' => 'select', 'required' => true, 'placeholder' => null],
                 ['name' => 'Location', 'slug' => 'location', 'type' => 'text', 'required' => false, 'placeholder' => 'Enter location'],
                 ['name' => 'Description', 'slug' => 'description', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter description'],
                 ['name' => 'Active', 'slug' => 'is_active', 'type' => 'checkbox', 'required' => false, 'placeholder' => null],
@@ -89,6 +135,151 @@ class CustomField extends Model
         return $query->where('entity_type', $entityType)->orderBy('sort_order')->orderBy('name');
     }
 
+    /**
+     * Built-in fields the admin may not delete (exam portal / data integrity).
+     */
+    public static function builtInDeleteForbidden(CustomField $field): bool
+    {
+        if (! $field->is_built_in || $field->entity_type !== 'monastery_exam') {
+            return false;
+        }
+
+        return in_array($field->slug, ['approved_sangha_id', 'exam_year', 'exam_session'], true);
+    }
+
+    /**
+     * Parent custom field slug for a dependent select (monastery exam form).
+     */
+    public static function dependentSelectParentSlug(CustomField $field): ?string
+    {
+        if ($field->entity_type === 'monastery_exam' && $field->slug === 'exam_session') {
+            return 'exam_year';
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalize JSON-decoded map: year string => list of exam labels.
+     *
+     * @param  array<mixed, mixed>  $decoded
+     * @return array<string, list<string>>
+     */
+    public static function normalizeDependentExamOptionsMap(array $decoded): array
+    {
+        $out = [];
+        foreach ($decoded as $year => $exams) {
+            $y = is_string($year) || is_int($year) ? trim((string) $year) : '';
+            if ($y === '') {
+                continue;
+            }
+            if (! is_array($exams)) {
+                $exams = [$exams];
+            }
+            $list = [];
+            foreach ($exams as $e) {
+                if (is_string($e) || is_numeric($e)) {
+                    $s = trim((string) $e);
+                    if ($s !== '') {
+                        $list[] = $s;
+                    }
+                }
+            }
+            $out[$y] = array_values(array_unique($list));
+        }
+
+        return $out;
+    }
+
+    public static function canDeleteInAdmin(CustomField $field): bool
+    {
+        return ! static::builtInDeleteForbidden($field);
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public static function suppressedBuiltInSlugsByEntity(): array
+    {
+        $raw = SiteSetting::get(self::SUPPRESSED_BUILTINS_SITE_KEY);
+        if (! filled($raw)) {
+            return [];
+        }
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    public static function isBuiltInSlugSuppressed(string $entityType, string $slug): bool
+    {
+        $map = static::suppressedBuiltInSlugsByEntity();
+
+        return in_array($slug, $map[$entityType] ?? [], true);
+    }
+
+    public static function suppressBuiltInSlug(string $entityType, string $slug): void
+    {
+        $map = static::suppressedBuiltInSlugsByEntity();
+        $list = $map[$entityType] ?? [];
+        if (! in_array($slug, $list, true)) {
+            $list[] = $slug;
+        }
+        $map[$entityType] = array_values(array_unique($list));
+        SiteSetting::set(self::SUPPRESSED_BUILTINS_SITE_KEY, json_encode($map));
+    }
+
+    /**
+     * Ensure rows exist for every {@see builtInFields()} definition (admin Custom Fields + monastery request tab).
+     * New rows get defaults from code; existing rows keep admin-edited label, type, placeholder, required, sort order.
+     */
+    public static function syncBuiltInFieldDefinitions(): void
+    {
+        foreach (self::builtInFields() as $entityType => $fields) {
+            foreach (array_values($fields) as $sortOrder => $def) {
+                if (static::isBuiltInSlugSuppressed($entityType, $def['slug'])) {
+                    continue;
+                }
+
+                $field = static::firstOrNew(
+                    [
+                        'entity_type' => $entityType,
+                        'slug' => $def['slug'],
+                    ]
+                );
+
+                if (! $field->exists) {
+                    $field->fill([
+                        'name' => $def['name'],
+                        'type' => $def['type'],
+                        'required' => $def['required'],
+                        'placeholder' => $def['placeholder'] ?? null,
+                        'sort_order' => $sortOrder,
+                        'is_built_in' => true,
+                        'options' => array_key_exists('options', $def) ? $def['options'] : null,
+                    ]);
+                    $field->save();
+                } else {
+                    if (! $field->is_built_in) {
+                        $field->update(['is_built_in' => true]);
+                    }
+                    if ($field->is_built_in && (int) $field->sort_order !== (int) $sortOrder) {
+                        $field->update(['sort_order' => $sortOrder]);
+                    }
+                }
+            }
+        }
+
+        foreach (self::builtInFields() as $entityType => $fields) {
+            $slugs = collect($fields)->pluck('slug')->filter()->values()->all();
+            static::query()
+                ->where('entity_type', $entityType)
+                ->where('is_built_in', true)
+                ->whereNotIn('slug', $slugs)
+                ->get()
+                ->each(fn (CustomField $obsolete) => $obsolete->delete());
+        }
+    }
+
     public static function fieldTypes(): array
     {
         return [
@@ -103,6 +294,8 @@ class CustomField extends Model
             'media' => 'Media (image/file)',
             'document' => 'Document (file)',
             'video' => 'Video',
+            'approved_sangha' => 'Approved student (this monastery)',
+            'dependent_select' => 'Select (options depend on Year)',
         ];
     }
 
@@ -116,6 +309,10 @@ class CustomField extends Model
 
     public static function sanghaSlugRequired(Collection $bySlug, string $slug): bool
     {
+        if (static::isBuiltInSlugSuppressed('sangha', $slug)) {
+            return false;
+        }
+
         $cf = $bySlug->get($slug);
         if ($cf) {
             return (bool) $cf->required;

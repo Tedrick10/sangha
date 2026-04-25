@@ -26,14 +26,43 @@
         </div>
         <div class="admin-form-group">
             <label for="type" class="admin-form-label">Field Type *</label>
-            <select name="type" id="type" required class="admin-select-input">
-                @foreach(\App\Models\CustomField::fieldTypes() as $key => $label)
-                    <option value="{{ $key }}" {{ old('type', $customField->type) === $key ? 'selected' : '' }}>{{ $label }}</option>
-                @endforeach
-            </select>
+            @if($customField->is_built_in && in_array($customField->slug, ['approved_sangha_id', 'transfer_sangha_id'], true))
+                <input type="hidden" name="type" value="approved_sangha">
+                <p class="text-sm text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40 px-4 py-3">
+                    {{ \App\Models\CustomField::fieldTypes()['approved_sangha'] ?? 'Approved student' }}
+                    <span class="block mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        @if($customField->slug === 'transfer_sangha_id')
+                            This type is fixed; the monastery portal lists only approved sangha members registered to that monastery.
+                        @else
+                            This type is fixed; options are loaded from approved students for each monastery.
+                        @endif
+                    </span>
+                </p>
+            @elseif($customField->is_built_in && $customField->slug === 'exam_session')
+                <input type="hidden" name="type" value="dependent_select">
+                <p class="text-sm text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40 px-4 py-3">
+                    {{ \App\Models\CustomField::fieldTypes()['dependent_select'] ?? 'Dependent select' }}
+                    <span class="block mt-1 text-xs text-slate-500 dark:text-slate-400">Exam choices are all <strong>active</strong> exams (with a date) from <strong>Examinations → Exams</strong>, grouped by exam date year. The submission is filed under the programme of the exam you select when possible.</span>
+                </p>
+            @else
+                <select name="type" id="type" required class="admin-select-input">
+                    @foreach(\App\Models\CustomField::fieldTypes() as $key => $label)
+                        @if($key === 'dependent_select')
+                            @continue
+                        @endif
+                        <option value="{{ $key }}" {{ old('type', $customField->type) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            @endif
             @error('type')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
-        <div id="options-wrap" class="admin-form-group {{ ($customField->type ?? old('type')) === 'select' ? '' : 'hidden' }}">
+        @if($customField->is_built_in && $customField->slug === 'exam_year')
+            <p class="text-sm text-slate-600 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40 px-4 py-3">
+                <span class="font-medium text-slate-800 dark:text-slate-200">Data source</span>
+                <span class="block mt-1 text-xs text-slate-500 dark:text-slate-400">Year options come from calendar years of all <strong>active</strong> exams (with a date) in <strong>Examinations → Exams</strong>. You do not maintain a manual option list here.</span>
+            </p>
+        @endif
+        <div id="options-wrap" class="admin-form-group {{ ($customField->is_built_in && in_array($customField->slug, ['approved_sangha_id', 'transfer_sangha_id', 'exam_session', 'exam_year'], true)) ? 'hidden' : (($customField->type ?? old('type')) === 'select' ? '' : 'hidden') }}">
             <label class="admin-form-label mb-2 block">Options</label>
             <div id="options-list" class="space-y-2">
                 @php $opts = old('options', $customField->options ?? []); $opts = is_array($opts) ? $opts : (array_filter(explode("\n", $opts)) ?: ['']); @endphp
@@ -49,7 +78,7 @@
             </button>
             @error('options')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
-        <div id="placeholder-wrap" class="admin-form-group {{ in_array($customField->type ?? old('type'), ['text','textarea','number']) ? '' : 'hidden' }}">
+        <div id="placeholder-wrap" class="admin-form-group {{ in_array($customField->type ?? old('type'), ['text','textarea','number','approved_sangha','dependent_select'], true) ? '' : 'hidden' }}">
             <label for="placeholder" class="admin-form-label">Placeholder</label>
             <input type="text" name="placeholder" id="placeholder" value="{{ old('placeholder', $customField->placeholder) }}" class="admin-input" placeholder="e.g. Enter your email">
             @error('placeholder')<p class="admin-form-error">{{ $message }}</p>@enderror
@@ -73,29 +102,35 @@ document.addEventListener('DOMContentLoaded', function() {
     var addBtn = document.getElementById('add-option');
 
     var placeholderWrap = document.getElementById('placeholder-wrap');
-    var placeholderTypes = ['text', 'textarea', 'number'];
+    var placeholderTypes = ['text', 'textarea', 'number', 'approved_sangha', 'dependent_select'];
 
     function toggleOptions() {
+        if (!typeSelect || !optionsWrap) return;
         optionsWrap.classList.toggle('hidden', typeSelect.value !== 'select');
     }
     function togglePlaceholder() {
+        if (!typeSelect || !placeholderWrap) return;
         placeholderWrap.classList.toggle('hidden', !placeholderTypes.includes(typeSelect.value));
     }
-    toggleOptions();
-    togglePlaceholder();
-    typeSelect.addEventListener('change', function() { toggleOptions(); togglePlaceholder(); });
+    if (typeSelect) {
+        toggleOptions();
+        togglePlaceholder();
+        typeSelect.addEventListener('change', function() { toggleOptions(); togglePlaceholder(); });
+    }
 
-    addBtn.addEventListener('click', function() {
-        var row = document.createElement('div');
-        row.className = 'flex gap-2 items-center option-row';
-        row.innerHTML = '<input type="text" name="options[]" placeholder="Option" class="admin-input flex-1"><button type="button" class="remove-option text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 font-medium" title="Remove">✕</button>';
-        optionsList.appendChild(row);
-        row.querySelector('.remove-option').addEventListener('click', function() { row.remove(); });
-    });
+    if (addBtn && optionsList) {
+        addBtn.addEventListener('click', function() {
+            var row = document.createElement('div');
+            row.className = 'flex gap-2 items-center option-row';
+            row.innerHTML = '<input type="text" name="options[]" placeholder="Option" class="admin-input flex-1"><button type="button" class="remove-option text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 font-medium" title="Remove">✕</button>';
+            optionsList.appendChild(row);
+            row.querySelector('.remove-option').addEventListener('click', function() { row.remove(); });
+        });
 
-    document.getElementById('options-list').addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-option')) e.target.closest('.option-row').remove();
-    });
+        optionsList.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-option')) e.target.closest('.option-row').remove();
+        });
+    }
 });
 </script>
 @endsection

@@ -99,8 +99,8 @@
                     </td>
                     <td class="text-right">
                         <a href="{{ route('admin.custom-fields.edit', $field) }}" class="admin-action-link admin-action-edit">@include('partials.icon', ['name' => 'pencil', 'class' => 'w-4 h-4']) Edit</a>
-                        @if(! ($field->is_built_in ?? false))
-                            <form action="{{ route('admin.custom-fields.destroy', $field) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('Delete this custom field?');">
+                        @if(\App\Models\CustomField::canDeleteInAdmin($field))
+                            <form action="{{ route('admin.custom-fields.destroy', $field) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm(@json($field->is_built_in ? 'Delete this built-in field? It will not be restored automatically on the next sync.' : 'Delete this custom field?'));">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="admin-action-link admin-action-delete">@include('partials.icon', ['name' => 'trash', 'class' => 'w-4 h-4']) Delete</button>

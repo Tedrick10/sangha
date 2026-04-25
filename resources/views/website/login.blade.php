@@ -166,23 +166,30 @@
                                 @error('monastery_id')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'name'))
                                 <div>
                                     <label for="reg_sangha_name" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">{{ $regMetaName?->name ?? t('name') }}{{ ($regMetaName?->required ?? true) ? ' *' : '' }}</label>
                                     <input type="text" id="reg_sangha_name" name="name" value="{{ old('name') }}" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="{{ $regMetaName?->placeholder ?? '' }}" @if($regMetaName?->required ?? true) required @endif>
                                     @error('name')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                                 </div>
+                                @endif
+                                @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'father_name'))
                                 <div>
                                     <label for="reg_sangha_father_name" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">{{ $regMetaFather?->name ?? t('score_father_name_label', 'Father name') }}{{ ($regMetaFather?->required ?? false) ? ' *' : '' }}</label>
                                     <input type="text" id="reg_sangha_father_name" name="father_name" value="{{ old('father_name') }}" maxlength="255" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="{{ $regMetaFather?->placeholder ?? t('score_optional_placeholder', 'Optional') }}" @if($regMetaFather?->required ?? false) required @endif>
                                     @error('father_name')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                                 </div>
+                                @endif
+                                @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'nrc_number'))
                                 <div>
                                     <label for="reg_sangha_nrc" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">{{ $regMetaNrc?->name ?? t('score_nrc_label', 'NRC number') }}{{ ($regMetaNrc?->required ?? false) ? ' *' : '' }}</label>
                                     <input type="text" id="reg_sangha_nrc" name="nrc_number" value="{{ old('nrc_number') }}" maxlength="100" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="{{ $regMetaNrc?->placeholder ?? t('score_optional_placeholder', 'Optional') }}" @if($regMetaNrc?->required ?? false) required @endif>
                                     @error('nrc_number')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                                 </div>
+                                @endif
                             </div>
                             <p class="text-xs text-stone-500 dark:text-slate-400">{{ t('sangha_portal_no_student_id_hint', 'Student Id for login is assigned by an administrator after review.') }}</p>
+                            @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'exam_id'))
                             <div>
                                 <label for="reg_sangha_exam_id" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">{{ $regMetaExam?->name ?? t('exam') }}{{ ($regMetaExam?->required ?? false) ? ' *' : '' }}</label>
                                 <select id="reg_sangha_exam_id" name="exam_id" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" @if($regMetaExam?->required ?? false) required @endif>
@@ -193,11 +200,14 @@
                                 </select>
                                 @error('exam_id')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                             </div>
+                            @endif
+                            @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'description'))
                             <div>
                                 <label for="reg_sangha_description" class="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1.5">{{ $regMetaDesc?->name ?? t('description') }}{{ ($regMetaDesc?->required ?? false) ? ' *' : '' }}</label>
                                 <textarea id="reg_sangha_description" name="description" rows="3" class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50/60 dark:bg-slate-700/50 text-stone-900 dark:text-slate-100 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="{{ $regMetaDesc?->placeholder ?? '' }}" @if($regMetaDesc?->required ?? false) required @endif>{{ old('description') }}</textarea>
                                 @error('description')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                             </div>
+                            @endif
                             @if($sanghaCustomFields->isNotEmpty())
                                 <div class="pt-2 border-t border-stone-200 dark:border-slate-700">
                                     <h3 class="text-sm font-semibold uppercase tracking-[0.12em] text-stone-600 dark:text-slate-300 mb-4">{{ t('custom_fields') }}</h3>

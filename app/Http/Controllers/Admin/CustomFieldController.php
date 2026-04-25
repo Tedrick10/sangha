@@ -14,7 +14,7 @@ class CustomFieldController extends Controller
 {
     public function index(Request $request): View
     {
-        $this->syncBuiltInFields();
+        CustomField::syncBuiltInFieldDefinitions();
 
         $query = CustomField::query();
         if ($request->filled('entity_type')) {
@@ -41,48 +41,6 @@ class CustomFieldController extends Controller
         return view('admin.custom-fields.index', compact('customFields', 'groupedByForm'));
     }
 
-    /**
-     * Ensure built-in field rows exist for each slug. New rows get defaults from code; existing rows keep
-     * admin-edited label, type, placeholder, required, and sort order (so Custom Fields index does not revert edits).
-     */
-    protected function syncBuiltInFields(): void
-    {
-        foreach (CustomField::builtInFields() as $entityType => $fields) {
-            foreach (array_values($fields) as $sortOrder => $def) {
-                $field = CustomField::firstOrNew(
-                    [
-                        'entity_type' => $entityType,
-                        'slug' => $def['slug'],
-                    ]
-                );
-
-                if (! $field->exists) {
-                    $field->fill([
-                        'name' => $def['name'],
-                        'type' => $def['type'],
-                        'required' => $def['required'],
-                        'placeholder' => $def['placeholder'] ?? null,
-                        'sort_order' => $sortOrder,
-                        'is_built_in' => true,
-                    ]);
-                    $field->save();
-                } elseif (! $field->is_built_in) {
-                    $field->update(['is_built_in' => true]);
-                }
-            }
-        }
-
-        foreach (CustomField::builtInFields() as $entityType => $fields) {
-            $slugs = collect($fields)->pluck('slug')->filter()->values()->all();
-            CustomField::query()
-                ->where('entity_type', $entityType)
-                ->where('is_built_in', true)
-                ->whereNotIn('slug', $slugs)
-                ->get()
-                ->each(fn (CustomField $obsolete) => $obsolete->delete());
-        }
-    }
-
     public function create(Request $request): View
     {
         $entityType = $request->get('entity_type', 'monastery');
@@ -96,7 +54,7 @@ class CustomFieldController extends Controller
             'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255',
-            'type' => 'required|in:text,textarea,number,date,time,datetime,select,checkbox,media,document,video',
+            'type' => 'required|in:text,textarea,number,date,time,datetime,select,dependent_select,checkbox,media,document,video',
             'options' => 'nullable|array',
             'options.*' => 'nullable|string|max:255',
             'required' => 'boolean',
@@ -122,21 +80,35 @@ class CustomFieldController extends Controller
 
     public function update(Request $request, CustomField $customField): RedirectResponse
     {
-        $validated = $request->validate([
+        $rules = [
             'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
             'name' => 'required|string|max:255',
-            'type' => 'required|in:text,textarea,number,date,time,datetime,select,checkbox,media,document,video',
+            'type' => 'required|in:text,textarea,number,date,time,datetime,select,dependent_select,checkbox,media,document,video,approved_sangha',
             'options' => 'nullable|array',
             'options.*' => 'nullable|string|max:255',
+            'dependent_options_json' => 'nullable|string',
             'required' => 'boolean',
             'placeholder' => 'nullable|string|max:255',
-        ]);
+        ];
+
+        $validated = $request->validate($rules);
         $validated['slug'] = $customField->slug;
         $validated['required'] = $request->boolean('required');
         $validated['sort_order'] = $customField->sort_order;
-        $validated['options'] = isset($validated['options'])
-            ? array_values(array_filter(array_map('trim', $validated['options'])))
-            : null;
+
+        if ($customField->is_built_in && in_array($customField->slug, ['approved_sangha_id', 'transfer_sangha_id'], true)) {
+            $validated['type'] = 'approved_sangha';
+            $validated['options'] = null;
+        } elseif ($customField->is_built_in && $customField->slug === 'exam_session') {
+            $validated['type'] = 'dependent_select';
+            $validated['options'] = null;
+        } elseif ($customField->is_built_in && $customField->slug === 'exam_year') {
+            $validated['options'] = null;
+        } else {
+            $validated['options'] = isset($validated['options'])
+                ? array_values(array_filter(array_map('trim', $validated['options'])))
+                : null;
+        }
 
         $customField->update($validated);
 
@@ -145,10 +117,14 @@ class CustomFieldController extends Controller
 
     public function destroy(CustomField $customField): RedirectResponse
     {
-        if ($customField->is_built_in) {
+        if (CustomField::builtInDeleteForbidden($customField)) {
             return redirect()
                 ->route('admin.custom-fields.index', ['entity_type' => $customField->entity_type])
-                ->with('error', 'Built-in fields cannot be deleted. You can edit their label, placeholder, and options.');
+                ->with('error', 'This built-in field cannot be deleted. You can still edit its label and options.');
+        }
+
+        if ($customField->is_built_in) {
+            CustomField::suppressBuiltInSlug($customField->entity_type, $customField->slug);
         }
 
         $customField->delete();

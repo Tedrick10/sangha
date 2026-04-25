@@ -68,6 +68,8 @@
                                 @include('partials.icon', ['name' => 'external-link', 'class' => 'h-4 w-4 shrink-0'])
                                 <span class="break-all">{{ basename($raw) }}</span>
                             </a>
+                        @elseif($field->type === 'approved_sangha' || ($field->entity_type === 'monastery_exam' && $field->slug === 'exam_session'))
+                            <span class="block whitespace-pre-wrap break-words">{{ $submission->displaySubmittedValue($field, $raw) }}</span>
                         @else
                             <span class="block whitespace-pre-wrap break-words">{{ $raw }}</span>
                         @endif

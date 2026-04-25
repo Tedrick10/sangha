@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
         $this->call(LanguageTranslationSeeder::class);
         $this->call(LanguageLocalizationSeeder::class);
 
+        CustomField::syncBuiltInFieldDefinitions();
+
         // Roles (must exist before users due to role_id FK)
         $allPermissions = Role::allPermissionSlugs();
         $adminRole = Role::updateOrCreate(

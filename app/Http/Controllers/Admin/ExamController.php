@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
 use Illuminate\View\View;
@@ -67,15 +68,8 @@ class ExamController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', $this->uniqueExamNameRule($request)],
-            'description' => 'nullable|string',
-            'exam_date' => 'nullable|date',
-            'exam_type_id' => 'nullable|exists:exam_types,id',
-            'location' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
-        ]);
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated = $request->validate($this->examValidationRules($request));
+        $this->applyExamBuiltInDefaults($validated, $request, null);
 
         $exam = Exam::create($validated);
         $exam->subjects()->sync($request->input('subjects', []));
@@ -99,15 +93,8 @@ class ExamController extends Controller
 
     public function update(Request $request, Exam $exam): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', $this->uniqueExamNameRule($request, $exam->id)],
-            'description' => 'nullable|string',
-            'exam_date' => 'nullable|date',
-            'exam_type_id' => 'nullable|exists:exam_types,id',
-            'location' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
-        ]);
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated = $request->validate($this->examValidationRules($request, $exam));
+        $this->applyExamBuiltInDefaults($validated, $request, $exam);
 
         $exam->update($validated);
         $exam->subjects()->sync($request->input('subjects', []));
@@ -340,6 +327,74 @@ class ExamController extends Controller
     /**
      * Same name may exist for different dates or exam types; block exact duplicate triple.
      */
+    /**
+     * @return array<string, mixed>
+     */
+    private function examValidationRules(Request $request, ?Exam $exam = null): array
+    {
+        $ignoreId = $exam?->id;
+        $nameBase = CustomField::isBuiltInSlugSuppressed('exam', 'name')
+            ? ['nullable', 'string', 'max:255']
+            : ['required', 'string', 'max:255'];
+
+        $examTypeRule = CustomField::isBuiltInSlugSuppressed('exam', 'exam_type_id')
+            ? 'nullable|exists:exam_types,id'
+            : 'required|exists:exam_types,id';
+
+        $rules = [
+            'name' => array_merge($nameBase, [$this->uniqueExamNameRule($request, $ignoreId)]),
+            'description' => 'nullable|string',
+            'exam_date' => 'nullable|date',
+            'exam_type_id' => $examTypeRule,
+            'location' => 'nullable|string|max:255',
+        ];
+        if (! CustomField::isBuiltInSlugSuppressed('exam', 'is_active')) {
+            $rules['is_active'] = 'boolean';
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function applyExamBuiltInDefaults(array &$validated, Request $request, ?Exam $exam): void
+    {
+        if (CustomField::isBuiltInSlugSuppressed('exam', 'name')) {
+            $n = trim((string) ($validated['name'] ?? ''));
+            if ($n === '' && $exam !== null) {
+                $validated['name'] = $exam->name;
+            } elseif ($n === '') {
+                do {
+                    $candidate = substr('Exam '.Str::uuid()->toString(), 0, 255);
+                } while (
+                    Exam::query()
+                        ->where('name', $candidate)
+                        ->where(function ($query) use ($request): void {
+                            if ($request->filled('exam_type_id')) {
+                                $query->where('exam_type_id', (int) $request->input('exam_type_id'));
+                            } else {
+                                $query->whereNull('exam_type_id');
+                            }
+                            if ($request->filled('exam_date')) {
+                                $query->whereDate('exam_date', $request->input('exam_date'));
+                            } else {
+                                $query->whereNull('exam_date');
+                            }
+                        })
+                        ->exists()
+                );
+                $validated['name'] = $candidate;
+            }
+        }
+
+        if (CustomField::isBuiltInSlugSuppressed('exam', 'is_active')) {
+            $validated['is_active'] = $exam !== null ? $exam->is_active : true;
+        } else {
+            $validated['is_active'] = $request->boolean('is_active');
+        }
+    }
+
     private function uniqueExamNameRule(Request $request, ?int $ignoreExamId = null): Unique
     {
         $rule = Rule::unique('exams', 'name')->where(function ($query) use ($request) {

@@ -11,6 +11,7 @@ use App\Notifications\Monastery\SanghaApplicationDecidedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SanghaController extends Controller
@@ -102,7 +103,7 @@ class SanghaController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $bySlug = CustomField::sanghaDefinitionsBySlug();
-        $validated = $request->validate(
+        $validated = $request->validate(array_merge(
             CustomField::sanghaCoreValidationRules($bySlug, [
                 'monastery_id',
                 'exam_id',
@@ -111,11 +112,12 @@ class SanghaController extends Controller
                 'nrc_number',
                 'username',
                 'description',
-            ], null, 'any')
-        );
-        if (($validated['username'] ?? null) === '') {
-            $validated['username'] = null;
-        }
+            ], null, 'any'),
+            [
+                'monastery_id' => ['required', Rule::exists('monasteries', 'id')],
+            ]
+        ));
+        $this->finalizeSanghaAdminCoreFields($validated);
         $validated['is_active'] = true;
         $validated['approved'] = false;
         $validated['rejection_reason'] = null;
@@ -151,14 +153,13 @@ class SanghaController extends Controller
                 'description',
             ], $sangha->id, 'any'),
             [
+                'monastery_id' => ['required', Rule::exists('monasteries', 'id')],
                 'moderation_status' => 'nullable|in:pending,approved,rejected',
                 'rejection_reason' => 'nullable|string|required_if:moderation_status,rejected|max:2000',
             ]
         ));
+        $this->finalizeSanghaAdminCoreFields($validated, $sangha);
         $this->applyModerationState($validated, $request, $sangha);
-        if (($validated['username'] ?? null) === '') {
-            $validated['username'] = null;
-        }
 
         $beforeStatus = $sangha->moderationStatus();
         $sangha->update($validated);
@@ -191,6 +192,22 @@ class SanghaController extends Controller
         $sangha->delete();
 
         return redirect()->route('admin.sanghas.index')->with('success', 'Sangha deleted successfully.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function finalizeSanghaAdminCoreFields(array &$validated, ?Sangha $existing = null): void
+    {
+        $name = trim((string) ($validated['name'] ?? ''));
+        if ($name === '') {
+            $validated['name'] = $existing !== null
+                ? $existing->name
+                : ('Candidate '.Str::upper(Str::random(8)));
+        }
+        if (($validated['username'] ?? null) === '') {
+            $validated['username'] = null;
+        }
     }
 
     private function applyModerationState(array &$validated, Request $request, ?Sangha $existing = null): void

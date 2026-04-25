@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\ExamEligibleSnapshot;
 use App\Traits\HasCustomFields;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -83,5 +84,52 @@ class Exam extends Model
     protected function getCustomFieldEntityType(): string
     {
         return 'exam';
+    }
+
+    /**
+     * Years and exams for monastery Exam Form: all active exams with a date (same scope as admin list).
+     * Not filtered by programme tab so every year from the dashboard and every active exam for that year appear.
+     *
+     * @return array{years: list<string>, byYear: array<string, list<array{id: int, name: string}>>}
+     */
+    public static function monasteryExamFormCatalog(): array
+    {
+        $exams = self::query()
+            ->where('is_active', true)
+            ->whereNotNull('exam_date')
+            ->orderBy('exam_date')
+            ->orderBy('name')
+            ->get(['id', 'name', 'exam_date']);
+
+        $byYear = [];
+        foreach ($exams as $exam) {
+            $y = $exam->exam_date->format('Y');
+            if (! isset($byYear[$y])) {
+                $byYear[$y] = [];
+            }
+            $byYear[$y][] = ['id' => $exam->id, 'name' => $exam->name];
+        }
+
+        $years = array_keys($byYear);
+        rsort($years, SORT_STRING);
+
+        return ['years' => $years, 'byYear' => $byYear];
+    }
+
+    /**
+     * Active exams with a scheduled date in the given calendar year (same scope as {@see monasteryExamFormCatalog} for that year).
+     *
+     * @return Collection<int, static>
+     */
+    public static function activeExamsForCalendarYear(int $year): Collection
+    {
+        return self::query()
+            ->where('is_active', true)
+            ->whereNotNull('exam_date')
+            ->whereYear('exam_date', $year)
+            ->with(['examType:id,name'])
+            ->orderBy('exam_date')
+            ->orderBy('name')
+            ->get();
     }
 }

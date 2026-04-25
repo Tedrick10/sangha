@@ -149,6 +149,7 @@ Route::middleware(['website.locale', 'auth:monastery'])->prefix('monastery')->na
     Route::get('notifications/{notification}/go', [MonasteryNotificationController::class, 'go'])->name('notifications.go');
     Route::post('notifications/read-all', [MonasteryNotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('/sanghas', [MonasteryDashboardController::class, 'storeSangha'])->name('sanghas.store');
+    Route::put('/sanghas/{sangha}', [MonasteryDashboardController::class, 'updateRejectedSangha'])->name('sanghas.update');
     Route::post('/messages', [MonasteryDashboardController::class, 'storeFormRequest'])->name('messages.store');
     Route::post('/exam-forms', [MonasteryDashboardController::class, 'storeExamFormSubmission'])->name('exam-forms.store');
     Route::get('/requests/{monasteryFormRequest}', [MonasteryFormRequestPortalController::class, 'show'])->name('requests.show');

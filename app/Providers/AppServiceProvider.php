@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,6 +56,53 @@ class AppServiceProvider extends ServiceProvider
         $appUrl = config('app.url');
         if (is_string($appUrl) && str_starts_with($appUrl, 'https://')) {
             URL::forceScheme('https');
+        }
+
+        $this->assertProductionDeployRequirements();
+    }
+
+    /**
+     * Fail fast on cPanel / shared hosting with log-friendly messages (common causes of HTTP 500).
+     */
+    private function assertProductionDeployRequirements(): void
+    {
+        if ($this->app->runningInConsole() || ! $this->app->environment('production')) {
+            return;
+        }
+
+        $key = (string) config('app.key');
+        if ($key === '') {
+            Log::critical('APP_KEY is empty. Run: php artisan key:generate');
+
+            throw new RuntimeException(
+                'APP_KEY is empty. SSH into the server, run `php artisan key:generate`, save the new key in .env, then reload the site.'
+            );
+        }
+
+        if (! is_file(public_path('build/manifest.json'))) {
+            Log::critical('Missing Vite manifest at public/build/manifest.json. Run `npm ci && npm run build` and deploy the public/build directory.');
+
+            throw new RuntimeException(
+                'Missing public/build/manifest.json (compiled CSS/JS). On your computer run `npm ci && npm run build`, commit or upload the entire public/build folder, then reload.'
+            );
+        }
+
+        try {
+            if (! Schema::hasTable('migrations')) {
+                Log::critical('Database has no migrations table. Run: php artisan migrate --force');
+
+                throw new RuntimeException(
+                    'The database has not been migrated. From the project root run `php artisan migrate --force`, then reload.'
+                );
+            }
+        } catch (QueryException $e) {
+            Log::critical('Database connection failed.', ['exception' => $e->getMessage()]);
+
+            throw new RuntimeException(
+                'Cannot connect to the database. Verify DB_CONNECTION, DB_HOST, DB_DATABASE, DB_USERNAME, and DB_PASSWORD in .env (cPanel: enable pdo_mysql for your PHP version).',
+                0,
+                $e
+            );
         }
     }
 }

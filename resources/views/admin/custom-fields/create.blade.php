@@ -21,6 +21,9 @@
             <label for="type" class="admin-form-label">Field Type *</label>
             <select name="type" id="type" required class="admin-select-input">
                 @foreach(\App\Models\CustomField::fieldTypes() as $key => $label)
+                    @if($key === 'dependent_select')
+                        @continue
+                    @endif
                     <option value="{{ $key }}" {{ old('type', 'text') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>

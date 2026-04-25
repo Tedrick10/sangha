@@ -16,6 +16,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 use Illuminate\View\View;
 
 class ScoreController extends Controller
@@ -163,7 +165,7 @@ class ScoreController extends Controller
         $scores = $query->paginate(admin_per_page(15))->withQueryString();
         $subjects = Subject::where('is_active', true)->orderBy('name')->get();
         $sanghas = Sangha::with('monastery')->orderBy('name')->get();
-        $exams = Exam::orderBy('exam_date', 'desc')->get();
+        $exams = $this->examsForScoreFilters();
 
         return view('admin.scores.index', compact('scores', 'subjects', 'sanghas', 'exams', 'screen', 'topSanghas'));
     }
@@ -172,7 +174,7 @@ class ScoreController extends Controller
     {
         $subjects = Subject::where('is_active', true)->orderBy('name')->get();
         $sanghas = Sangha::with('monastery')->orderBy('name')->get();
-        $exams = Exam::orderBy('exam_date', 'desc')->get();
+        $exams = $this->examsEligibleForScoreEntry();
 
         return view('admin.scores.create', compact('subjects', 'sanghas', 'exams'));
     }
@@ -186,7 +188,7 @@ class ScoreController extends Controller
         $validated = $request->validate([
             'sangha_id' => 'required|exists:sanghas,id',
             'subject_id' => 'required|exists:subjects,id',
-            'exam_id' => 'nullable|exists:exams,id',
+            'exam_id' => ['nullable', $this->examIdEligibleForScoreEntryRule()],
             'desk_number' => 'nullable|string|max:120',
             'value' => 'required|numeric|min:0',
             'moderation_decision' => 'nullable|in:pass,fail',
@@ -236,7 +238,7 @@ class ScoreController extends Controller
         $score->loadMissing(['exam', 'sangha.exam']);
         $subjects = Subject::where('is_active', true)->orderBy('name')->get();
         $sanghas = Sangha::with('monastery')->orderBy('name')->get();
-        $exams = Exam::orderBy('exam_date', 'desc')->get();
+        $exams = $this->examsEligibleForScoreEntry($score->exam_id);
         $deskNumberEditValue = $this->deskNumberForEditForm($score);
 
         return view('admin.scores.edit', compact('score', 'subjects', 'sanghas', 'exams', 'deskNumberEditValue'));
@@ -251,7 +253,7 @@ class ScoreController extends Controller
         $validated = $request->validate([
             'sangha_id' => 'required|exists:sanghas,id',
             'subject_id' => 'required|exists:subjects,id',
-            'exam_id' => 'nullable|exists:exams,id',
+            'exam_id' => ['nullable', $this->examIdEligibleForScoreEntryRule()],
             'desk_number' => 'nullable|string|max:120',
             'value' => 'required|numeric|min:0',
             'moderation_decision' => 'nullable|in:pass,fail',
@@ -489,6 +491,47 @@ class ScoreController extends Controller
             ->when($filterRequest->filled('exam_id'), fn ($query) => $query->where('scores.exam_id', $filterRequest->exam_id))
             ->groupBy('scores.sangha_id')
             ->havingRaw('COUNT(scores.id) > 0');
+    }
+
+    /**
+     * Exams for the scores index filters — all exams so historical rows remain searchable.
+     */
+    private function examsForScoreFilters(): EloquentCollection
+    {
+        return Exam::query()->orderByDesc('exam_date')->get();
+    }
+
+    /**
+     * Exams allowed for score entry: no date, or exam date is today or in the past.
+     * When editing, pass the current row's exam id so it stays selectable even if mis-dated.
+     */
+    private function examsEligibleForScoreEntry(?int $alwaysIncludeExamId = null): EloquentCollection
+    {
+        return Exam::query()
+            ->where(function ($q) use ($alwaysIncludeExamId) {
+                $q->where(function ($inner) {
+                    $inner->whereNull('exam_date')
+                        ->orWhereDate('exam_date', '<=', now());
+                });
+                if ($alwaysIncludeExamId !== null) {
+                    $q->orWhere('id', $alwaysIncludeExamId);
+                }
+            })
+            ->orderByDesc('exam_date')
+            ->get();
+    }
+
+    /**
+     * Rejects exam_id pointing at a future-dated exam (score entry only after the exam date).
+     */
+    private function examIdEligibleForScoreEntryRule(): Exists
+    {
+        return Rule::exists('exams', 'id')->where(function ($query) {
+            $query->where(function ($q) {
+                $q->whereNull('exam_date')
+                    ->orWhereDate('exam_date', '<=', now());
+            });
+        });
     }
 
     private function normalizeScoreDeskNumberInput(mixed $value): ?string

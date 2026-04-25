@@ -5,16 +5,30 @@
 @php
     $listQuery = request()->only(['search', 'request_status', 'form_scope', 'exam_type_id']);
     $listQuery = array_filter($listQuery, fn ($v) => $v !== null && $v !== '' && $v !== 'all');
+    $isExamFormRequest = $submission->isExamFormSubmission();
+    if ($isExamFormRequest) {
+        if (! array_key_exists('form_scope', $listQuery)) {
+            $listQuery['form_scope'] = 'exam';
+        }
+        if ($submission->exam_type_id && ! array_key_exists('exam_type_id', $listQuery)) {
+            $listQuery['exam_type_id'] = $submission->exam_type_id;
+        }
+    } elseif (! array_key_exists('form_scope', $listQuery)) {
+        $listQuery['form_scope'] = 'general';
+    }
     $indexUrl = route('admin.monastery-requests.index');
     if (count($listQuery)) {
         $indexUrl .= '?'.http_build_query($listQuery);
     }
+    $backToListLabel = $isExamFormRequest
+        ? t('admin_exam_form_submissions', 'Exam Form')
+        : t('monastery_requests', 'Transfer Sangha');
 @endphp
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6 pb-12">
     <div class="admin-form-page-header !mb-0">
-        <a href="{{ $indexUrl }}" class="admin-back-link">@include('partials.icon', ['name' => 'arrow-left', 'class' => 'w-4 h-4 shrink-0']) {{ t('monastery_requests', 'Transfer Sangha') }}</a>
+        <a href="{{ $indexUrl }}" class="admin-back-link">@include('partials.icon', ['name' => 'arrow-left', 'class' => 'w-4 h-4 shrink-0']) {{ $backToListLabel }}</a>
         <h1 class="admin-page-title">{{ t('request_details', 'Request details') }}</h1>
     </div>
 
@@ -82,6 +96,111 @@
                                     @include('partials.icon', ['name' => 'external-link', 'class' => 'w-4 h-4 shrink-0 opacity-90'])
                                     {{ basename($raw) }}
                                 </a>
+                            @elseif($field->type === 'approved_sangha')
+                                @php
+                                    $detailSangha = $submission->approvedSanghaForFieldValue($raw);
+                                    $approvedSanghaRowId = 'as-'.$field->id;
+                                @endphp
+                                <div class="w-full space-y-3">
+                                    <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                                        <p class="min-w-0 flex-1 whitespace-pre-wrap text-left font-medium text-slate-900 dark:text-slate-100">{{ $submission->displaySubmittedValue($field, $raw) }}</p>
+                                        @if($detailSangha)
+                                            <button
+                                                type="button"
+                                                class="mr-inline-details-btn inline-flex shrink-0 items-center justify-center rounded-lg border border-amber-600/45 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-sm ring-1 ring-amber-500/25 transition-colors hover:bg-amber-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:border-amber-500/35 dark:bg-amber-950/45 dark:text-amber-100 dark:ring-amber-400/20 dark:hover:bg-amber-900/55"
+                                                data-panel-id="mr-sangha-panel-{{ $approvedSanghaRowId }}"
+                                                aria-expanded="false"
+                                                aria-controls="mr-sangha-panel-{{ $approvedSanghaRowId }}"
+                                            >
+                                                {{ t('details', 'Details') }}
+                                            </button>
+                                        @endif
+                                    </div>
+                                    @if($detailSangha)
+                                        <div
+                                            id="mr-sangha-panel-{{ $approvedSanghaRowId }}"
+                                            class="mr-approved-sangha-panel hidden w-full rounded-xl border border-slate-200/80 bg-white/70 px-3 py-4 dark:border-slate-600/50 dark:bg-slate-900/50"
+                                            role="region"
+                                            aria-hidden="true"
+                                        >
+                                            @include('admin.partials.sangha-registration-snapshot', [
+                                                'sangha' => $detailSangha,
+                                                'sanghaFieldMeta' => $sanghaFieldMeta,
+                                                'sanghaExtraFieldDefinitions' => $sanghaExtraFieldDefinitions,
+                                            ])
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif($field->entity_type === 'monastery_exam' && $field->slug === 'exam_year' && filled($raw))
+                                @php
+                                    $yearInt = (int) trim((string) $raw);
+                                    $yearOk = $yearInt >= 1900 && $yearInt <= 2100;
+                                    $examsForYear = $yearOk ? \App\Models\Exam::activeExamsForCalendarYear($yearInt) : collect();
+                                    $yearRowId = 'yr-'.$field->id;
+                                    $yearPanelId = 'mr-year-panel-'.$yearRowId;
+                                @endphp
+                                <div class="w-full space-y-3">
+                                    <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                                        <p class="min-w-0 flex-1 whitespace-pre-wrap text-left font-medium text-slate-900 dark:text-slate-100">{{ $raw }}</p>
+                                        @if($yearOk)
+                                            <button
+                                                type="button"
+                                                class="mr-inline-details-btn inline-flex shrink-0 items-center justify-center rounded-lg border border-amber-600/45 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-sm ring-1 ring-amber-500/25 transition-colors hover:bg-amber-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:border-amber-500/35 dark:bg-amber-950/45 dark:text-amber-100 dark:ring-amber-400/20 dark:hover:bg-amber-900/55"
+                                                data-panel-id="{{ $yearPanelId }}"
+                                                aria-expanded="false"
+                                                aria-controls="{{ $yearPanelId }}"
+                                            >
+                                                {{ t('details', 'Details') }}
+                                            </button>
+                                        @endif
+                                    </div>
+                                    @if($yearOk)
+                                        <div
+                                            id="{{ $yearPanelId }}"
+                                            class="mr-year-details-panel hidden w-full rounded-xl border border-slate-200/80 bg-white/70 px-3 py-4 dark:border-slate-600/50 dark:bg-slate-900/50"
+                                            role="region"
+                                            aria-hidden="true"
+                                        >
+                                            @include('admin.partials.exam-year-details-panel', ['examsForYear' => $examsForYear, 'yearInt' => $yearInt])
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif($field->entity_type === 'monastery_exam' && $field->slug === 'exam_session' && filled($raw))
+                                @php
+                                    $detailExam = $submission->examForSessionFieldValue($raw);
+                                    $examRowId = 'ex-'.$field->id;
+                                    $examPanelId = 'mr-exam-panel-'.$examRowId;
+                                @endphp
+                                <div class="w-full space-y-3">
+                                    <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                                        <p class="min-w-0 flex-1 whitespace-pre-wrap text-left font-medium text-slate-900 dark:text-slate-100">{{ $submission->displaySubmittedValue($field, $raw) }}</p>
+                                        @if($detailExam)
+                                            <button
+                                                type="button"
+                                                class="mr-inline-details-btn inline-flex shrink-0 items-center justify-center rounded-lg border border-amber-600/45 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-sm ring-1 ring-amber-500/25 transition-colors hover:bg-amber-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:border-amber-500/35 dark:bg-amber-950/45 dark:text-amber-100 dark:ring-amber-400/20 dark:hover:bg-amber-900/55"
+                                                data-panel-id="{{ $examPanelId }}"
+                                                aria-expanded="false"
+                                                aria-controls="{{ $examPanelId }}"
+                                            >
+                                                {{ t('details', 'Details') }}
+                                            </button>
+                                        @endif
+                                    </div>
+                                    @if($detailExam)
+                                        <div
+                                            id="{{ $examPanelId }}"
+                                            class="mr-exam-details-panel hidden w-full rounded-xl border border-slate-200/80 bg-white/70 px-3 py-4 dark:border-slate-600/50 dark:bg-slate-900/50"
+                                            role="region"
+                                            aria-hidden="true"
+                                        >
+                                            @include('admin.partials.exam-session-details-panel', [
+                                                'exam' => $detailExam,
+                                                'examFieldMeta' => $examFieldMeta,
+                                                'examExtraFieldDefinitions' => $examExtraFieldDefinitions,
+                                            ])
+                                        </div>
+                                    @endif
+                                </div>
                             @else
                                 <span class="whitespace-pre-wrap">{{ $raw }}</span>
                             @endif
@@ -144,6 +263,20 @@
     }
     statusEl.addEventListener('change', refresh);
     refresh();
+})();
+(function () {
+    document.querySelectorAll('.mr-inline-details-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var pid = btn.getAttribute('data-panel-id');
+            if (! pid) return;
+            var panel = document.getElementById(pid);
+            if (! panel) return;
+            panel.classList.toggle('hidden');
+            var open = ! panel.classList.contains('hidden');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+        });
+    });
 })();
 </script>
 @endpush

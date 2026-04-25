@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class RegistrationController extends Controller
@@ -39,16 +40,11 @@ class RegistrationController extends Controller
             ->where('is_built_in', false)
             ->get();
 
-        $validated = $request->validate(array_merge([
-            'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:monasteries,username'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'region' => ['nullable', 'string', 'max:100'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'address' => ['nullable', 'string'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'description' => ['nullable', 'string'],
-        ], $this->customFieldRules($customFields)));
+        $validated = $request->validate(array_merge(
+            $this->websiteMonasteryStoreRules(),
+            $this->customFieldRules($customFields)
+        ));
+        $this->applyWebsiteMonasteryDefaults($validated);
 
         $monastery = Monastery::create([
             'name' => $validated['name'],
@@ -91,13 +87,21 @@ class RegistrationController extends Controller
                 'nrc_number',
                 'description',
             ], null, 'active_only'),
-            $this->customFieldRules($customFields)
+            $this->customFieldRules($customFields),
+            [
+                'monastery_id' => ['required', Rule::exists('monasteries', 'id')->where(fn ($q) => $q->where('is_active', true))],
+            ]
         ));
+
+        $name = trim((string) ($validated['name'] ?? ''));
+        if ($name === '') {
+            $name = 'Candidate '.Str::upper(Str::random(8));
+        }
 
         $sangha = Sangha::create([
             'monastery_id' => $validated['monastery_id'],
             'exam_id' => $validated['exam_id'] ?? null,
-            'name' => $validated['name'],
+            'name' => $name,
             'father_name' => $validated['father_name'] ?? null,
             'nrc_number' => $validated['nrc_number'] ?? null,
             'username' => null,
@@ -191,5 +195,63 @@ class RegistrationController extends Controller
         }
 
         return $rules;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function websiteMonasteryStoreRules(): array
+    {
+        $usernameUnique = Rule::unique('monasteries', 'username');
+
+        $nameRule = CustomField::isBuiltInSlugSuppressed('monastery', 'name')
+            ? 'nullable|string|max:255'
+            : 'required|string|max:255';
+
+        $usernameRule = CustomField::isBuiltInSlugSuppressed('monastery', 'username')
+            ? ['nullable', 'string', 'max:255', $usernameUnique]
+            : ['required', 'string', 'max:255', $usernameUnique];
+
+        $passwordRule = CustomField::isBuiltInSlugSuppressed('monastery', 'password')
+            ? 'nullable|string|min:8|confirmed'
+            : 'required|string|min:8|confirmed';
+
+        return [
+            'name' => $nameRule,
+            'username' => $usernameRule,
+            'password' => $passwordRule,
+            'region' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'description' => ['nullable', 'string'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function applyWebsiteMonasteryDefaults(array &$validated): void
+    {
+        if (CustomField::isBuiltInSlugSuppressed('monastery', 'name')) {
+            $n = trim((string) ($validated['name'] ?? ''));
+            if ($n === '') {
+                $validated['name'] = 'Monastery '.Str::upper(Str::random(6));
+            }
+        }
+
+        if (CustomField::isBuiltInSlugSuppressed('monastery', 'username')) {
+            $u = trim((string) ($validated['username'] ?? ''));
+            if ($u === '') {
+                do {
+                    $u = 'm_'.Str::lower(Str::random(12));
+                } while (Monastery::where('username', $u)->exists());
+                $validated['username'] = $u;
+            }
+        }
+
+        if (CustomField::isBuiltInSlugSuppressed('monastery', 'password')) {
+            unset($validated['password']);
+        }
     }
 }

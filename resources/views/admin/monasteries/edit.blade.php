@@ -12,16 +12,21 @@
     @csrf
     @method('PUT')
     <div class="space-y-5">
+        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'name'))
         <div class="admin-form-group">
             <label for="name" class="admin-form-label">Name *</label>
             <input type="text" name="name" id="name" value="{{ old('name', $monastery->name) }}" required class="admin-input" placeholder="e.g. Shwe Dagon Monastery">
             @error('name')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
+        @endif
+        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'username'))
         <div class="admin-form-group">
             <label for="username" class="admin-form-label">Username *</label>
             <input type="text" name="username" id="username" value="{{ old('username', $monastery->username) }}" required class="admin-input" placeholder="e.g. monastery_username">
             @error('username')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
+        @endif
+        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'password'))
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="admin-form-group">
                 <label for="password" class="admin-form-label">Password</label>
@@ -34,33 +39,46 @@
             </div>
         </div>
         <p class="text-sm text-slate-500 -mt-2">Leave password blank to keep the current one.</p>
+        @endif
+        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'region') || !\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'city'))
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'region'))
             <div class="admin-form-group">
                 <label for="region" class="admin-form-label">Region</label>
                 <input type="text" name="region" id="region" value="{{ old('region', $monastery->region) }}" class="admin-input" placeholder="e.g. Yangon, Mandalay">
                 @error('region')<p class="admin-form-error">{{ $message }}</p>@enderror
             </div>
+            @endif
+            @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'city'))
             <div class="admin-form-group">
                 <label for="city" class="admin-form-label">City</label>
                 <input type="text" name="city" id="city" value="{{ old('city', $monastery->city) }}" class="admin-input" placeholder="e.g. Yangon">
                 @error('city')<p class="admin-form-error">{{ $message }}</p>@enderror
             </div>
+            @endif
         </div>
+        @endif
+        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'address'))
         <div class="admin-form-group">
             <label for="address" class="admin-form-label">Address</label>
             <input type="text" name="address" id="address" value="{{ old('address', $monastery->address) }}" class="admin-input" placeholder="e.g. 123 Main Street">
             @error('address')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
+        @endif
+        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'phone'))
         <div class="admin-form-group">
             <label for="phone" class="admin-form-label">Phone</label>
             <input type="text" name="phone" id="phone" value="{{ old('phone', $monastery->phone) }}" class="admin-input" placeholder="e.g. 09-123456789">
             @error('phone')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
+        @endif
+        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('monastery', 'description'))
         <div class="admin-form-group">
             <label for="description" class="admin-form-label">Description</label>
             <textarea name="description" id="description" rows="3" class="admin-textarea" placeholder="Brief description of the monastery">{{ old('description', $monastery->description) }}</textarea>
             @error('description')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
+        @endif
         @if($customFields->isNotEmpty())
             <div class="admin-form-section">
                 <h3 class="admin-form-section-title">Custom Fields</h3>

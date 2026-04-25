@@ -87,9 +87,27 @@ class MonasteryFormRequestController extends Controller
             $fields = CustomField::forEntity('request')->orderBy('sort_order')->orderBy('name')->get();
         }
 
+        $sanghaFieldMeta = CustomField::sanghaDefinitionsBySlug();
+        $sanghaExtraFieldDefinitions = CustomField::forEntity('sangha')
+            ->where('is_built_in', false)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $examFieldMeta = CustomField::forEntity('exam')->get()->keyBy('slug');
+        $examExtraFieldDefinitions = CustomField::forEntity('exam')
+            ->where('is_built_in', false)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
         return view('admin.monastery-form-requests.show', [
             'submission' => $monasteryFormRequest,
             'fields' => $fields,
+            'sanghaFieldMeta' => $sanghaFieldMeta,
+            'sanghaExtraFieldDefinitions' => $sanghaExtraFieldDefinitions,
+            'examFieldMeta' => $examFieldMeta,
+            'examExtraFieldDefinitions' => $examExtraFieldDefinitions,
         ]);
     }
 
