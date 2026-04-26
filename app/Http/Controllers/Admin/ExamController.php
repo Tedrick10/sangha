@@ -279,7 +279,8 @@ class ExamController extends Controller
     }
 
     /**
-     * After removals, keep desk numbers contiguous 1…n in current sort order.
+     * After removals, keep desk numbers contiguous 1
+n in current sort order.
      */
     private function renumberDesksForExam(Exam $exam): void
     {

@@ -8,6 +8,7 @@
     <title>@yield('title', t('monastery_portal')) - {{ config('app.name') }}</title>
     @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.monastery-portal-tiles-styles')
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
     <script>
@@ -39,14 +40,32 @@
 <body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans {{ $__ap['class'] }}" @if($__ap['style'] !== '') style="{{ $__ap['style'] }}" @endif data-app-locale-url="{{ route('app.set-locale') }}" data-app-theme-url="{{ route('app.set-theme') }}">
     <header class="monastery-header sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
         {{-- Title wraps instead of ellipsis; toolbar scrolls horizontally if needed. --}}
-        <div class="mx-auto flex max-w-5xl min-w-0 flex-nowrap items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
+        <div class="mx-auto flex max-w-7xl min-w-0 flex-nowrap items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
             <div class="min-w-0 flex-1 basis-0">
                 <p class="break-words text-sm font-semibold leading-snug text-slate-900 dark:text-slate-100 [overflow-wrap:anywhere]">
                     {{ auth()->guard('monastery')->user()->name ?? t('monastery') }}<span class="monastery-header-kicker font-medium text-slate-500 dark:text-amber-200"> · {{ t('monastery_portal') }}</span>
                 </p>
             </div>
             {{-- No overflow-x-auto here: it forces overflow-y to clip and breaks language/theme dropdown panels below the toolbar. --}}
+            @php
+                $mpHeaderUser = auth()->guard('monastery')->user();
+                $mpHeaderName = trim((string) ($mpHeaderUser?->name ?? ''));
+                if ($mpHeaderName === '') {
+                    $mpHeaderName = trim((string) ($mpHeaderUser?->username ?? ''));
+                }
+                $mpHeaderInitial = $mpHeaderName !== ''
+                    ? mb_strtoupper(mb_substr($mpHeaderName, 0, 1, 'UTF-8'), 'UTF-8')
+                    : 'M';
+            @endphp
             <div class="monastery-header-toolbar flex min-w-0 shrink-0 flex-nowrap items-center justify-end gap-1 sm:gap-2">
+                <a
+                    href="{{ route('monastery.account.edit') }}"
+                    class="monastery-header-avatar relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-900/25 bg-gradient-to-b from-amber-400 via-amber-500 to-orange-600 text-sm font-bold leading-none text-white shadow-md shadow-amber-600/35 ring-1 ring-black/10 transition hover:scale-105 hover:shadow-lg hover:shadow-amber-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-white/15 dark:shadow-amber-900/40 dark:focus-visible:ring-offset-slate-900 sm:h-10 sm:w-10 sm:text-base {{ request()->routeIs('monastery.account.*') ? 'ring-2 ring-amber-300/90 ring-offset-2 ring-offset-white dark:ring-amber-400/80 dark:ring-offset-slate-900' : '' }}"
+                    title="{{ t('monastery_account_settings', 'Account settings') }}"
+                    aria-label="{{ t('monastery_account_settings', 'Account settings') }}"
+                >
+                    <span class="select-none" aria-hidden="true">{{ $mpHeaderInitial }}</span>
+                </a>
                 @include('partials.notifications-bell', ['notifiable' => auth()->guard('monastery')->user(), 'goRouteName' => 'monastery.notifications.go', 'readAllRouteName' => 'monastery.notifications.read-all', 'jsonRouteName' => 'monastery.notifications.recent'])
                 @include('website.partials.appbar-language')
                 @include('website.partials.appbar-theme')
@@ -59,7 +78,7 @@
     </header>
 
     {{-- Bottom padding ≈ fixed nav (bottom-5 + bar height) + safe area — avoid duplicating large pb inside tab content. --}}
-    <main class="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-6 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] max-[480px]:pb-[calc(7.25rem+env(safe-area-inset-bottom,0px))]">
+    <main class="mx-auto w-full max-w-7xl px-3 py-5 sm:px-6 sm:py-6 pb-[calc(8.75rem+env(safe-area-inset-bottom,0px))] max-[480px]:pb-[calc(9rem+env(safe-area-inset-bottom,0px))]">
         @if(session('success'))
             <div class="mb-5 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200/80 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-200 px-5 py-3.5 font-medium">
                 {{ session('success') }}

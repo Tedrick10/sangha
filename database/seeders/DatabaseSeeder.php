@@ -13,7 +13,9 @@ use App\Models\Score;
 use App\Models\Subject;
 use App\Models\User;
 use App\Models\Website;
+use App\Support\EligibleRollNumberGenerator;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -189,7 +191,7 @@ class DatabaseSeeder extends Seeder
                 ]);
         }
 
-        // Exam Types: five canonical programmes (Burmese labels only), order matches ExamType::CANONICAL_NAME_ORDER.
+        // Exam Types: five canonical programmes, order matches ExamType::CANONICAL_NAME_ORDER.
         $examTypes = [];
         foreach (ExamType::CANONICAL_NAME_ORDER as $name) {
             $examTypes[] = ExamType::updateOrCreate(
@@ -212,227 +214,34 @@ class DatabaseSeeder extends Seeder
             $subjects[] = Subject::updateOrCreate(['name' => $name], ['description' => $name.' subject', 'moderation_mark' => 35 + ($i % 5), 'is_active' => true]);
         }
 
-        // Exams
-        $exams = [
-            Exam::updateOrCreate(
-                ['name' => 'Pali Level 1 - March 2025', 'monastery_id' => $monasteries[0]->id],
-                ['description' => 'Annual Pali Level 1 examination', 'exam_date' => now()->addMonths(1), 'exam_type_id' => $examTypes[0]->id, 'location' => 'Shwegu Monastery Hall', 'is_active' => true, 'approved' => true]
-            ),
-            Exam::updateOrCreate(
-                ['name' => 'Pali Level 2 - April 2025', 'monastery_id' => $monasteries[0]->id],
-                ['description' => 'Annual Pali Level 2 examination', 'exam_date' => now()->addMonths(2), 'exam_type_id' => $examTypes[1]->id, 'location' => 'Shwegu Monastery Hall', 'is_active' => true, 'approved' => true]
-            ),
-            Exam::updateOrCreate(
-                ['name' => 'Dhamma Exam - January 2025', 'monastery_id' => $monasteries[1]->id],
-                ['description' => 'Dhamma theory exam (past)', 'exam_date' => now()->subMonths(2), 'exam_type_id' => $examTypes[3]->id, 'location' => 'Maha Aungmye Hall', 'is_active' => true, 'approved' => true]
-            ),
-            Exam::updateOrCreate(
-                ['name' => 'Pali Level 3 - May 2025', 'monastery_id' => $monasteries[3]->id],
-                ['description' => 'Advanced Pali examination', 'exam_date' => now()->addMonths(3), 'exam_type_id' => $examTypes[2]->id, 'location' => 'Saddhamma Monastery', 'is_active' => true, 'approved' => true]
-            ),
-            Exam::updateOrCreate(
-                ['name' => 'Vinaya Exam - February 2025', 'monastery_id' => $monasteries[4]->id],
-                ['description' => 'Monastic discipline exam', 'exam_date' => now()->subMonths(1), 'exam_type_id' => $examTypes[4]->id, 'location' => 'Chanthagon Hall', 'is_active' => true, 'approved' => true]
-            ),
-            Exam::updateOrCreate(
-                ['name' => 'Pali Level 1 - Sagaing 2025', 'monastery_id' => $monasteries[3]->id],
-                ['description' => 'Sagaing region Pali Level 1', 'exam_date' => now()->addMonths(2), 'exam_type_id' => $examTypes[0]->id, 'location' => 'Saddhamma Monastery', 'is_active' => true, 'approved' => true]
-            ),
-        ];
-        for ($i = 0; $i < 18; $i++) {
-            $mon = $monasteries[array_rand($monasteries)];
-            $et = $examTypes[array_rand($examTypes)];
-            $examName = 'Exam '.($i + 7).' - '.$mon->city.' '.now()->addMonths($i)->format('M Y');
+        // Remove prior demo exams, registrations, and scores; then seed exactly five exams (one per programme).
+        $this->resetExaminationAndSanghaData();
+
+        $hostMonasteryId = $monasteries[0]->id;
+        $exams = [];
+        foreach (ExamType::CANONICAL_NAME_ORDER as $idx => $typeName) {
+            $examType = $examTypes[$idx];
+            $examLabel = 'Exam — '.$typeName;
             $exams[] = Exam::updateOrCreate(
-                ['name' => $examName, 'monastery_id' => $mon->id],
-                ['description' => 'Scheduled examination', 'exam_date' => now()->addMonths($i % 12)->addDays($i * 2), 'exam_type_id' => $et->id, 'location' => $mon->name.' Hall', 'is_active' => true, 'approved' => $i % 3 !== 0]
+                ['name' => $examLabel, 'monastery_id' => $hostMonasteryId],
+                [
+                    'description' => 'Official sitting for the '.$typeName.' programme.',
+                    'exam_date' => now()->startOfMonth()->addMonths(2 + $idx)->addDays(14),
+                    'exam_type_id' => $examType->id,
+                    'location' => 'Main examination hall',
+                    'is_active' => true,
+                    'approved' => true,
+                ]
             );
         }
 
-        // Link subjects to exams
-        $exams[0]->subjects()->sync([$subjects[0]->id, $subjects[1]->id]);
-        $exams[1]->subjects()->sync([$subjects[0]->id, $subjects[1]->id, $subjects[2]->id]);
-        $exams[2]->subjects()->sync([$subjects[2]->id, $subjects[3]->id]);
-        $exams[3]->subjects()->sync([$subjects[0]->id, $subjects[1]->id, $subjects[5]->id]);
-        $exams[4]->subjects()->sync([$subjects[4]->id, $subjects[2]->id]);
-        $exams[5]->subjects()->sync([$subjects[0]->id, $subjects[1]->id]);
-        for ($i = 6; $i < count($exams); $i++) {
-            $numSubjects = 2 + ($i % 3);
-            $subjectIds = array_slice(array_map(fn ($s) => $s->id, $subjects), 0, $numSubjects);
-            $exams[$i]->subjects()->sync($subjectIds);
-        }
-
-        // Sanghas
-        $sanghas = [
-            Sangha::updateOrCreate(
-                ['username' => 'u_agga'],
-                [
-                    'monastery_id' => $monasteries[0]->id,
-                    'exam_id' => $exams[0]->id,
-                    'name' => 'U Agga',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Senior student',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_bodhi'],
-                [
-                    'monastery_id' => $monasteries[0]->id,
-                    'exam_id' => $exams[0]->id,
-                    'name' => 'U Bodhi',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Intermediate student',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_metta'],
-                [
-                    'monastery_id' => $monasteries[0]->id,
-                    'exam_id' => $exams[0]->id,
-                    'name' => 'U Metta',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Level 1 candidate',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_citta'],
-                [
-                    'monastery_id' => $monasteries[0]->id,
-                    'exam_id' => $exams[1]->id,
-                    'name' => 'U Citta',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Level 2 candidate',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_sila'],
-                [
-                    'monastery_id' => $monasteries[0]->id,
-                    'exam_id' => $exams[1]->id,
-                    'name' => 'U Sila',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Level 2 candidate',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_dhamma'],
-                [
-                    'monastery_id' => $monasteries[1]->id,
-                    'exam_id' => $exams[2]->id,
-                    'name' => 'U Dhamma',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Dhamma student',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_pannya'],
-                [
-                    'monastery_id' => $monasteries[1]->id,
-                    'exam_id' => $exams[2]->id,
-                    'name' => 'U Pannya',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Dhamma student',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_saddha'],
-                [
-                    'monastery_id' => $monasteries[3]->id,
-                    'exam_id' => $exams[3]->id,
-                    'name' => 'U Saddha',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Advanced Pali student',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_viriya'],
-                [
-                    'monastery_id' => $monasteries[3]->id,
-                    'exam_id' => $exams[5]->id,
-                    'name' => 'U Viriya',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Level 1 candidate',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
-            Sangha::updateOrCreate(
-                ['username' => 'u_samadhi'],
-                [
-                    'monastery_id' => $monasteries[4]->id,
-                    'exam_id' => $exams[4]->id,
-                    'name' => 'U Samadhi',
-                    'password' => Hash::make('password123'),
-                    'description' => 'Vinaya student',
-                    'is_active' => true,
-                    'approved' => true,
-                ]),
+        $defaultSubjectIds = [
+            $subjects[0]->id,
+            $subjects[1]->id,
+            $subjects[2]->id,
         ];
-        $sanghaNames = ['U Khemaka', 'U Rahula', 'U Ananda', 'U Kassapa', 'U Moggallana', 'U Sariputta', 'U Upali', 'U Mahakassapa', 'U Punna', 'U Revata', 'U Sobhita', 'U Kondanna', 'U Assaji', 'U Bhaddiya', 'U Vappa', 'U Kimila', 'U Yasa', 'U Nanda', 'U Kimbila', 'U Devadatta', 'U Kokalika', 'U Katyayana', 'U Subhuti', 'U Purna', 'U Gavampati', 'U Bakula', 'U Sivali', 'U Angulimala', 'U Pilindavaccha', 'U Mahakaccana'];
-        foreach ($sanghaNames as $i => $name) {
-            $mon = $monasteries[$i % count($monasteries)];
-            $exam = $exams[$i % count($exams)];
-            $username = 'sangha_extra_'.($i + 10);
-            $sanghas[] = Sangha::updateOrCreate(
-                ['username' => $username],
-                [
-                    'monastery_id' => $mon->id,
-                    'exam_id' => $exam->id,
-                    'name' => $name,
-                    'password' => Hash::make('password123'),
-                    'description' => 'Student',
-                    'is_active' => $i % 5 !== 0,
-                    'approved' => true,
-                ]);
-        }
-
-        // Scores
-        Score::updateOrCreate(
-            ['sangha_id' => $sanghas[0]->id, 'subject_id' => $subjects[0]->id, 'exam_id' => $exams[0]->id],
-            ['value' => 85]
-        );
-        Score::updateOrCreate(
-            ['sangha_id' => $sanghas[0]->id, 'subject_id' => $subjects[1]->id, 'exam_id' => $exams[0]->id],
-            ['value' => 72]
-        );
-        foreach ([
-            [$sanghas[1], $subjects[0], $exams[0], 65], [$sanghas[1], $subjects[1], $exams[0], 58],
-            [$sanghas[2], $subjects[0], $exams[0], 70], [$sanghas[2], $subjects[1], $exams[0], 62],
-            [$sanghas[3], $subjects[0], $exams[1], 90], [$sanghas[3], $subjects[1], $exams[1], 78], [$sanghas[3], $subjects[2], $exams[1], 82],
-            [$sanghas[4], $subjects[0], $exams[1], 88], [$sanghas[4], $subjects[1], $exams[1], 75], [$sanghas[4], $subjects[2], $exams[1], 80],
-            [$sanghas[5], $subjects[2], $exams[2], 75], [$sanghas[5], $subjects[3], $exams[2], 68],
-            [$sanghas[6], $subjects[2], $exams[2], 82], [$sanghas[6], $subjects[3], $exams[2], 71],
-            [$sanghas[7], $subjects[0], $exams[3], 92], [$sanghas[7], $subjects[1], $exams[3], 88], [$sanghas[7], $subjects[5], $exams[3], 85],
-            [$sanghas[8], $subjects[0], $exams[5], 68], [$sanghas[8], $subjects[1], $exams[5], 55],
-            [$sanghas[9], $subjects[4], $exams[4], 78], [$sanghas[9], $subjects[2], $exams[4], 72],
-        ] as $row) {
-            Score::updateOrCreate(
-                ['sangha_id' => $row[0]->id, 'subject_id' => $row[1]->id, 'exam_id' => $row[2]->id],
-                ['value' => $row[3]]
-            );
-        }
-        foreach (array_slice($sanghas, 10) as $sangha) {
-            $exam = $sangha->exam;
-            if (! $exam) {
-                continue;
-            }
-            $examSubjects = $exam->subjects;
-            if ($examSubjects->isEmpty()) {
-                $examSubjects = collect($subjects)->take(2);
-            }
-            foreach ($examSubjects as $subj) {
-                Score::updateOrCreate(
-                    ['sangha_id' => $sangha->id, 'subject_id' => $subj->id, 'exam_id' => $exam->id],
-                    ['value' => rand(50, 95)]
-                );
-            }
+        foreach ($exams as $exam) {
+            $exam->subjects()->sync($defaultSubjectIds);
         }
 
         // Websites
@@ -627,7 +436,6 @@ HTML,
         $moreCustomFields = [
             ['entity_type' => 'monastery', 'name' => 'Contact Person', 'slug' => 'contact_person', 'type' => 'text'],
             ['entity_type' => 'monastery', 'name' => 'Website', 'slug' => 'website_url', 'type' => 'text'],
-            ['entity_type' => 'sangha', 'name' => 'Grade', 'slug' => 'grade', 'type' => 'text'],
             ['entity_type' => 'sangha', 'name' => 'Notes', 'slug' => 'notes', 'type' => 'textarea'],
             ['entity_type' => 'exam', 'name' => 'Room', 'slug' => 'room', 'type' => 'text'],
             ['entity_type' => 'exam', 'name' => 'Duration (minutes)', 'slug' => 'duration_min', 'type' => 'number'],
@@ -653,16 +461,39 @@ HTML,
             CustomFieldValue::updateOrCreate(['custom_field_id' => $capacityField->id, 'entity_type' => 'monastery', 'entity_id' => $monasteries[0]->id], ['value' => '200']);
             CustomFieldValue::updateOrCreate(['custom_field_id' => $capacityField->id, 'entity_type' => 'monastery', 'entity_id' => $monasteries[3]->id], ['value' => '150']);
         }
-        $ordinationField = CustomField::where('slug', 'ordination_date')->first();
-        if ($ordinationField) {
-            CustomFieldValue::updateOrCreate(['custom_field_id' => $ordinationField->id, 'entity_type' => 'sangha', 'entity_id' => $sanghas[0]->id], ['value' => '2020-05-15']);
-            CustomFieldValue::updateOrCreate(['custom_field_id' => $ordinationField->id, 'entity_type' => 'sangha', 'entity_id' => $sanghas[1]->id], ['value' => '2021-03-20']);
-            CustomFieldValue::updateOrCreate(['custom_field_id' => $ordinationField->id, 'entity_type' => 'sangha', 'entity_id' => $sanghas[7]->id], ['value' => '2018-11-10']);
+    }
+
+    /**
+     * Clear all sanghas, scores, exam–subject links, and exams so re-seeding matches the canonical five-exam layout.
+     */
+    private function resetExaminationAndSanghaData(): void
+    {
+        Score::query()->delete();
+        DB::table('exam_subject')->delete();
+
+        $sanghaIds = Sangha::query()->pluck('id');
+        if ($sanghaIds->isNotEmpty()) {
+            DB::table('custom_field_values')
+                ->whereIn('entity_id', $sanghaIds)
+                ->where(function ($q) {
+                    $q->where('entity_type', 'sangha')
+                        ->orWhereIn('entity_type', EligibleRollNumberGenerator::PROGRAMME_ENTITY_TYPES);
+                })
+                ->delete();
         }
-        $teacherField = CustomField::where('slug', 'teacher_name')->first();
-        if ($teacherField) {
-            CustomFieldValue::updateOrCreate(['custom_field_id' => $teacherField->id, 'entity_type' => 'sangha', 'entity_id' => $sanghas[0]->id], ['value' => 'Sayadaw U Paṇḍita']);
-            CustomFieldValue::updateOrCreate(['custom_field_id' => $teacherField->id, 'entity_type' => 'sangha', 'entity_id' => $sanghas[7]->id], ['value' => 'Sayadaw U Silānanda']);
+
+        Sangha::query()->delete();
+
+        $examIds = Exam::query()->pluck('id');
+        if ($examIds->isNotEmpty()) {
+            DB::table('custom_field_values')
+                ->where('entity_type', 'exam')
+                ->whereIn('entity_id', $examIds)
+                ->delete();
+        }
+
+        foreach (Exam::query()->cursor() as $exam) {
+            $exam->delete();
         }
     }
 }

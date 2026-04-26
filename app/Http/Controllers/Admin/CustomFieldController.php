@@ -12,6 +12,14 @@ use Illuminate\View\View;
 
 class CustomFieldController extends Controller
 {
+    /**
+     * @return array<int, string>
+     */
+    private function allowedEntityTypes(): array
+    {
+        return array_keys(CustomField::entityTypes());
+    }
+
     public function index(Request $request): View
     {
         CustomField::syncBuiltInFieldDefinitions();
@@ -37,8 +45,21 @@ class CustomFieldController extends Controller
         }
         $customFields = $query->get();
         $groupedByForm = $customFields->sortBy('sort_order')->groupBy('entity_type');
+        $linkedSanghaCoreFieldsByProgramme = collect();
 
-        return view('admin.custom-fields.index', compact('customFields', 'groupedByForm'));
+        $activeEntity = $request->get('entity_type');
+        $programmeEntities = ['programme_primary', 'programme_intermediate', 'programme_level_1', 'programme_level_2', 'programme_level_3'];
+        if (in_array($activeEntity, $programmeEntities, true)) {
+            $sanghaCoreSlugs = ['name', 'father_name', 'nrc_number', 'exam_id', 'description'];
+            $orderMap = array_flip($sanghaCoreSlugs);
+            $linkedSanghaCoreFieldsByProgramme = CustomField::forEntity('sangha')
+                ->whereIn('slug', $sanghaCoreSlugs)
+                ->get()
+                ->sortBy(fn (CustomField $f) => $orderMap[$f->slug] ?? 999)
+                ->values();
+        }
+
+        return view('admin.custom-fields.index', compact('customFields', 'groupedByForm', 'linkedSanghaCoreFieldsByProgramme'));
     }
 
     public function create(Request $request): View
@@ -50,11 +71,12 @@ class CustomFieldController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $allowedEntityTypes = implode(',', $this->allowedEntityTypes());
         $validated = $request->validate([
-            'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
+            'entity_type' => 'required|in:'.$allowedEntityTypes,
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255',
-            'type' => 'required|in:text,textarea,number,date,time,datetime,select,dependent_select,checkbox,media,document,video',
+            'type' => 'required|in:text,textarea,number,date,time,datetime,select,dependent_select,checkbox,media,document,video,monastery_select',
             'options' => 'nullable|array',
             'options.*' => 'nullable|string|max:255',
             'required' => 'boolean',
@@ -62,6 +84,11 @@ class CustomFieldController extends Controller
         ]);
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
         $validated['required'] = $request->boolean('required');
+        if (($validated['type'] ?? '') === 'monastery_select' && ($validated['entity_type'] ?? '') !== 'request') {
+            return redirect()->back()->withInput()->withErrors([
+                'type' => 'Monastery (dropdown) is only supported on the Transfer form (entity type Transfer).',
+            ]);
+        }
         $maxOrder = CustomField::where('entity_type', $validated['entity_type'])->max('sort_order') ?? -1;
         $validated['sort_order'] = $maxOrder + 1;
         $validated['options'] = isset($validated['options'])
@@ -80,10 +107,11 @@ class CustomFieldController extends Controller
 
     public function update(Request $request, CustomField $customField): RedirectResponse
     {
+        $allowedEntityTypes = implode(',', $this->allowedEntityTypes());
         $rules = [
-            'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
+            'entity_type' => 'required|in:'.$allowedEntityTypes,
             'name' => 'required|string|max:255',
-            'type' => 'required|in:text,textarea,number,date,time,datetime,select,dependent_select,checkbox,media,document,video,approved_sangha',
+            'type' => 'required|in:text,textarea,number,date,time,datetime,select,dependent_select,checkbox,media,document,video,approved_sangha,monastery_select',
             'options' => 'nullable|array',
             'options.*' => 'nullable|string|max:255',
             'dependent_options_json' => 'nullable|string',
@@ -99,6 +127,9 @@ class CustomFieldController extends Controller
         if ($customField->is_built_in && in_array($customField->slug, ['approved_sangha_id', 'transfer_sangha_id'], true)) {
             $validated['type'] = 'approved_sangha';
             $validated['options'] = null;
+        } elseif ($customField->is_built_in && $customField->slug === 'transfer_to') {
+            $validated['type'] = 'monastery_select';
+            $validated['options'] = null;
         } elseif ($customField->is_built_in && $customField->slug === 'exam_session') {
             $validated['type'] = 'dependent_select';
             $validated['options'] = null;
@@ -108,6 +139,12 @@ class CustomFieldController extends Controller
             $validated['options'] = isset($validated['options'])
                 ? array_values(array_filter(array_map('trim', $validated['options'])))
                 : null;
+        }
+
+        if (($validated['type'] ?? '') === 'monastery_select' && ($validated['entity_type'] ?? '') !== 'request') {
+            return redirect()->back()->withInput()->withErrors([
+                'type' => 'Monastery (dropdown) is only supported on the Transfer form (entity type Transfer).',
+            ]);
         }
 
         $customField->update($validated);
@@ -166,10 +203,11 @@ class CustomFieldController extends Controller
 
     public function reorder(Request $request): JsonResponse
     {
+        $allowedEntityTypes = implode(',', $this->allowedEntityTypes());
         $request->validate([
             'order' => 'required|array',
             'order.*' => 'required|integer|exists:custom_fields,id',
-            'entity_type' => 'required|in:monastery,sangha,request,monastery_exam,exam,exam_type',
+            'entity_type' => 'required|in:'.$allowedEntityTypes,
         ]);
 
         foreach ($request->order as $position => $id) {

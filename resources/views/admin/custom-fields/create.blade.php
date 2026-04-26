@@ -24,6 +24,9 @@
                     @if($key === 'dependent_select')
                         @continue
                     @endif
+                    @if($key === 'monastery_select' && (old('entity_type', $entityType ?? 'monastery') !== 'request'))
+                        @continue
+                    @endif
                     <option value="{{ $key }}" {{ old('type', 'text') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
@@ -69,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var addBtn = document.getElementById('add-option');
 
     var placeholderWrap = document.getElementById('placeholder-wrap');
-    var placeholderTypes = ['text', 'textarea', 'number'];
+    var placeholderTypes = ['text', 'textarea', 'number', 'monastery_select'];
 
     function toggleOptions() {
         optionsWrap.classList.toggle('hidden', typeSelect.value !== 'select');

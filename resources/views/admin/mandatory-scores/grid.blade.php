@@ -89,7 +89,7 @@
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-100/90 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-300">
                         <th class="sticky left-0 z-10 border-r border-slate-200 bg-slate-100 px-3 py-2.5 dark:border-slate-600 dark:bg-slate-900">{{ t('desk_number', 'Desk No.') }}</th>
-                        <th class="whitespace-nowrap px-3 py-2.5">{{ t('user_id', 'Student Id') }}</th>
+                        <th class="whitespace-nowrap px-3 py-2.5">{{ t('roll_number', 'Roll Number') }}</th>
                         <th class="min-w-[220px] px-3 py-2.5">{{ t('score_table_father_nrc', 'Father / NRC') }}</th>
                         <th class="min-w-[140px] px-3 py-2.5">{{ t('sanghas', 'Sangha') }}</th>
                         @foreach($subjects as $subject)
@@ -104,15 +104,20 @@
                             /** @var \App\Models\Sangha $sangha */
                             $sangha = $row['sangha'];
                             $scoresBySubject = $row['scoresBySubject'];
-                            $deskDisplay = ($deskPrefix !== '' ? $deskPrefix : '') . $sangha->desk_number;
+                            $deskNumPad = $sangha->desk_number !== null ? str_pad((string) (int) $sangha->desk_number, 6, '0', STR_PAD_LEFT) : null;
+                            $deskDisplay = $deskNumPad !== null ? (($deskPrefix !== '' ? $deskPrefix : '') . $deskNumPad) : '—';
+                            $rollRaw = $sangha->eligible_roll_number;
+                            $rollCell = filled($rollRaw) && ctype_digit(trim((string) $rollRaw))
+                                ? str_pad(trim((string) $rollRaw), 6, '0', STR_PAD_LEFT)
+                                : (filled($rollRaw) ? (string) $rollRaw : '—');
                             $formId = 'mandatory-grid-form-'.$sangha->id;
                         @endphp
                         <tr class="bg-white hover:bg-slate-50/80 dark:bg-slate-800/30 dark:hover:bg-slate-800/60">
                             <td class="sticky left-0 z-10 border-r border-slate-100 bg-white px-3 py-2 font-semibold tabular-nums text-amber-700 dark:border-slate-700 dark:bg-slate-800 dark:text-amber-400">
                                 {{ $deskDisplay }}
                             </td>
-                            <td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-slate-700 dark:text-slate-300">
-                                {{ filled($sangha->username) ? $sangha->username : '—' }}
+                            <td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-slate-700 dark:text-slate-300 tabular-nums">
+                                {{ $rollCell }}
                             </td>
                             <td class="px-3 py-2">
                                 <div class="text-slate-800 dark:text-slate-200">{{ filled($sangha->father_name) ? $sangha->father_name : '—' }}</div>

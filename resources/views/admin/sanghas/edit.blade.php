@@ -13,7 +13,6 @@
     $metaName = $sanghaFieldMeta->get('name');
     $metaFather = $sanghaFieldMeta->get('father_name');
     $metaNrc = $sanghaFieldMeta->get('nrc_number');
-    $metaUser = $sanghaFieldMeta->get('username');
     $metaExam = $sanghaFieldMeta->get('exam_id');
     $metaDesc = $sanghaFieldMeta->get('description');
 @endphp
@@ -55,14 +54,10 @@
             @endif
         </div>
         @endif
-        @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'username'))
         <div class="admin-form-group">
-            <label for="username" class="admin-form-label">{{ $metaUser?->name ?? t('user_id', 'Student Id') }}{{ ($metaUser?->required ?? false) ? ' *' : '' }}</label>
-            <input type="text" name="username" id="username" value="{{ old('username', $sangha->username) }}" class="admin-input" placeholder="{{ $metaUser?->placeholder ?? t('sangha_student_id_placeholder', 'Assign for login (optional until set)') }}" autocomplete="off" @if($metaUser?->required ?? false) required @endif>
-            @error('username')<p class="admin-form-error">{{ $message }}</p>@enderror
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ t('sangha_student_id_edit_hint', 'Required for the candidate to log in. Leave blank only if login is not needed yet.') }}</p>
+            <label for="eligible_roll_number" class="admin-form-label">{{ t('roll_number', 'Roll Number') }}</label>
+            <input type="text" id="eligible_roll_number" value="{{ $sangha->eligible_roll_number ?: '—' }}" class="admin-input" readonly>
         </div>
-        @endif
         @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'exam_id'))
         <div class="admin-form-group">
             <label for="exam_id" class="admin-form-label">{{ $metaExam?->name ?? t('exam') }}{{ ($metaExam?->required ?? false) ? ' *' : '' }}</label>
@@ -75,11 +70,19 @@
             @error('exam_id')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
         @endif
-        @if($customFields->isNotEmpty())
+        @if(($showSanghaExtraFields ?? true) && $customFields->isNotEmpty())
             <div class="admin-form-section">
                 <h3 class="admin-form-section-title">Custom Fields</h3>
                 <div class="space-y-5">
-                    @include('admin.partials.custom-fields-form', ['customFields' => $customFields, 'values' => $customFieldValues])
+                    @include('admin.partials.custom-fields-form', ['customFields' => $customFields, 'values' => $customFieldValues, 'sangha' => $sangha])
+                </div>
+            </div>
+        @endif
+        @if(($programmeCustomFields ?? collect())->isNotEmpty())
+            <div class="admin-form-section">
+                <h3 class="admin-form-section-title">{{ t('programme_fields', 'Programme fields') }}</h3>
+                <div class="space-y-5">
+                    @include('admin.partials.custom-fields-form', ['customFields' => $programmeCustomFields, 'values' => $programmeCustomFieldValues ?? [], 'sangha' => $sangha])
                 </div>
             </div>
         @endif
@@ -96,15 +99,17 @@
                 $moderationStatus = old('moderation_status', $sangha->moderationStatus());
             @endphp
             <select name="moderation_status" id="moderation_status" class="admin-select-input">
+                <option value="eligible" {{ $moderationStatus === 'eligible' ? 'selected' : '' }}>Eligible</option>
                 <option value="pending" {{ $moderationStatus === 'pending' ? 'selected' : '' }}>Pending</option>
                 <option value="approved" {{ $moderationStatus === 'approved' ? 'selected' : '' }}>Approved</option>
+                <option value="needed_update" {{ $moderationStatus === 'needed_update' ? 'selected' : '' }}>{{ t('status_needed_update', 'Needed Update') }}</option>
                 <option value="rejected" {{ $moderationStatus === 'rejected' ? 'selected' : '' }}>Rejected</option>
             </select>
             @error('moderation_status')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
         <div class="admin-form-group" id="rejection-reason-wrap">
-            <label for="rejection_reason" class="admin-form-label">Rejection Reason</label>
-            <textarea name="rejection_reason" id="rejection_reason" rows="3" class="admin-textarea" placeholder="Explain why this registration was rejected">{{ old('rejection_reason', $sangha->rejection_reason) }}</textarea>
+            <label for="rejection_reason" class="admin-form-label" id="rejection_reason_label">{{ t('feedback_reason', 'Reason') }}</label>
+            <textarea name="rejection_reason" id="rejection_reason" rows="3" class="admin-textarea" placeholder="{{ t('feedback_reason_placeholder', 'Explain what needs to be updated (or why this registration is rejected)') }}">{{ old('rejection_reason', $sangha->rejection_reason) }}</textarea>
             @error('rejection_reason')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
     </div>
@@ -118,11 +123,17 @@
     var statusEl = document.getElementById('moderation_status');
     var reasonWrap = document.getElementById('rejection-reason-wrap');
     var reasonEl = document.getElementById('rejection_reason');
+    var reasonLabel = document.getElementById('rejection_reason_label');
     if (!statusEl || !reasonWrap || !reasonEl) return;
     function refresh() {
         var rejected = statusEl.value === 'rejected';
-        reasonWrap.classList.toggle('hidden', !rejected);
-        reasonEl.required = rejected;
+        var needsUpdate = statusEl.value === 'needed_update';
+        var showReason = rejected || needsUpdate;
+        reasonWrap.classList.toggle('hidden', !showReason);
+        reasonEl.required = showReason;
+        if (reasonLabel) {
+            reasonLabel.textContent = rejected ? 'Rejection Reason' : (needsUpdate ? 'Needed Update Reason' : 'Reason');
+        }
     }
     statusEl.addEventListener('change', refresh);
     refresh();

@@ -41,10 +41,14 @@ class CustomField extends Model
         return [
             'monastery' => 'Monastery',
             'sangha' => 'Sangha',
-            'request' => 'Request Form',
+            'request' => 'Transfer',
             'monastery_exam' => 'Monastery exam',
             'exam' => 'Exam',
-            'exam_type' => 'Exam Type',
+            'programme_primary' => 'Primary',
+            'programme_intermediate' => 'Intermediate',
+            'programme_level_1' => 'Level 1',
+            'programme_level_2' => 'Level 2',
+            'programme_level_3' => 'Level 3',
         ];
     }
 
@@ -72,9 +76,7 @@ class CustomField extends Model
             ],
             'request' => [
                 ['name' => 'From (monastery)', 'slug' => 'transfer_from', 'type' => 'text', 'required' => false, 'placeholder' => 'Filled automatically from your monastery account'],
-                ['name' => 'To (destination)', 'slug' => 'transfer_to', 'type' => 'text', 'required' => true, 'placeholder' => 'Destination monastery, hall, or route for administrators'],
-                ['name' => 'Request subject', 'slug' => 'transfer_subject', 'type' => 'text', 'required' => true, 'placeholder' => 'Short title (e.g. transfer list, hall change)'],
-                ['name' => 'Transfer date', 'slug' => 'transfer_date', 'type' => 'date', 'required' => true, 'placeholder' => null],
+                ['name' => 'To (destination)', 'slug' => 'transfer_to', 'type' => 'monastery_select', 'required' => true, 'placeholder' => 'Select destination monastery'],
                 [
                     'name' => 'Sangha to transfer',
                     'slug' => 'transfer_sangha_id',
@@ -82,6 +84,7 @@ class CustomField extends Model
                     'required' => true,
                     'placeholder' => 'Select an approved sangha member',
                 ],
+                ['name' => 'Transfer date', 'slug' => 'transfer_date', 'type' => 'date', 'required' => true, 'placeholder' => null],
                 ['name' => 'Additional details', 'slug' => 'transfer_details', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Optional: other notes for the secretariat'],
                 ['name' => 'Supporting document', 'slug' => 'transfer_attachment', 'type' => 'document', 'required' => false, 'placeholder' => 'Optional PDF or scan'],
             ],
@@ -122,10 +125,45 @@ class CustomField extends Model
                 ['name' => 'Description', 'slug' => 'description', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter description'],
                 ['name' => 'Active', 'slug' => 'is_active', 'type' => 'checkbox', 'required' => false, 'placeholder' => null],
             ],
-            'exam_type' => [
-                ['name' => 'Name', 'slug' => 'name', 'type' => 'text', 'required' => true, 'placeholder' => 'Enter exam type name'],
-                ['name' => 'Description', 'slug' => 'description', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter description'],
-                ['name' => 'Active', 'slug' => 'is_active', 'type' => 'checkbox', 'required' => false, 'placeholder' => null],
+            'programme_primary' => [
+                ['name' => 'Gender', 'slug' => 'gender', 'type' => 'select', 'required' => false, 'placeholder' => 'Select gender', 'options' => ['Male', 'Female']],
+                self::programmeLevelInformationDefinition(),
+                ['name' => 'Ordination Date', 'slug' => 'ordination_date', 'type' => 'date', 'required' => false, 'placeholder' => null],
+                ['name' => 'Teacher Name', 'slug' => 'teacher_name', 'type' => 'text', 'required' => false, 'placeholder' => 'Enter teacher name'],
+                ['name' => 'Notes', 'slug' => 'notes', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter notes'],
+                ['name' => 'Supporting document', 'slug' => 'supporting_document', 'type' => 'document', 'required' => false, 'placeholder' => 'Upload supporting document'],
+            ],
+            'programme_intermediate' => [
+                ['name' => 'Gender', 'slug' => 'gender', 'type' => 'select', 'required' => false, 'placeholder' => 'Select gender', 'options' => ['Male', 'Female']],
+                self::programmeLevelInformationDefinition(),
+                ['name' => 'Ordination Date', 'slug' => 'ordination_date', 'type' => 'date', 'required' => false, 'placeholder' => null],
+                ['name' => 'Teacher Name', 'slug' => 'teacher_name', 'type' => 'text', 'required' => false, 'placeholder' => 'Enter teacher name'],
+                ['name' => 'Notes', 'slug' => 'notes', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter notes'],
+                ['name' => 'Supporting document', 'slug' => 'supporting_document', 'type' => 'document', 'required' => false, 'placeholder' => 'Upload supporting document'],
+            ],
+            'programme_level_1' => [
+                ['name' => 'Gender', 'slug' => 'gender', 'type' => 'select', 'required' => false, 'placeholder' => 'Select gender', 'options' => ['Male', 'Female']],
+                self::programmeLevelInformationDefinition(),
+                ['name' => 'Ordination Date', 'slug' => 'ordination_date', 'type' => 'date', 'required' => false, 'placeholder' => null],
+                ['name' => 'Teacher Name', 'slug' => 'teacher_name', 'type' => 'text', 'required' => false, 'placeholder' => 'Enter teacher name'],
+                ['name' => 'Notes', 'slug' => 'notes', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter notes'],
+                ['name' => 'Supporting document', 'slug' => 'supporting_document', 'type' => 'document', 'required' => false, 'placeholder' => 'Upload supporting document'],
+            ],
+            'programme_level_2' => [
+                ['name' => 'Gender', 'slug' => 'gender', 'type' => 'select', 'required' => false, 'placeholder' => 'Select gender', 'options' => ['Male', 'Female']],
+                self::programmeLevelInformationDefinition(),
+                ['name' => 'Ordination Date', 'slug' => 'ordination_date', 'type' => 'date', 'required' => false, 'placeholder' => null],
+                ['name' => 'Teacher Name', 'slug' => 'teacher_name', 'type' => 'text', 'required' => false, 'placeholder' => 'Enter teacher name'],
+                ['name' => 'Notes', 'slug' => 'notes', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter notes'],
+                ['name' => 'Supporting document', 'slug' => 'supporting_document', 'type' => 'document', 'required' => false, 'placeholder' => 'Upload supporting document'],
+            ],
+            'programme_level_3' => [
+                ['name' => 'Gender', 'slug' => 'gender', 'type' => 'select', 'required' => false, 'placeholder' => 'Select gender', 'options' => ['Male', 'Female']],
+                self::programmeLevelInformationDefinition(),
+                ['name' => 'Ordination Date', 'slug' => 'ordination_date', 'type' => 'date', 'required' => false, 'placeholder' => null],
+                ['name' => 'Teacher Name', 'slug' => 'teacher_name', 'type' => 'text', 'required' => false, 'placeholder' => 'Enter teacher name'],
+                ['name' => 'Notes', 'slug' => 'notes', 'type' => 'textarea', 'required' => false, 'placeholder' => 'Enter notes'],
+                ['name' => 'Supporting document', 'slug' => 'supporting_document', 'type' => 'document', 'required' => false, 'placeholder' => 'Upload supporting document'],
             ],
         ];
     }
@@ -229,6 +267,21 @@ class CustomField extends Model
     }
 
     /**
+     * Remove a slug from the suppression map (used when a portal built-in row is missing and must be recreated).
+     */
+    public static function unsuppressBuiltInSlug(string $entityType, string $slug): void
+    {
+        $map = static::suppressedBuiltInSlugsByEntity();
+        $list = array_values(array_filter($map[$entityType] ?? [], fn ($s) => $s !== $slug));
+        if ($list === []) {
+            unset($map[$entityType]);
+        } else {
+            $map[$entityType] = $list;
+        }
+        SiteSetting::set(self::SUPPRESSED_BUILTINS_SITE_KEY, json_encode($map));
+    }
+
+    /**
      * Ensure rows exist for every {@see builtInFields()} definition (admin Custom Fields + monastery request tab).
      * New rows get defaults from code; existing rows keep admin-edited label, type, placeholder, required, sort order.
      */
@@ -236,8 +289,15 @@ class CustomField extends Model
     {
         foreach (self::builtInFields() as $entityType => $fields) {
             foreach (array_values($fields) as $sortOrder => $def) {
-                if (static::isBuiltInSlugSuppressed($entityType, $def['slug'])) {
-                    continue;
+                $slug = $def['slug'] ?? '';
+                if (static::isBuiltInSlugSuppressed($entityType, $slug)) {
+                    if (! in_array($entityType, ['request', 'monastery_exam'], true)) {
+                        continue;
+                    }
+                    if (static::query()->where('entity_type', $entityType)->where('slug', $slug)->exists()) {
+                        continue;
+                    }
+                    static::unsuppressBuiltInSlug($entityType, $slug);
                 }
 
                 $field = static::firstOrNew(
@@ -264,6 +324,32 @@ class CustomField extends Model
                     }
                     if ($field->is_built_in && (int) $field->sort_order !== (int) $sortOrder) {
                         $field->update(['sort_order' => $sortOrder]);
+                    }
+                    if ($field->is_built_in && $entityType === 'request' && in_array(($def['slug'] ?? ''), ['transfer_to', 'transfer_sangha_id'], true)) {
+                        $sync = [];
+                        if (($def['type'] ?? null) !== null && $field->type !== $def['type']) {
+                            $sync['type'] = $def['type'];
+                            $sync['options'] = null;
+                        }
+                        if (array_key_exists('placeholder', $def) && $field->placeholder !== ($def['placeholder'] ?? null)) {
+                            $sync['placeholder'] = $def['placeholder'] ?? null;
+                        }
+                        if ($sync !== []) {
+                            $field->update($sync);
+                        }
+                    }
+                    if ($field->is_built_in && $entityType === 'monastery_exam' && ($def['slug'] ?? '') === 'approved_sangha_id') {
+                        $sync = [];
+                        if (($def['type'] ?? null) !== null && $field->type !== $def['type']) {
+                            $sync['type'] = $def['type'];
+                            $sync['options'] = null;
+                        }
+                        if (array_key_exists('placeholder', $def) && $field->placeholder !== ($def['placeholder'] ?? null)) {
+                            $sync['placeholder'] = $def['placeholder'] ?? null;
+                        }
+                        if ($sync !== []) {
+                            $field->update($sync);
+                        }
                     }
                 }
             }
@@ -295,6 +381,7 @@ class CustomField extends Model
             'document' => 'Document (file)',
             'video' => 'Video',
             'approved_sangha' => 'Approved student (this monastery)',
+            'monastery_select' => 'Monastery (dropdown)',
             'dependent_select' => 'Select (options depend on Year)',
         ];
     }
@@ -396,5 +483,22 @@ class CustomField extends Model
         }
 
         return $rules;
+    }
+
+    /**
+     * Built-in "Level" field for programme-specific Sangha forms (monastery portal + admin).
+     *
+     * @return array{name: string, slug: string, type: string, required: bool, placeholder: string, options: list<string>}
+     */
+    private static function programmeLevelInformationDefinition(): array
+    {
+        return [
+            'name' => 'Level',
+            'slug' => 'level_information',
+            'type' => 'select',
+            'required' => false,
+            'placeholder' => 'Select level',
+            'options' => ['Primary', 'Intermediate', 'Level 1', 'Level 2', 'Level 3'],
+        ];
     }
 }

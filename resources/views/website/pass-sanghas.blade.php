@@ -22,9 +22,10 @@
                     <thead>
                         <tr class="border-b border-stone-200 dark:border-slate-700">
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">No.</th>
-                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('score_candidate_ref_label', 'Student Id') }}</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('roll_number', 'Roll Number') }}</th>
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('desk_number', 'Desk No.') }}</th>
-                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">Sangha</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('level', 'Level') }}</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('sanghas', 'Sangha') }}</th>
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">Monastery</th>
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">Father</th>
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">NRC</th>
@@ -33,10 +34,16 @@
                     </thead>
                     <tbody>
                         @forelse($passSanghas as $sangha)
+                            @php
+                                $levelName = $sangha['level_name'] ?? $sangha['programme_level'] ?? null;
+                                $rollShow = $sangha['roll_display'] ?? \App\Support\MonasteryPortalResultsSnapshot::formatRollDisplaySix($sangha['eligible_roll_number'] ?? null);
+                                $deskShow = $sangha['desk_display'] ?? $sangha['desk_number'] ?? null;
+                            @endphp
                             <tr class="border-b border-stone-100 dark:border-slate-800">
                                 <td class="py-3 pr-4 text-stone-500 dark:text-slate-400">{{ $loop->iteration }}</td>
-                                <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $sangha['candidate_ref'] ?? '—' }}</td>
-                                <td class="py-3 pr-4 font-semibold tabular-nums text-yellow-700 dark:text-yellow-400">{{ isset($sangha['desk_number']) && $sangha['desk_number'] !== null ? $sangha['desk_number'] : '—' }}</td>
+                                <td class="py-3 pr-4 font-mono tabular-nums text-stone-700 dark:text-slate-300">{{ $rollShow ?? '—' }}</td>
+                                <td class="py-3 pr-4 font-mono font-semibold tabular-nums text-yellow-700 dark:text-yellow-400">{{ $deskShow ?? '—' }}</td>
+                                <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $levelName ?? '—' }}</td>
                                 <td class="py-3 pr-4 font-medium text-stone-900 dark:text-slate-100">{{ $sangha['name'] ?? '—' }}</td>
                                 <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $sangha['monastery_name'] ?? '—' }}</td>
                                 <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $sangha['father_name'] ?? '—' }}</td>
@@ -45,7 +52,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-8 text-center text-stone-500 dark:text-slate-400">No generated data yet. Admin needs to click Generate in Scores > Pass screen.</td>
+                                <td colspan="9" class="py-8 text-center text-stone-500 dark:text-slate-400">No generated data yet. Admin needs to click Generate in Scores > Pass screen.</td>
                             </tr>
                         @endforelse
                     </tbody>

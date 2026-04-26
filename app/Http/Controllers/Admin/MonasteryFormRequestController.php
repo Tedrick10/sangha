@@ -11,6 +11,7 @@ use App\Notifications\Monastery\MonasteryFormRequestDecidedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -143,7 +144,34 @@ class MonasteryFormRequestController extends Controller
             $payload['reviewed_at'] = now();
         }
 
-        $monasteryFormRequest->update($payload);
+        if ($status === 'approved' && ! $monasteryFormRequest->isExamFormSubmission()) {
+            $transferError = $monasteryFormRequest->validateTransferDataForApproval();
+            if ($transferError !== null) {
+                return redirect()
+                    ->back()
+                    ->with('error', $transferError);
+            }
+        }
+
+        $becameApproved = $status === 'approved'
+            && $beforeStatus !== MonasteryFormRequest::STATUS_APPROVED;
+
+        try {
+            DB::transaction(function () use ($monasteryFormRequest, $payload, $becameApproved): void {
+                $monasteryFormRequest->update($payload);
+                $monasteryFormRequest->refresh();
+                if ($becameApproved && ! $monasteryFormRequest->isExamFormSubmission()) {
+                    $monasteryFormRequest->applyApprovedTransferRelocation();
+                }
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->back()
+                ->with('error', t('transfer_approve_apply_failed', 'Could not complete the transfer. Please try again or contact support.'));
+        }
+
         $monasteryFormRequest->refresh();
 
         $afterStatus = $monasteryFormRequest->status;

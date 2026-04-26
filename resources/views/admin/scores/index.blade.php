@@ -94,7 +94,7 @@
                 <tr>
                     <th class="w-12">No.</th>
                     <th class="w-10"></th>
-                    <th>{{ t('score_candidate_ref_label', 'Student Id') }}</th>
+                    <th>{{ t('roll_number', 'Roll Number') }}</th>
                     <th>{{ t('desk_number', 'Desk No.') }}</th>
                     <th>Sangha</th>
                     <th>Monastery</th>
@@ -109,13 +109,23 @@
                     <tr draggable="true" class="top20-row cursor-move" data-sangha-id="{{ $sangha->id }}">
                         <td class="text-slate-600 dark:text-slate-400">{{ $loop->iteration }}</td>
                         <td class="text-slate-400">⋮⋮</td>
-                        <td class="text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate" title="{{ $sangha->latest_score_candidate_ref ?? '' }}">{{ $sangha->latest_score_candidate_ref ?: '—' }}</td>
+                        @php
+                            $top20RollRaw = $sangha->eligible_roll_number ?? null;
+                            $top20RollDisp = filled($top20RollRaw) && ctype_digit(trim((string) $top20RollRaw))
+                                ? str_pad(trim((string) $top20RollRaw), 6, '0', STR_PAD_LEFT)
+                                : (filled($top20RollRaw) ? (string) $top20RollRaw : '—');
+                        @endphp
+                        <td class="font-mono text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate tabular-nums" title="{{ $top20RollDisp }}">{{ $top20RollDisp }}</td>
                         <td class="font-bold tabular-nums text-amber-700 dark:text-amber-400">
                             @php
                                 $top20Desk = $sangha->latest_score_desk_number ?? $sangha->desk_number;
                             @endphp
                             @if($top20Desk !== null && $top20Desk !== '')
-                                {{ ($sangha->exam?->desk_number_prefix ?? '') }}{{ $top20Desk }}
+                                @php
+                                    $top20DeskPrefix = $sangha->exam?->desk_number_prefix ?? '';
+                                    $top20DeskPad = str_pad((string) (int) $top20Desk, 6, '0', STR_PAD_LEFT);
+                                @endphp
+                                {{ $top20DeskPrefix !== '' ? $top20DeskPrefix.$top20DeskPad : $top20DeskPad }}
                             @else
                                 —
                             @endif
@@ -147,7 +157,7 @@
                 'tableId' => 'scores-table',
                 'storageKey' => 'admin-scores-columns',
                 'columns' => [
-                    ['id' => 'candidate_ref', 'label' => t('score_candidate_ref_label', 'Student Id')],
+                    ['id' => 'candidate_ref', 'label' => t('roll_number', 'Roll Number')],
                     ['id' => 'desk', 'label' => 'Desk No.'],
                     ['id' => 'sangha', 'label' => 'Sangha'],
                     ['id' => 'subject', 'label' => 'Subject'],
@@ -161,7 +171,7 @@
             <thead>
                 <tr>
                     <th class="w-12 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">No.</th>
-                    <th class="text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider" data-column="candidate_ref">{{ t('score_candidate_ref_label', 'Student Id') }}</th>
+                    <th class="text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider" data-column="candidate_ref">{{ t('roll_number', 'Roll Number') }}</th>
                     <th class="text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider" data-column="desk">{{ t('desk_number', 'Desk No.') }}</th>
                     @include('admin.partials.sortable-th', ['key' => 'sangha', 'label' => 'Sangha', 'dataColumn' => 'sangha'])
                     @include('admin.partials.sortable-th', ['key' => 'subject', 'label' => 'Subject', 'dataColumn' => 'subject'])
@@ -175,10 +185,20 @@
                 @forelse($scores as $score)
                     <tr>
                         <td class="text-slate-600 dark:text-slate-400">{{ $scores->firstItem() + $loop->index }}</td>
-                        <td data-column="candidate_ref" class="text-sm text-slate-800 dark:text-slate-200 max-w-[140px] truncate" title="{{ filled($score->candidate_ref) ? $score->candidate_ref : ($score->sangha->username ?? '') }}">{{ filled($score->candidate_ref) ? $score->candidate_ref : (filled($score->sangha->username) ? $score->sangha->username : '—') }}</td>
+                        @php
+                            $scoreRollRaw = $score->sangha->eligible_roll_number ?? null;
+                            $scoreRollDisp = filled($scoreRollRaw) && ctype_digit(trim((string) $scoreRollRaw))
+                                ? str_pad(trim((string) $scoreRollRaw), 6, '0', STR_PAD_LEFT)
+                                : (filled($scoreRollRaw) ? (string) $scoreRollRaw : '—');
+                        @endphp
+                        <td data-column="candidate_ref" class="font-mono text-sm text-slate-800 dark:text-slate-200 max-w-[140px] truncate tabular-nums" title="{{ $scoreRollDisp }}">{{ $scoreRollDisp }}</td>
                         <td data-column="desk" class="font-bold tabular-nums text-amber-700 dark:text-amber-400">
                             @if($score->desk_number !== null && $score->desk_number !== '')
-                                {{ ($score->exam?->desk_number_prefix ?? $score->sangha->exam?->desk_number_prefix ?? '') }}{{ $score->desk_number }}
+                                @php
+                                    $scoreDeskPrefix = $score->exam?->desk_number_prefix ?? $score->sangha->exam?->desk_number_prefix ?? '';
+                                    $scoreDeskPad = str_pad((string) (int) $score->desk_number, 6, '0', STR_PAD_LEFT);
+                                @endphp
+                                {{ $scoreDeskPrefix !== '' ? $scoreDeskPrefix.$scoreDeskPad : $scoreDeskPad }}
                             @else
                                 —
                             @endif

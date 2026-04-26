@@ -26,6 +26,11 @@
 
 @php
     $customFieldsForForm = $groupedByForm->get($activeEntity, collect());
+    $programmeEntities = ['programme_primary', 'programme_intermediate', 'programme_level_1', 'programme_level_2', 'programme_level_3'];
+    $linkedCoreFields = in_array($activeEntity, $programmeEntities, true)
+        ? ($linkedSanghaCoreFieldsByProgramme ?? collect())
+        : collect();
+    $displayFields = $linkedCoreFields->concat($customFieldsForForm)->values();
 @endphp
 
 <div class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
@@ -76,11 +81,18 @@
             </tr>
         </thead>
         <tbody id="sortable-tbody" data-entity-type="{{ $activeEntity }}">
-            @forelse($customFieldsForForm as $index => $field)
-                <tr data-id="{{ $field->id }}">
+            @forelse($displayFields as $index => $field)
+                @php
+                    $isLinkedCore = $field->entity_type !== $activeEntity;
+                @endphp
+                <tr @if(!$isLinkedCore) data-id="{{ $field->id }}" @endif>
                     <td class="text-slate-600 dark:text-slate-400">{{ $loop->iteration }}</td>
-                    <td class="px-4 text-slate-400 cursor-grab active:cursor-grabbing drag-handle" title="Drag to reorder">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6h2v2H8V6zm0 5h2v2H8v-2zm0 5h2v2H8v-2zm5-10h2v2h-2V6zm0 5h2v2h-2v-2zm0 5h2v2h-2v-2z"/></svg>
+                    <td class="px-4 text-slate-400 {{ $isLinkedCore ? '' : 'cursor-grab active:cursor-grabbing drag-handle' }}" title="{{ $isLinkedCore ? 'Linked from Sangha' : 'Drag to reorder' }}">
+                        @if(!$isLinkedCore)
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6h2v2H8V6zm0 5h2v2H8v-2zm0 5h2v2H8v-2zm5-10h2v2h-2V6zm0 5h2v2h-2v-2zm0 5h2v2h-2v-2z"/></svg>
+                        @else
+                            —
+                        @endif
                     </td>
                     <td data-column="label">
                         <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $field->name }}</span>

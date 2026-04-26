@@ -39,10 +39,13 @@
             <label for="filter_desk_number" class="admin-form-label">{{ t('desk_number', 'Desk No.') }}</label>
             <select name="desk_number" id="filter_desk_number" class="admin-select-input w-full">
                 <option value="">{{ $examId ? t('mandatory_scores_select_desk', 'Select desk') : t('mandatory_scores_select_exam_first_desk', 'Select an exam first…') }}</option>
-                @php $deskOptPrefix = $examForDeskFilter?->desk_number_prefix ?? ''; @endphp
+                @php
+                    $deskOptPrefix = $examForDeskFilter?->desk_number_prefix ?? '';
+                    $deskOptPad = fn ($n) => str_pad((string) (int) $n, 6, '0', STR_PAD_LEFT);
+                @endphp
                 @foreach($deskOptions as $d)
                     <option value="{{ $d->desk_number }}" {{ (string) ($deskNumber ?? '') === (string) $d->desk_number ? 'selected' : '' }}>
-                        {{ $deskOptPrefix !== '' ? $deskOptPrefix.$d->desk_number : $d->desk_number }} — {{ $d->name }}
+                        {{ $deskOptPrefix !== '' ? $deskOptPrefix.$deskOptPad($d->desk_number) : $deskOptPad($d->desk_number) }} — {{ $d->name }}
                     </option>
                 @endforeach
             </select>
@@ -66,6 +69,11 @@
         <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">{{ t('mandatory_scores_candidate', 'Candidate') }}</h2>
         @php
             $deskDisplayPrefix = $examModel->desk_number_prefix ?? '';
+            $deskNumPadded = $sangha->desk_number !== null ? str_pad((string) (int) $sangha->desk_number, 6, '0', STR_PAD_LEFT) : null;
+            $rollRaw = $sangha->eligible_roll_number;
+            $rollDisplay = filled($rollRaw) && ctype_digit(trim((string) $rollRaw))
+                ? str_pad(trim((string) $rollRaw), 6, '0', STR_PAD_LEFT)
+                : (filled($rollRaw) ? (string) $rollRaw : '—');
         @endphp
         <dl class="grid gap-3 text-sm sm:grid-cols-2">
             <div>
@@ -77,8 +85,8 @@
                 <dd class="text-slate-800 dark:text-slate-200">{{ $sangha->monastery->name ?? '—' }}</dd>
             </div>
             <div>
-                <dt class="text-slate-500 dark:text-slate-400">{{ t('user_id', 'Student Id') }}</dt>
-                <dd class="font-mono text-sm text-slate-800 dark:text-slate-200 break-all">{{ filled($sangha->username) ? $sangha->username : '—' }}</dd>
+                <dt class="text-slate-500 dark:text-slate-400">{{ t('roll_number', 'Roll Number') }}</dt>
+                <dd class="font-mono text-sm text-slate-800 dark:text-slate-200 break-all tabular-nums">{{ $rollDisplay }}</dd>
             </div>
             <div>
                 <dt class="text-slate-500 dark:text-slate-400">{{ t('score_nrc_label', 'NRC number') }}</dt>
@@ -86,7 +94,7 @@
             </div>
             <div>
                 <dt class="text-slate-500 dark:text-slate-400">{{ t('desk_number', 'Desk No.') }}</dt>
-                <dd class="font-bold tabular-nums text-amber-700 dark:text-amber-400">{{ $deskDisplayPrefix }}{{ $sangha->desk_number }}</dd>
+                <dd class="font-bold tabular-nums text-amber-700 dark:text-amber-400">{{ $deskNumPadded !== null ? ($deskDisplayPrefix !== '' ? $deskDisplayPrefix.$deskNumPadded : $deskNumPadded) : '—' }}</dd>
             </div>
             <div>
                 <dt class="text-slate-500 dark:text-slate-400">{{ t('exams', 'Exam') }}</dt>
@@ -249,6 +257,18 @@
             syncSelectTomSelect(deskSelect);
         }
 
+        function padDeskSix(n) {
+            var num = parseInt(String(n), 10);
+            if (isNaN(num) || num < 0) {
+                num = 0;
+            }
+            var s = String(num);
+            while (s.length < 6) {
+                s = '0' + s;
+            }
+            return s;
+        }
+
         function fillDesks(desks, selectedDesk, prefix, examIdLocked) {
             prefix = prefix || '';
             if (deskSelect.tomselect) {
@@ -261,7 +281,8 @@
             desks.forEach(function (d) {
                 var opt = document.createElement('option');
                 opt.value = String(d.desk_number);
-                opt.textContent = (prefix ? prefix + d.desk_number : d.desk_number) + ' — ' + (d.name || '');
+                var padded = padDeskSix(d.desk_number);
+                opt.textContent = (prefix ? prefix + padded : padded) + ' — ' + (d.name || '');
                 if (selectedDesk !== null && selectedDesk !== undefined && String(selectedDesk) === String(d.desk_number)) {
                     opt.selected = true;
                 }

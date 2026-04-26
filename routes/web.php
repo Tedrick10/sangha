@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\WebsiteController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\MonasteryLoginController;
 use App\Http\Controllers\Auth\StudentLoginController;
+use App\Http\Controllers\Monastery\AccountController as MonasteryAccountController;
 use App\Http\Controllers\Monastery\ChatController as MonasteryPortalChatController;
 use App\Http\Controllers\Monastery\DashboardController as MonasteryDashboardController;
 use App\Http\Controllers\Monastery\FormRequestController as MonasteryFormRequestPortalController;
@@ -92,6 +93,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'
     Route::delete('monastery-requests/{monasteryFormRequest}', [MonasteryFormRequestController::class, 'destroy'])->name('monastery-requests.destroy');
     Route::get('sanghas/{sangha}/exams/{exam}', [SanghaController::class, 'examScores'])->name('sanghas.exam-scores');
     Route::resource('sanghas', SanghaController::class);
+    Route::get('sanghas/{sangha}/custom-fields/{customField}/file', [SanghaController::class, 'customFieldFile'])->name('sanghas.custom-field-file');
     Route::resource('custom-fields', CustomFieldController::class);
     Route::post('custom-fields/reorder', [CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
     Route::resource('subjects', SubjectController::class);
@@ -142,6 +144,8 @@ Route::get('monastery/login', [MonasteryLoginController::class, 'showLoginForm']
 Route::post('monastery/login', [MonasteryLoginController::class, 'login']);
 Route::post('monastery/logout', [MonasteryLoginController::class, 'logout'])->name('monastery.logout');
 Route::middleware(['website.locale', 'auth:monastery'])->prefix('monastery')->name('monastery.')->group(function () {
+    Route::get('/account', [MonasteryAccountController::class, 'edit'])->name('account.edit');
+    Route::put('/account', [MonasteryAccountController::class, 'update'])->name('account.update');
     Route::get('/', MonasteryDashboardController::class)->name('dashboard');
     Route::get('chat/messages', [MonasteryPortalChatController::class, 'fetch'])->name('chat.messages');
     Route::post('chat/messages', [MonasteryPortalChatController::class, 'store'])->name('chat.messages.store');
@@ -150,6 +154,8 @@ Route::middleware(['website.locale', 'auth:monastery'])->prefix('monastery')->na
     Route::post('notifications/read-all', [MonasteryNotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('/sanghas', [MonasteryDashboardController::class, 'storeSangha'])->name('sanghas.store');
     Route::put('/sanghas/{sangha}', [MonasteryDashboardController::class, 'updateRejectedSangha'])->name('sanghas.update');
+    Route::get('/sanghas/{sangha}/custom-fields/{customField}/file', [MonasteryDashboardController::class, 'customFieldFile'])->name('sanghas.custom-field-file');
+    Route::post('/sanghas/submit-eligible', [MonasteryDashboardController::class, 'submitEligibleSanghas'])->name('sanghas.submit-eligible');
     Route::post('/messages', [MonasteryDashboardController::class, 'storeFormRequest'])->name('messages.store');
     Route::post('/exam-forms', [MonasteryDashboardController::class, 'storeExamFormSubmission'])->name('exam-forms.store');
     Route::get('/requests/{monasteryFormRequest}', [MonasteryFormRequestPortalController::class, 'show'])->name('requests.show');

@@ -6,7 +6,7 @@ use Illuminate\Database\Migrations\Migration;
 return new class extends Migration
 {
     /**
-     * Replace demo exam types with the five canonical Burmese programmes.
+     * Replace demo exam types with the five canonical programmes (names from ExamType::CANONICAL_NAME_ORDER).
      * Exams keep rows; exam_type_id is set null on delete (nullOnDelete).
      */
     public function up(): void

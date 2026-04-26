@@ -8,7 +8,7 @@ if (! function_exists('t')) {
     /**
      * Get translated text. Uses unofficial language translations from DB when locale matches.
      */
-    function t(string $key, ?string $default = null): string
+    function t(string $key, ?string $default = null, array $replace = []): string
     {
         $keys = config('translation-keys', []);
         $default = $default ?? ($keys[$key] ?? $key);
@@ -16,7 +16,7 @@ if (! function_exists('t')) {
         $locale = app()->getLocale();
 
         if (! Language::isUnofficial($locale)) {
-            return $default;
+            return $replace !== [] ? strtr($default, $replace) : $default;
         }
 
         $translation = Translation::whereHas('language', fn ($q) => $q->where('code', $locale))
@@ -24,12 +24,13 @@ if (! function_exists('t')) {
             ->value('value');
 
         if (filled($translation)) {
-            return $translation;
+            return $replace !== [] ? strtr($translation, $replace) : $translation;
         }
 
         $fileFallback = config('translation-fallbacks.'.$locale.'.'.$key);
+        $text = $fileFallback ?? $default;
 
-        return $fileFallback ?? $default;
+        return $replace !== [] ? strtr($text, $replace) : $text;
     }
 }
 

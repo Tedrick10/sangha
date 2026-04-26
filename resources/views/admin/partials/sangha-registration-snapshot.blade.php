@@ -64,6 +64,8 @@
             <dd class="mt-1 text-slate-900 dark:text-slate-100">
                 @if($ms === 'approved')
                     {{ t('status_approved', 'Approved') }}
+                @elseif($ms === 'needed_update')
+                    {{ t('status_needed_update', 'Needed Update') }}
                 @elseif($ms === 'rejected')
                     {{ t('status_rejected', 'Rejected') }}
                 @else
@@ -71,16 +73,19 @@
                 @endif
             </dd>
         </div>
-        @if($ms === 'rejected' && filled($sangha->rejection_reason))
+        @if(in_array($ms, ['rejected', 'needed_update'], true) && filled($sangha->rejection_reason))
             <div class="sm:col-span-2">
-                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ t('rejection_note', 'Rejection note') }}</dt>
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ $ms === 'needed_update' ? t('needed_update_note', 'Needed update note') : t('rejection_note', 'Rejection note') }}</dt>
                 <dd class="mt-1 text-slate-900 dark:text-slate-100 whitespace-pre-wrap break-words">{{ $sangha->rejection_reason }}</dd>
             </div>
         @endif
         @if(filled($sangha->desk_number))
             <div>
-                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ t('desk_number', 'Desk number') }}</dt>
-                <dd class="mt-1 text-slate-900 dark:text-slate-100 font-mono text-xs">{{ $sangha->desk_number }}</dd>
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
+                    <span class="block font-normal normal-case text-[10px] leading-tight">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                </dt>
+                <dd class="mt-1 text-slate-900 dark:text-slate-100 font-mono text-xs">{{ ($sangha->exam?->desk_number_prefix ?? '') . str_pad((string) $sangha->desk_number, 6, '0', STR_PAD_LEFT) }}</dd>
             </div>
         @endif
     </dl>
@@ -101,7 +106,7 @@
                             @elseif($cf->type === 'checkbox')
                                 {{ in_array((string) $cv, ['1', 'true'], true) ? t('yes', 'Yes') : t('no', 'No') }}
                             @elseif(in_array($cf->type, ['media', 'document', 'video'], true))
-                                <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($cv) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-amber-800 dark:text-amber-300 hover:underline font-medium">
+                                <a href="{{ route('admin.sanghas.custom-field-file', ['sangha' => $sangha->id, 'customField' => $cf->id]) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-amber-800 dark:text-amber-300 hover:underline font-medium">
                                     @include('partials.icon', ['name' => 'external-link', 'class' => 'w-3.5 h-3.5 shrink-0'])
                                     {{ basename($cv) }}
                                 </a>

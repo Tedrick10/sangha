@@ -12,8 +12,21 @@
 <div class="rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 mb-6">
     <dl class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
         <div>
-            <dt class="text-slate-500 dark:text-slate-400">{{ t('user_id', 'Student Id') }}</dt>
-            <dd class="font-mono font-medium text-slate-900 dark:text-slate-100">{{ $sangha->username ?? '—' }}</dd>
+            <dt class="text-slate-500 dark:text-slate-400">{{ t('roll_number', 'Roll Number') }}</dt>
+            <dd class="font-mono font-medium text-slate-900 dark:text-slate-100">{{ $sangha->eligible_roll_number ?? '—' }}</dd>
+        </div>
+        <div>
+            <dt class="text-slate-500 dark:text-slate-400">
+                <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
+                <span class="block text-xs font-normal normal-case">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+            </dt>
+            <dd class="font-mono font-medium text-slate-900 dark:text-slate-100">
+                @if($sangha->moderationStatus() === \App\Models\Sangha::STATUS_APPROVED && filled($sangha->desk_number))
+                    {{ ($sangha->exam?->desk_number_prefix ?? '') . str_pad((string) $sangha->desk_number, 6, '0', STR_PAD_LEFT) }}
+                @else
+                    —
+                @endif
+            </dd>
         </div>
         <div>
             <dt class="text-slate-500 dark:text-slate-400">{{ t('score_father_name_label', 'Father name') }}</dt>

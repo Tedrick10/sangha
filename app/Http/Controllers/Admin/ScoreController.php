@@ -9,6 +9,8 @@ use App\Models\Score;
 use App\Models\SiteSetting;
 use App\Models\Subject;
 use App\Support\MonasteryPortalResultsSnapshot;
+use App\Support\PassSanghaListDisplay;
+use App\Support\SanghaProgrammePassPromotion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\QueryException;
@@ -43,6 +45,7 @@ class ScoreController extends Controller
                     $query->where(function ($q) use ($search) {
                         $q->where('sanghas.name', 'like', "%{$search}%")
                             ->orWhere('sanghas.username', 'like', "%{$search}%")
+                            ->orWhere('sanghas.eligible_roll_number', 'like', "%{$search}%")
                             ->orWhereExists(function ($sub) use ($search) {
                                 $sub->select(DB::raw(1))
                                     ->from('scores')
@@ -95,7 +98,11 @@ class ScoreController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($qry) use ($search) {
-                $qry->whereHas('sangha', fn ($s) => $s->where('name', 'like', "%{$search}%"))
+                $qry->whereHas('sangha', function ($s) use ($search) {
+                    $s->where('name', 'like', "%{$search}%")
+                        ->orWhere('eligible_roll_number', 'like', "%{$search}%")
+                        ->orWhere('username', 'like', "%{$search}%");
+                })
                     ->orWhereHas('subject', fn ($s) => $s->where('name', 'like', "%{$search}%"))
                     ->orWhere('scores.father_name', 'like', "%{$search}%")
                     ->orWhere('scores.nrc_number', 'like', "%{$search}%")
@@ -174,7 +181,7 @@ class ScoreController extends Controller
     {
         $subjects = Subject::where('is_active', true)->orderBy('name')->get();
         $sanghas = Sangha::with('monastery')->orderBy('name')->get();
-        $exams = $this->examsEligibleForScoreEntry();
+        $exams = $this->examsForScoreFilters();
 
         return view('admin.scores.create', compact('subjects', 'sanghas', 'exams'));
     }
@@ -188,7 +195,7 @@ class ScoreController extends Controller
         $validated = $request->validate([
             'sangha_id' => 'required|exists:sanghas,id',
             'subject_id' => 'required|exists:subjects,id',
-            'exam_id' => ['nullable', $this->examIdEligibleForScoreEntryRule()],
+            'exam_id' => 'nullable|exists:exams,id',
             'desk_number' => 'nullable|string|max:120',
             'value' => 'required|numeric|min:0',
             'moderation_decision' => 'nullable|in:pass,fail',
@@ -238,7 +245,7 @@ class ScoreController extends Controller
         $score->loadMissing(['exam', 'sangha.exam']);
         $subjects = Subject::where('is_active', true)->orderBy('name')->get();
         $sanghas = Sangha::with('monastery')->orderBy('name')->get();
-        $exams = $this->examsEligibleForScoreEntry($score->exam_id);
+        $exams = $this->examsForScoreFilters();
         $deskNumberEditValue = $this->deskNumberForEditForm($score);
 
         return view('admin.scores.edit', compact('score', 'subjects', 'sanghas', 'exams', 'deskNumberEditValue'));
@@ -253,7 +260,7 @@ class ScoreController extends Controller
         $validated = $request->validate([
             'sangha_id' => 'required|exists:sanghas,id',
             'subject_id' => 'required|exists:subjects,id',
-            'exam_id' => ['nullable', $this->examIdEligibleForScoreEntryRule()],
+            'exam_id' => 'nullable|exists:exams,id',
             'desk_number' => 'nullable|string|max:120',
             'value' => 'required|numeric|min:0',
             'moderation_decision' => 'nullable|in:pass,fail',
@@ -351,12 +358,6 @@ class ScoreController extends Controller
     {
         $generatedAt = now()->toDateTimeString();
 
-        $portalSnapshot = MonasteryPortalResultsSnapshot::build($generatedAt);
-        SiteSetting::set(
-            MonasteryPortalResultsSnapshot::key(),
-            json_encode($portalSnapshot, JSON_UNESCAPED_UNICODE)
-        );
-
         $topSanghas = Sangha::query()
             ->joinSub($this->scoresPerSanghaAggregateSubquery(new Request), 'score_agg', 'sanghas.id', '=', 'score_agg.sangha_id')
             ->select('sanghas.*', 'score_agg.total_score', 'score_agg.average_score', 'score_agg.score_count')
@@ -419,7 +420,7 @@ class ScoreController extends Controller
             ->values();
 
         $passSanghas = (new EloquentCollection($passSanghas->all()))
-            ->loadMissing(['exam', 'monastery']);
+            ->loadMissing(['exam.examType', 'monastery']);
 
         $metaBySanghaId = Score::latestScoreRowMetaBySanghaIds($passSanghas->pluck('id')->all());
 
@@ -433,13 +434,15 @@ class ScoreController extends Controller
             ? collect()
             : Score::query()
                 ->whereIn('id', $latestScoreIdRows)
-                ->with('exam')
+                ->with(['exam.examType'])
                 ->get()
                 ->keyBy('sangha_id');
 
+        $programmeBySanghaId = PassSanghaListDisplay::programmeLevelInformationBySanghaIds($passSanghaIds);
+
         $snapshot = [
             'generated_at' => $generatedAt,
-            'pass_sanghas' => $passSanghas->map(function ($sangha) use ($metaBySanghaId, $latestScoresBySanghaId) {
+            'pass_sanghas' => $passSanghas->map(function ($sangha) use ($metaBySanghaId, $latestScoresBySanghaId, $programmeBySanghaId) {
                 $row = $metaBySanghaId->get($sangha->id, [
                     'father_name' => null,
                     'nrc_number' => null,
@@ -448,11 +451,21 @@ class ScoreController extends Controller
                 ]);
 
                 $deskRaw = $row['desk_number'];
+                if (($deskRaw === null || $deskRaw === '') && $sangha->desk_number !== null) {
+                    $deskRaw = (string) $sangha->desk_number;
+                }
                 $latestScore = $latestScoresBySanghaId->get($sangha->id);
                 $deskPrefix = $latestScore?->exam?->desk_number_prefix ?? $sangha->exam?->desk_number_prefix ?? '';
-                $deskDisplay = ($deskRaw !== null && $deskRaw !== '')
-                    ? $deskPrefix.$deskRaw
+                $deskDisplay = ($deskRaw !== null && (string) $deskRaw !== '')
+                    ? MonasteryPortalResultsSnapshot::formatDeskDisplaySix($deskPrefix, $deskRaw)
                     : null;
+
+                $levelName = $latestScore?->exam?->examType?->name
+                    ?? $sangha->exam?->examType?->name;
+                $programmeLevel = $programmeBySanghaId[$sangha->id] ?? null;
+
+                $examYear = $latestScore?->exam?->exam_date?->format('Y')
+                    ?? $sangha->exam?->exam_date?->format('Y');
 
                 return [
                     'id' => $sangha->id,
@@ -461,12 +474,35 @@ class ScoreController extends Controller
                     'father_name' => $row['father_name'],
                     'nrc_number' => $row['nrc_number'],
                     'candidate_ref' => $row['candidate_ref'],
+                    'eligible_roll_number' => $sangha->eligible_roll_number,
+                    'roll_display' => MonasteryPortalResultsSnapshot::formatRollDisplaySix($sangha->eligible_roll_number),
                     'desk_number' => $deskDisplay,
+                    'desk_display' => $deskDisplay,
+                    'programme_level' => $programmeLevel,
+                    'level_name' => $levelName,
+                    'exam_id' => $sangha->exam_id,
+                    'exam_year' => $examYear,
+                    'exam_name' => $sangha->exam?->name,
                 ];
             })->values()->all(),
         ];
 
         SiteSetting::set('pass_sanghas_snapshot', json_encode($snapshot, JSON_UNESCAPED_UNICODE));
+
+        // Freeze portal pass/fail before programme promotion clears scores / exam (so published results stay visible).
+        $portalSnapshot = MonasteryPortalResultsSnapshot::build($generatedAt);
+        $portalPreviousRaw = SiteSetting::get(MonasteryPortalResultsSnapshot::key());
+        $portalPrevious = $portalPreviousRaw ? json_decode($portalPreviousRaw, true) : null;
+        $portalMerged = MonasteryPortalResultsSnapshot::mergePreserveHistory(
+            $portalSnapshot,
+            is_array($portalPrevious) ? $portalPrevious : null
+        );
+        SiteSetting::set(
+            MonasteryPortalResultsSnapshot::key(),
+            json_encode($portalMerged, JSON_UNESCAPED_UNICODE)
+        );
+
+        SanghaProgrammePassPromotion::promoteAfterPassPublish($passSanghas);
 
         return response()->json([
             'message' => 'Published public pass list and monastery portal results.',

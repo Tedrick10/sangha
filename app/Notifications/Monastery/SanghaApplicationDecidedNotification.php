@@ -23,13 +23,17 @@ class SanghaApplicationDecidedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        $title = $this->status === 'approved'
-            ? t('notif_sangha_approved_title', 'Application approved')
-            : t('notif_sangha_rejected_title', 'Application rejected');
+        $title = match ($this->status) {
+            'approved' => t('notif_sangha_approved_title', 'Application approved'),
+            'needed_update' => t('notif_sangha_needed_update_title', 'Update requested'),
+            default => t('notif_sangha_rejected_title', 'Application rejected'),
+        };
 
-        $bodyTemplate = $this->status === 'approved'
-            ? t('notif_sangha_approved_body', ':name has been approved.')
-            : t('notif_sangha_rejected_body', ':name was rejected.');
+        $bodyTemplate = match ($this->status) {
+            'approved' => t('notif_sangha_approved_body', ':name has been approved.'),
+            'needed_update' => t('notif_sangha_needed_update_body', ':name needs updates before approval.'),
+            default => t('notif_sangha_rejected_body', ':name was rejected.'),
+        };
         $body = strtr($bodyTemplate, [':name' => $this->sanghaName]);
 
         return [

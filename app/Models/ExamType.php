@@ -16,11 +16,11 @@ class ExamType extends Model
      * @var list<string>
      */
     public const CANONICAL_NAME_ORDER = [
-        'မူလတန်း စာမေးပွဲ',
-        'ဥပစာတန်း စာမေးပွဲ',
-        'ပထမဆင့် စာမေးပွဲ',
-        'ဒုတိယဆင့် စာမေးပွဲ',
-        'တတိယဆင့် စာမေးပွဲ',
+        'Primary',
+        'Intermediate',
+        'Level 1',
+        'Level 2',
+        'Level 3',
     ];
 
     use HasCustomFields, HasFactory;

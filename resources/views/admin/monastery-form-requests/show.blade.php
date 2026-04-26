@@ -201,6 +201,8 @@
                                         </div>
                                     @endif
                                 </div>
+                            @elseif($field->type === 'monastery_select')
+                                <span class="whitespace-pre-wrap">{{ $submission->displaySubmittedValue($field, $raw) }}</span>
                             @else
                                 <span class="whitespace-pre-wrap">{{ $raw }}</span>
                             @endif

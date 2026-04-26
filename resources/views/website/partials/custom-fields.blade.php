@@ -37,6 +37,12 @@
     $checkboxRow = $isMonastery
         ? 'flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3.5 dark:border-slate-600/60 dark:bg-slate-950/35'
         : 'flex items-center gap-2.5 pt-1';
+    $radioWrap = $isMonastery
+        ? 'grid grid-cols-2 gap-2 rounded-xl border border-slate-700/70 bg-slate-900/45 p-2'
+        : 'grid grid-cols-2 gap-2';
+    $radioOption = $isMonastery
+        ? 'flex cursor-pointer items-center gap-2 rounded-lg border border-slate-600/70 bg-slate-900/35 px-3 py-2 text-sm text-slate-200 transition-colors hover:border-yellow-500/45 hover:bg-slate-800/60'
+        : 'flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700';
     $oldPrefix = $oldPrefix ?? '';
     $customFieldValueDefaults = $customFieldValueDefaults ?? [];
     $monasteryTransferFromName = $monasteryTransferFromName ?? null;
@@ -136,25 +142,45 @@
                     $isExamYearField = $isMonastery
                         && ($field->entity_type ?? null) === 'monastery_exam'
                         && $field->slug === 'exam_year';
+                    $isGenderRadio = $isMonastery
+                        && $field->slug === 'gender'
+                        && collect($field->options ?? [])->map(fn ($o) => strtolower(trim((string) $o)))->values()->all() === ['male', 'female'];
                     $catalogYears = $monasteryExamCatalogYears ?? [];
                 @endphp
-                <select
-                    name="custom_fields[{{ $field->slug }}]"
-                    id="{{ $idPrefix }}_custom_{{ $field->slug }}"
-                    @if($isExamYearField) data-no-select-search="1" @endif
-                    {{ $field->required ? 'required' : '' }}
-                    class="{{ $classSelect }}">
-                    <option value="">{{ $field->placeholder ?: 'Select ' . $field->name }}</option>
-                    @if($isExamYearField)
-                        @foreach($catalogYears as $yr)
-                            <option value="{{ $yr }}" {{ (string) $value === (string) $yr ? 'selected' : '' }}>{{ $yr }}</option>
-                        @endforeach
-                    @else
+                @if($isGenderRadio)
+                    <div class="{{ $radioWrap }}">
                         @foreach($field->options ?? [] as $option)
-                            <option value="{{ $option }}" {{ (string) $value === (string) $option ? 'selected' : '' }}>{{ $option }}</option>
+                            <label class="{{ $radioOption }}">
+                                <input
+                                    type="radio"
+                                    name="custom_fields[{{ $field->slug }}]"
+                                    value="{{ $option }}"
+                                    {{ (string) $value === (string) $option ? 'checked' : '' }}
+                                    {{ $field->required ? 'required' : '' }}
+                                    class="h-4 w-4 border-slate-400 text-yellow-500 focus:ring-yellow-500/30">
+                                <span>{{ $option }}</span>
+                            </label>
                         @endforeach
-                    @endif
-                </select>
+                    </div>
+                @else
+                    <select
+                        name="custom_fields[{{ $field->slug }}]"
+                        id="{{ $idPrefix }}_custom_{{ $field->slug }}"
+                        @if($isExamYearField) data-no-select-search="1" @endif
+                        {{ $field->required ? 'required' : '' }}
+                        class="{{ $classSelect }}">
+                        <option value="">@if($field->slug === 'level_information'){{ t('select_level', 'Select level') }}@else{{ $field->placeholder ?: 'Select ' . $field->name }}@endif</option>
+                        @if($isExamYearField)
+                            @foreach($catalogYears as $yr)
+                                <option value="{{ $yr }}" {{ (string) $value === (string) $yr ? 'selected' : '' }}>{{ $yr }}</option>
+                            @endforeach
+                        @else
+                            @foreach($field->options ?? [] as $option)
+                                <option value="{{ $option }}" {{ (string) $value === (string) $option ? 'selected' : '' }}>{{ $option }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                @endif
                 @if($isExamYearField && $catalogYears === [])
                     <p class="mt-2 text-xs text-amber-800 dark:text-amber-200/90">{{ t('monastery_exam_catalog_empty', 'No active exams with dates are configured for this programme in the admin panel yet.') }}</p>
                 @endif
@@ -195,14 +221,37 @@
                 @endif
                 @break
 
-            @case('approved_sangha')
+            @case('monastery_select')
                 @php
-                    $approvedList = $monasteryApprovedSanghasForExam ?? collect();
+                    $monasteryList = $monasterySelectMonasteries ?? collect();
                 @endphp
                 <select
                     name="custom_fields[{{ $field->slug }}]"
                     id="{{ $idPrefix }}_custom_{{ $field->slug }}"
-                    {{ $field->required ? 'required' : '' }}
+                    {{ $field->required && $monasteryList->isNotEmpty() ? 'required' : '' }}
+                    class="{{ $classSelect }}">
+                    <option value="">{{ $field->placeholder ?: t('select_destination_monastery', 'Select destination monastery') }}</option>
+                    @foreach($monasteryList as $mRow)
+                        <option value="{{ $mRow->id }}" {{ (string) $value === (string) $mRow->id ? 'selected' : '' }}>{{ $mRow->name }}</option>
+                    @endforeach
+                </select>
+                @if($monasteryList->isEmpty())
+                    <p class="mt-2 text-xs text-amber-800 dark:text-amber-200/90">
+                        {{ t('no_monasteries_for_transfer_destination', 'No other approved monasteries are available yet. Contact an administrator to register monasteries before you can select a destination.') }}
+                    </p>
+                @endif
+                @break
+
+            @case('approved_sangha')
+                @php
+                    $approvedList = ($isMonastery && ($field->entity_type ?? '') === 'request')
+                        ? ($monasteryApprovedSanghasForTransfer ?? $monasteryApprovedSanghasForExam ?? collect())
+                        : ($monasteryApprovedSanghasForExam ?? collect());
+                @endphp
+                <select
+                    name="custom_fields[{{ $field->slug }}]"
+                    id="{{ $idPrefix }}_custom_{{ $field->slug }}"
+                    {{ $field->required && $approvedList->isNotEmpty() ? 'required' : '' }}
                     class="{{ $classSelect }}">
                     <option value="">{{ $field->placeholder ?: t('select_approved_student', 'Select an approved student') }}</option>
                     @foreach($approvedList as $sanghaRow)
@@ -271,7 +320,7 @@
                         <input type="file"
                             name="custom_fields[{{ $field->slug }}]"
                             id="{{ $idPrefix }}_custom_{{ $field->slug }}"
-                            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,image/*"
                             {{ $field->required ? 'required' : '' }}
                             class="{{ $classFile }}">
                     </div>
@@ -279,7 +328,7 @@
                     <input type="file"
                         name="custom_fields[{{ $field->slug }}]"
                         id="{{ $idPrefix }}_custom_{{ $field->slug }}"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,image/*"
                         {{ $field->required ? 'required' : '' }}
                         class="{{ $classFile }}">
                 @endif

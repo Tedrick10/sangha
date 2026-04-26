@@ -11,6 +11,14 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
+        // Use IPv4 so `public/hot` matches `http://127.0.0.1:8000` (php artisan serve).
+        // Default [::1]:5173 often breaks asset loading from 127.0.0.1 — CSS/JS look "stuck".
+        host: '127.0.0.1',
+        port: 5173,
+        strictPort: false,
+        hmr: {
+            host: '127.0.0.1',
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

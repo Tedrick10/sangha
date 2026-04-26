@@ -163,6 +163,12 @@ class RegistrationController extends Controller
                         $fieldRules[] = Rule::in($field->options);
                     }
                     break;
+                case 'monastery_select':
+                    $fieldRules[] = 'integer';
+                    $fieldRules[] = Rule::exists('monasteries', 'id')->where(
+                        fn ($q) => $q->where('approved', true)->where('is_active', true)
+                    );
+                    break;
                 case 'media':
                     if (! $field->required) {
                         $fieldRules = ['nullable'];
