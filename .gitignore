@@ -1,5 +1,9 @@
 *.log
 .DS_Store
+
+# macOS resource forks & folder metadata (never commit — e.g. unzipping on Mac)
+__MACOSX/
+._*
 .env
 .env.backup
 .env.production
