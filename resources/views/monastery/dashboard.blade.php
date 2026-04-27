@@ -180,7 +180,7 @@
                                     <th class="px-4 py-3 sm:px-6">{{ t('roll_number', 'Roll Number') }}</th>
                                     <th class="px-4 py-3 sm:px-6">
                                         <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
-                                        <span class="block max-w-[10rem] text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                                        <span class="block whitespace-nowrap text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
                                     </th>
                                     <th class="px-4 py-3 sm:px-6">{{ t('sanghas', 'Sangha') }}</th>
                                     <th class="px-4 py-3 sm:px-6">{{ t('level', 'Level') }}</th>
@@ -350,7 +350,7 @@
                                 <th class="px-4 py-3 sm:px-6">{{ t('roll_number', 'Roll Number') }}</th>
                                 <th class="px-4 py-3 sm:px-6">
                                     <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
-                                    <span class="block max-w-[10rem] text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                                    <span class="block whitespace-nowrap text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
                                 </th>
                                 <th class="px-4 py-3 sm:px-6">{{ t('sanghas', 'Sangha') }}</th>
                                 <th class="px-4 py-3 sm:px-6">{{ t('exams', 'Exam') }}</th>
@@ -746,7 +746,7 @@
                             <th class="px-4 py-3 sm:px-6">{{ t('roll_number', 'Roll Number') }}</th>
                             <th class="px-4 py-3 sm:px-6">
                                 <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
-                                <span class="block max-w-[10rem] text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                                <span class="block whitespace-nowrap text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
                             </th>
                             <th class="px-4 py-3 sm:px-6">{{ t('sanghas', 'Sangha') }}</th>
                             <th class="px-4 py-3 sm:px-6">{{ t('exams', 'Exam') }}</th>
@@ -813,7 +813,7 @@
                             <th class="px-4 py-3 sm:px-6">{{ t('roll_number', 'Roll Number') }}</th>
                             <th class="px-4 py-3 sm:px-6">
                                 <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
-                                <span class="block max-w-[10rem] text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                                <span class="block whitespace-nowrap text-[10px] font-normal normal-case leading-tight text-slate-500 dark:text-slate-400 sm:text-[11px]">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
                             </th>
                             <th class="px-4 py-3 sm:px-6">{{ t('sanghas', 'Sangha') }}</th>
                             <th class="px-4 py-3 sm:px-6">{{ t('exams', 'Exam') }}</th>
@@ -1501,7 +1501,7 @@
                         <th class="px-4 py-3 pr-4">{{ t('roll_number', 'Roll Number') }}</th>
                         <th class="px-4 py-3 pr-4">
                             <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
-                            <span class="block font-normal normal-case text-[10px] leading-tight text-slate-500 dark:text-slate-400">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                            <span class="block whitespace-nowrap font-normal normal-case text-[10px] leading-tight text-slate-500 dark:text-slate-400">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
                         </th>
                         <th class="px-4 py-3 pr-4">{{ t('level', 'Level') }}</th>
                         <th class="px-4 py-3 pr-4">{{ t('sanghas', 'Sangha') }}</th>
@@ -1557,7 +1557,7 @@
                         <th class="px-4 py-3 pr-4">{{ t('roll_number', 'Roll Number') }}</th>
                         <th class="px-4 py-3 pr-4">
                             <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
-                            <span class="block font-normal normal-case text-[10px] leading-tight text-slate-500 dark:text-slate-400">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                            <span class="block whitespace-nowrap font-normal normal-case text-[10px] leading-tight text-slate-500 dark:text-slate-400">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
                         </th>
                         <th class="px-4 py-3 pr-4">{{ t('level', 'Level') }}</th>
                         <th class="px-4 py-3 pr-4">{{ t('sanghas', 'Sangha') }}</th>
