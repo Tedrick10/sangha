@@ -3,6 +3,10 @@
 @section('title', t('dashboard'))
 
 @section('content')
+@php
+    $adminUser = auth()->user();
+    $can = static fn (string $permission): bool => $adminUser?->hasPermission($permission) ?? false;
+@endphp
 <div class="admin-page-header mb-8">
     <h1>{{ t('dashboard') }}</h1>
 </div>
@@ -13,6 +17,7 @@
 <section class="mb-10" aria-labelledby="dashboard-stats-heading">
     <h2 id="dashboard-stats-heading" class="sr-only">{{ t('overview') }}</h2>
     <div class="grid gap-4 grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        @if($can('monasteries.read'))
         <a href="{{ route('admin.monasteries.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
             <div class="flex items-center justify-between gap-3 min-w-0">
                 <div class="min-w-0 flex-1">
@@ -24,6 +29,8 @@
                 </span>
             </div>
         </a>
+        @endif
+        @if($can('sanghas.read'))
         <a href="{{ route('admin.sanghas.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
             <div class="flex items-center justify-between gap-3 min-w-0">
                 <div class="min-w-0 flex-1">
@@ -35,6 +42,8 @@
                 </span>
             </div>
         </a>
+        @endif
+        @if($can('exams.read'))
         <a href="{{ route('admin.exams.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
             <div class="flex items-center justify-between gap-3 min-w-0">
                 <div class="min-w-0 flex-1">
@@ -46,17 +55,8 @@
                 </span>
             </div>
         </a>
-        <a href="{{ route('admin.scores.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
-            <div class="flex items-center justify-between gap-3 min-w-0">
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{{ t('scores') }}</p>
-                    <p class="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{{ $stats['scores'] }}</p>
-                </div>
-                <span class="shrink-0 rounded-lg bg-amber-100 dark:bg-amber-900/30 p-3 text-amber-600 dark:text-amber-400 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                </span>
-            </div>
-        </a>
+        @endif
+        @if($can('users.read'))
         <a href="{{ route('admin.users.index') }}" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 shadow-sm hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-colors group min-w-0">
             <div class="flex items-center justify-between gap-3 min-w-0">
                 <div class="min-w-0 flex-1">
@@ -68,6 +68,7 @@
                 </span>
             </div>
         </a>
+        @endif
     </div>
 </section>
 
@@ -75,12 +76,12 @@
 <section class="mb-10" aria-labelledby="quick-links-heading">
     <h2 id="quick-links-heading" class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">{{ t('quick_links') }}</h2>
     <div class="flex flex-wrap gap-3">
-        <a href="{{ route('admin.monasteries.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_monastery') }}</a>
-        <a href="{{ route('admin.sanghas.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_sangha') }}</a>
-        <a href="{{ route('admin.exams.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_exam') }}</a>
-        <a href="{{ route('admin.scores.index') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('scores') }}</a>
-        <a href="{{ route('admin.users.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_user') }}</a>
-        <a href="{{ route('admin.websites.index') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('website') }}</a>
+        @if($can('monasteries.create'))<a href="{{ route('admin.monasteries.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_monastery') }}</a>@endif
+        @if($can('sanghas.create'))<a href="{{ route('admin.sanghas.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_sangha') }}</a>@endif
+        @if($can('exams.create'))<a href="{{ route('admin.exams.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_exam') }}</a>@endif
+        @if($can('score_moderation.read'))<a href="{{ route('admin.score-moderation.index') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('menu_score_moderation', 'Moderation') }}</a>@endif
+        @if($can('users.create'))<a href="{{ route('admin.users.create') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'plus', 'class' => 'w-4 h-4']) {{ t('add_user') }}</a>@endif
+        @if($can('websites.read'))<a href="{{ route('admin.websites.index') }}" class="admin-btn-secondary">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('website') }}</a>@endif
     </div>
 </section>
 
@@ -89,7 +90,7 @@
     <section class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 overflow-hidden shadow-sm" aria-labelledby="recent-monasteries-heading">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <h2 id="recent-monasteries-heading" class="text-lg font-semibold text-slate-900 dark:text-slate-100">{{ t('recent_monasteries') }}</h2>
-            <a href="{{ route('admin.monasteries.index') }}" class="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline">{{ t('view') }} →</a>
+            @if($can('monasteries.read'))<a href="{{ route('admin.monasteries.index') }}" class="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline">{{ t('view') }} →</a>@endif
         </div>
         <div class="divide-y divide-slate-100 dark:divide-slate-700">
             @forelse($recentMonasteries as $m)
@@ -105,7 +106,7 @@
     <section class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 overflow-hidden shadow-sm" aria-labelledby="recent-exams-heading">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <h2 id="recent-exams-heading" class="text-lg font-semibold text-slate-900 dark:text-slate-100">{{ t('recent_exams') }}</h2>
-            <a href="{{ route('admin.exams.index') }}" class="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline">{{ t('view') }} →</a>
+            @if($can('exams.read'))<a href="{{ route('admin.exams.index') }}" class="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline">{{ t('view') }} →</a>@endif
         </div>
         <div class="divide-y divide-slate-100 dark:divide-slate-700">
             @forelse($recentExams as $e)
@@ -121,7 +122,7 @@
     <section class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 overflow-hidden shadow-sm" aria-labelledby="recent-scores-heading">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <h2 id="recent-scores-heading" class="text-lg font-semibold text-slate-900 dark:text-slate-100">{{ t('recent_scores') }}</h2>
-            <a href="{{ route('admin.scores.index') }}" class="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline">{{ t('view') }} →</a>
+            @if($can('score_moderation.read'))<a href="{{ route('admin.score-moderation.index') }}" class="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline">{{ t('view') }} →</a>@endif
         </div>
         <div class="divide-y divide-slate-100 dark:divide-slate-700">
             @forelse($recentScores ?? [] as $score)

@@ -11,10 +11,16 @@
 <form action="{{ route('admin.roles.update', $role) }}" method="POST" class="admin-form-card">
     @csrf
     @method('PUT')
+    @php
+        $isSuperAdmin = method_exists($role, 'isSuperAdmin') && $role->isSuperAdmin();
+    @endphp
     <div class="space-y-6">
         <div class="admin-form-group">
             <label for="name" class="admin-form-label">{{ t('role_name') }} *</label>
-            <input type="text" name="name" id="name" value="{{ old('name', $role->name) }}" required class="admin-input" placeholder="e.g. Admin, Editor">
+            <input type="text" name="name" id="name" value="{{ old('name', $role->name) }}" required class="admin-input" placeholder="e.g. Admin, Editor" {{ $isSuperAdmin ? 'readonly' : '' }}>
+            @if($isSuperAdmin)
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">{{ t('super_admin_locked', 'SuperAdmin always has full access and cannot be limited.') }}</p>
+            @endif
             @error('name')<p class="admin-form-error">{{ $message }}</p>@enderror
         </div>
         <div class="admin-form-group">
@@ -39,7 +45,7 @@
                                     <td class="px-4 py-2 text-sm font-medium text-slate-900 dark:text-slate-100">{{ $label }}</td>
                                     @foreach(['create','read','update','delete'] as $action)
                                         <td class="px-4 py-2 text-center">
-                                            <input type="checkbox" name="permissions[]" value="{{ $resource }}.{{ $action }}" {{ in_array($resource.'.'.$action, $current) ? 'checked' : '' }} class="admin-checkbox">
+                                            <input type="checkbox" name="permissions[]" value="{{ $resource }}.{{ $action }}" {{ $isSuperAdmin || in_array($resource.'.'.$action, $current) ? 'checked' : '' }} class="admin-checkbox" {{ $isSuperAdmin ? 'disabled' : '' }}>
                                         </td>
                                     @endforeach
                                 </tr>

@@ -3,14 +3,61 @@
 @section('title', 'Sanghas')
 
 @section('content')
+@php
+    $sanghaListUrl = function (array $overrides = []): string {
+        $q = request()->except('page');
+        foreach ($overrides as $key => $value) {
+            if ($value === null || $value === '') {
+                unset($q[$key]);
+            } else {
+                $q[$key] = $value;
+            }
+        }
+        return route('admin.sanghas.index', $q);
+    };
+    $examTypeTabActive = ! request()->filled('exam_type_id');
+@endphp
 <div class="admin-page-header">
     <h1>Sanghas</h1>
-    <a href="{{ route('admin.sanghas.create') }}" class="admin-btn-add">@include('partials.icon', ['name' => 'plus', 'class' => 'w-5 h-5']) Add Sangha</a>
+    <div class="flex items-center gap-2">
+        <form method="POST" action="{{ route('admin.sanghas.generate-eligible-list') }}">
+            @csrf
+            @if(request()->filled('exam_type_id'))
+                <input type="hidden" name="exam_type_id" value="{{ request('exam_type_id') }}">
+            @endif
+            @if(request()->filled('exam_id'))
+                <input type="hidden" name="exam_id" value="{{ request('exam_id') }}">
+            @endif
+            <button type="submit" class="admin-btn-filter">
+            @include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4'])
+            Generate
+            </button>
+        </form>
+        <a href="{{ route('admin.sanghas.create') }}" class="admin-btn-add">@include('partials.icon', ['name' => 'plus', 'class' => 'w-5 h-5']) Add Sangha</a>
+    </div>
+</div>
+
+<div class="mb-4 sm:mb-6">
+    <p class="admin-filter-label mb-2">{{ t('exam_type', 'Exam Type') }}</p>
+    <div class="admin-sangha-segmented-track" role="tablist" aria-label="{{ t('exam_type', 'Exam Type') }}">
+        <a href="{{ $sanghaListUrl(['exam_type_id' => null]) }}"
+            class="admin-sangha-segment {{ $examTypeTabActive ? 'admin-sangha-segment--active' : '' }}"
+            @if($examTypeTabActive) aria-current="true" @endif
+            role="tab">{{ t('all', 'All') }}</a>
+        @foreach($examTypes as $et)
+            @php $etActive = (string) request('exam_type_id') === (string) $et->id; @endphp
+            <a href="{{ $sanghaListUrl(['exam_type_id' => $et->id]) }}"
+                class="admin-sangha-segment {{ $etActive ? 'admin-sangha-segment--active' : '' }}"
+                @if($etActive) aria-current="true" @endif
+                role="tab">{{ $et->name }}</a>
+        @endforeach
+    </div>
 </div>
 
 <form method="GET" class="admin-filter-bar flex flex-nowrap items-end gap-2 sm:gap-3 overflow-x-auto">
     @if(request('sort'))<input type="hidden" name="sort" value="{{ request('sort') }}">@endif
     @if(request('order'))<input type="hidden" name="order" value="{{ request('order') }}">@endif
+    @if(request()->filled('exam_type_id'))<input type="hidden" name="exam_type_id" value="{{ request('exam_type_id') }}">@endif
     <div class="flex flex-col gap-1 shrink-0 min-w-0">
         <label for="search" class="admin-filter-label text-xs max-w-[80px] sm:max-w-none">Search</label>
         <div class="relative w-36 sm:w-40 shrink-0">
@@ -51,10 +98,10 @@
             <option value="rejected" {{ request('moderation_status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
         </select>
     </div>
-    <div class="flex gap-2 shrink-0 ml-auto self-end">
-        <button type="submit" class="admin-btn-filter py-2 text-sm">@include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4']) Filter</button>
-        @if(request()->hasAny(['search', 'monastery_id', 'exam_id', 'moderation_status']))
-            <a href="{{ route('admin.sanghas.index') }}" class="admin-btn-clear py-2 text-sm">@include('partials.icon', ['name' => 'x', 'class' => 'w-4 h-4']) Clear</a>
+    <div class="flex flex-wrap gap-2 shrink-0 ml-auto self-end items-center">
+        <button type="submit" class="admin-btn-filter">@include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4']) Filter</button>
+        @if(request()->hasAny(['search', 'monastery_id', 'exam_id', 'exam_type_id', 'moderation_status']))
+            <a href="{{ route('admin.sanghas.index') }}" class="admin-btn-clear">@include('partials.icon', ['name' => 'x', 'class' => 'w-4 h-4']) Clear</a>
         @endif
     </div>
 </form>

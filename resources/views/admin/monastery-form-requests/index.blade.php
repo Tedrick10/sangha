@@ -13,35 +13,13 @@
 @section('content')
 <div class="admin-page-header">
     <div>
-        <h1>{{ $formScope === 'exam' ? t('admin_exam_form_submissions', 'Exam Form') : t('monastery_requests', 'Transfer Sangha') }}</h1>
-        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $formScope === 'exam' ? t('admin_exam_form_submissions_subtitle', 'Uploads from the monastery portal, grouped by exam programme.') : t('monastery_requests_subtitle', 'Review and update monastery portal submissions.') }}</p>
+        <h1>{{ t('monastery_requests', 'Transfer Sangha') }}</h1>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ t('monastery_requests_subtitle', 'Review and update monastery portal submissions.') }}</p>
     </div>
 </div>
-
-<div class="mb-5 flex flex-wrap gap-2">
-    <a href="{{ route('admin.monastery-requests.index', array_filter(['form_scope' => 'general', 'request_status' => request('request_status'), 'search' => request('search')])) }}" class="inline-flex items-center rounded-xl border px-4 py-2 text-sm font-semibold transition {{ $formScope === 'general' ? 'border-amber-500 bg-amber-500 text-white dark:border-amber-400' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200' }}">{{ t('monastery_requests', 'Transfer Sangha') }}</a>
-    <a href="{{ route('admin.monastery-requests.index', array_filter(['form_scope' => 'exam', 'request_status' => request('request_status'), 'search' => request('search')])) }}" class="inline-flex items-center rounded-xl border px-4 py-2 text-sm font-semibold transition {{ $formScope === 'exam' ? 'border-amber-600 bg-amber-500 text-white shadow-sm dark:border-amber-500 dark:bg-amber-600' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200' }}">{{ t('admin_exam_form_submissions', 'Exam Form') }}</a>
-</div>
-
-@if($formScope === 'exam' && $examTypesCanonical->isNotEmpty())
-    <div class="mb-5 flex flex-wrap gap-2">
-        @php
-            $typeParams = array_filter(['form_scope' => 'exam', 'request_status' => request('request_status'), 'search' => request('search')]);
-            $allTypesActive = ! request()->filled('exam_type_id');
-        @endphp
-        <a href="{{ route('admin.monastery-requests.index', $typeParams) }}" class="rounded-lg border px-3 py-1.5 text-xs font-semibold {{ $allTypesActive ? 'border-amber-500 bg-amber-50 text-amber-950 dark:bg-amber-950/45 dark:text-amber-100 dark:ring-1 dark:ring-amber-400/35' : 'border-slate-200 text-slate-700 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-200' }}">{{ t('all_programmes', 'All programmes') }}</a>
-        @foreach($examTypesCanonical as $etPill)
-            @php $pillParams = array_merge($typeParams, ['exam_type_id' => $etPill->id]); @endphp
-            <a href="{{ route('admin.monastery-requests.index', $pillParams) }}" class="rounded-lg border px-3 py-1.5 text-xs font-semibold {{ (int) request('exam_type_id') === (int) $etPill->id ? 'border-amber-500 bg-amber-50 text-amber-950 dark:bg-amber-950/45 dark:text-amber-100 dark:ring-1 dark:ring-amber-400/35' : 'border-slate-200 text-slate-700 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-200' }}">{{ $etPill->name }}</a>
-        @endforeach
-    </div>
-@endif
 
 <form method="GET" class="admin-filter-bar flex flex-wrap gap-4 items-end mb-6">
-    <input type="hidden" name="form_scope" value="{{ $formScope }}">
-    @if($formScope === 'exam' && request()->filled('exam_type_id'))
-        <input type="hidden" name="exam_type_id" value="{{ request('exam_type_id') }}">
-    @endif
+    <input type="hidden" name="form_scope" value="general">
     <div class="admin-search-wrap">
         <label for="search" class="admin-filter-label">{{ t('search', 'Search') }}</label>
         <div class="relative mt-1">

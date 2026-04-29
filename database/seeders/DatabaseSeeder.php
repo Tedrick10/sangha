@@ -31,6 +31,10 @@ class DatabaseSeeder extends Seeder
 
         // Roles (must exist before users due to role_id FK)
         $allPermissions = Role::allPermissionSlugs();
+        $superAdminRole = Role::updateOrCreate(
+            ['name' => Role::SUPER_ADMIN_NAME],
+            ['permissions' => $allPermissions]
+        );
         $adminRole = Role::updateOrCreate(
             ['name' => 'Admin'],
             ['permissions' => $allPermissions]
@@ -40,7 +44,9 @@ class DatabaseSeeder extends Seeder
             ['permissions' => array_values(array_filter($allPermissions, fn (string $p) => in_array($p, [
                 'monasteries.read', 'monasteries.update', 'sanghas.read', 'sanghas.update',
                 'subjects.read', 'exam_types.read', 'exams.read', 'exams.update',
-                'scores.read', 'scores.update', 'websites.read', 'websites.update',
+                'mandatory_scores.read', 'mandatory_scores.update',
+                'score_moderation.read', 'score_moderation.update',
+                'clean_pass.read', 'websites.read', 'websites.update',
                 'custom_fields.read', 'languages.read',
             ], true)))]
         );
@@ -48,11 +54,15 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Viewer'],
             ['permissions' => array_values(array_filter($allPermissions, fn (string $p) => str_ends_with($p, '.read')))]
         );
+        $teacherRole = Role::updateOrCreate(
+            ['name' => 'Teacher'],
+            ['permissions' => ['mandatory_scores.read', 'mandatory_scores.update']]
+        );
 
         // Users (admin panel users)
         User::updateOrCreate(
             ['email' => 'admin@sanghaexam.org'],
-            ['name' => 'Admin User', 'password' => Hash::make('password123'), 'role_id' => $adminRole->id]
+            ['name' => 'Admin User', 'password' => Hash::make('password123'), 'role_id' => $superAdminRole->id]
         );
         User::updateOrCreate(
             ['email' => 'editor@sanghaexam.org'],
@@ -74,7 +84,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'jane@example.com'],
             ['name' => 'Jane Smith', 'password' => Hash::make('password123'), 'role_id' => $viewerRole->id]
         );
-        $roles = [$adminRole, $editorRole, $viewerRole];
+        $roles = [$adminRole, $editorRole, $viewerRole, $teacherRole];
         for ($i = 0; $i < 15; $i++) {
             User::updateOrCreate(
                 ['email' => 'staff'.($i + 1).'@sanghaexam.org'],

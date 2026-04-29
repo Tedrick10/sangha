@@ -39,29 +39,53 @@
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="border-b border-stone-200 dark:border-slate-700">
-                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('desk_number', 'Desk No.') }}</th>
-                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('user_id', 'Student Id') }}</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">No.</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('roll_number', 'Roll Number') }}</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">
+                                <span class="block">{{ t('desk_number_short', 'Desk No.') }}</span>
+                                <span class="block normal-case text-[10px] leading-tight">({{ t('exam_roll_number', 'Exam Roll Number') }})</span>
+                            </th>
                             <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('name', 'Name') }}</th>
-                            <th class="text-left py-3 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('monastery', 'Monastery') }}</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('score_table_father_nrc', 'Father / NRC') }}</th>
+                            <th class="text-left py-3 pr-4 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('monastery', 'Monastery') }}</th>
+                            <th class="text-left py-3 text-stone-500 dark:text-slate-400 uppercase tracking-wide text-xs">{{ t('exam', 'Exam') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse(($snapshot ?? [])['candidates'] ?? [] as $row)
                             <tr class="border-b border-stone-100 dark:border-slate-800">
+                                <td class="py-3 pr-4 text-stone-500 dark:text-slate-400">{{ $loop->iteration }}</td>
+                                <td class="py-3 pr-4 font-mono tabular-nums text-stone-700 dark:text-slate-300">
+                                    {{ ($row['eligible_roll_number'] ?? '') !== '' ? $row['eligible_roll_number'] : '—' }}
+                                </td>
                                 <td class="py-3 pr-4 font-semibold tabular-nums text-yellow-700 dark:text-yellow-400">
                                     @if(array_key_exists('desk_number', $row) && $row['desk_number'] !== null && $row['desk_number'] !== '')
-                                        {{ $deskPrefix }}{{ $row['desk_number'] }}
+                                        {{ $deskPrefix }}{{ str_pad((string) $row['desk_number'], 6, '0', STR_PAD_LEFT) }}
                                     @else
                                         —
                                     @endif
                                 </td>
-                                <td class="py-3 pr-4 font-mono text-stone-700 dark:text-slate-300">{{ $row['user_id'] ?? '—' }}</td>
                                 <td class="py-3 pr-4 font-medium text-stone-900 dark:text-slate-100">{{ $row['name'] ?? '—' }}</td>
-                                <td class="py-3 text-stone-700 dark:text-slate-300">{{ $row['monastery_name'] ?? '—' }}</td>
+                                <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">
+                                    @php
+                                        $father = trim((string) ($row['father_name'] ?? ''));
+                                        $nrc = trim((string) ($row['nrc_number'] ?? ''));
+                                    @endphp
+                                    @if($father === '' && $nrc === '')
+                                        —
+                                    @else
+                                        <div class="leading-tight">
+                                            <div>{{ $father !== '' ? $father : '—' }}</div>
+                                            <div class="text-xs text-stone-500 dark:text-slate-400">{{ $nrc !== '' ? $nrc : '—' }}</div>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="py-3 pr-4 text-stone-700 dark:text-slate-300">{{ $row['monastery_name'] ?? '—' }}</td>
+                                <td class="py-3 text-stone-700 dark:text-slate-300">{{ $snapshot['exam_name'] ?? $exam->name }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-8 text-center text-stone-500 dark:text-slate-400">
+                                <td colspan="7" class="py-8 text-center text-stone-500 dark:text-slate-400">
                                     {{ t('exam_eligible_empty', 'No list has been published yet, or there are no approved candidates for this exam. An administrator can click Generate on the exam in the admin panel.') }}
                                 </td>
                             </tr>

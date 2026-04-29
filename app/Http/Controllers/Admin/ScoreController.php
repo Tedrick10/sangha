@@ -357,6 +357,18 @@ class ScoreController extends Controller
     public function generatePassList(): JsonResponse
     {
         $generatedAt = now()->toDateTimeString();
+        $existingSnapshotRaw = SiteSetting::get('pass_sanghas_snapshot');
+        $existingSnapshot = $existingSnapshotRaw ? json_decode($existingSnapshotRaw, true) : null;
+        $existingOrder = [];
+        if (is_array($existingSnapshot)) {
+            foreach (array_values($existingSnapshot['pass_sanghas'] ?? []) as $idx => $row) {
+                $sid = (int) ($row['id'] ?? 0);
+                $eid = (int) ($row['exam_id'] ?? 0);
+                if ($sid > 0) {
+                    $existingOrder[$sid.'|'.$eid] = (int) $idx;
+                }
+            }
+        }
 
         $topSanghas = Sangha::query()
             ->joinSub($this->scoresPerSanghaAggregateSubquery(new Request), 'score_agg', 'sanghas.id', '=', 'score_agg.sangha_id')
@@ -383,18 +395,28 @@ class ScoreController extends Controller
             ->leftJoin('scores', 'scores.sangha_id', '=', 'sanghas.id')
             ->with('monastery')
             ->where(function ($query) {
-                $query->whereExists(function ($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('scores')
-                        ->join('subjects', 'subjects.id', '=', 'scores.subject_id')
-                        ->whereColumn('scores.sangha_id', 'sanghas.id')
-                        ->whereNotNull('subjects.pass_mark')
-                        ->whereRaw('scores.value >= subjects.pass_mark');
-                })->orWhereExists(function ($sub) {
+                $query->whereNotExists(function ($sub) {
                     $sub->select(DB::raw(1))
                         ->from('scores')
                         ->whereColumn('scores.sangha_id', 'sanghas.id')
-                        ->where('scores.moderation_decision', 'pass');
+                        ->whereColumn('scores.exam_id', 'sanghas.exam_id')
+                        ->where('scores.moderation_decision', 'fail');
+                })->where(function ($inner) {
+                    $inner->whereExists(function ($sub) {
+                        $sub->select(DB::raw(1))
+                            ->from('scores')
+                            ->join('subjects', 'subjects.id', '=', 'scores.subject_id')
+                            ->whereColumn('scores.sangha_id', 'sanghas.id')
+                            ->whereColumn('scores.exam_id', 'sanghas.exam_id')
+                            ->whereNotNull('subjects.pass_mark')
+                            ->whereRaw('scores.value >= subjects.pass_mark');
+                    })->orWhereExists(function ($sub) {
+                        $sub->select(DB::raw(1))
+                            ->from('scores')
+                            ->whereColumn('scores.sangha_id', 'sanghas.id')
+                            ->whereColumn('scores.exam_id', 'sanghas.exam_id')
+                            ->where('scores.moderation_decision', 'pass');
+                    });
                 });
             })
             ->select('sanghas.*')
@@ -417,6 +439,24 @@ class ScoreController extends Controller
 
         $passSanghas = $orderedTopPassSanghas
             ->concat($remainingPassSanghas)
+            ->values();
+
+        // Preserve admin customized Clean Pass order after regenerate.
+        $passSanghas = $passSanghas
+            ->values()
+            ->map(fn ($sangha, $idx) => ['sangha' => $sangha, 'default_order' => $idx])
+            ->sortBy(function (array $entry) use ($existingOrder) {
+                $sangha = $entry['sangha'];
+                $key = ((int) $sangha->id).'|'.((int) ($sangha->exam_id ?? 0));
+                $prev = $existingOrder[$key] ?? null;
+
+                return [
+                    $prev === null ? 1 : 0,
+                    $prev ?? 999999,
+                    $entry['default_order'],
+                ];
+            })
+            ->pluck('sangha')
             ->values();
 
         $passSanghas = (new EloquentCollection($passSanghas->all()))
@@ -469,6 +509,8 @@ class ScoreController extends Controller
 
                 return [
                     'id' => $sangha->id,
+                    'exam_type_id' => $latestScore?->exam?->exam_type_id
+                        ?? $sangha->exam?->exam_type_id,
                     'name' => $sangha->name,
                     'monastery_name' => $sangha->monastery->name ?? '—',
                     'father_name' => $row['father_name'],

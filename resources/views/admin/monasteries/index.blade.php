@@ -79,7 +79,8 @@
                         @if($monastery->moderationStatus() === 'rejected' && $monastery->rejection_reason)
                             <button type="button" class="admin-action-link admin-action-reason js-open-reason-modal" data-reason="{{ e($monastery->rejection_reason) }}">View Reason</button>
                         @endif
-                        <a href="{{ route('admin.monasteries.chat', $monastery) }}" class="admin-action-link">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('chat', 'Chat') }}</a>
+                        <!-- <a href="{{ route('admin.monasteries.chat', $monastery) }}" class="admin-action-link">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('chat', 'Chat') }}</a> -->
+                        <a href="{{ route('admin.monasteries.show', $monastery) }}" class="admin-action-link admin-action-view">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('view') }}</a>
                         <a href="{{ route('admin.monasteries.edit', $monastery) }}" class="admin-action-link admin-action-edit">@include('partials.icon', ['name' => 'pencil', 'class' => 'w-4 h-4']) {{ t('edit') }}</a>
                         <form action="{{ route('admin.monasteries.destroy', $monastery) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('{{ t('delete_monastery') }}');">
                             @csrf

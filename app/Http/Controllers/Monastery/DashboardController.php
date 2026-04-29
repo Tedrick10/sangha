@@ -47,15 +47,13 @@ class DashboardController extends Controller
 
     public function __invoke(Request $request): View
     {
-        $tab = in_array($request->get('tab'), ['main', 'results', 'exam', 'chat'], true)
+        $tab = in_array($request->get('tab'), ['main', 'results', 'chat'], true)
             ? $request->get('tab')
             : 'main';
 
         $allowedScreens = ['main-home', 'results-home', 'results-year', 'results-level', 'results-exam', 'exam-home', 'total', 'primary', 'intermediate', 'level-1', 'level-2', 'level-3', 'eligible', 'needed-update', 'register', 'pending', 'approved', 'rejected', 'request', 'pass', 'fail', 'chat'];
         if ($tab === 'chat') {
             $screen = 'chat';
-        } elseif ($tab === 'exam') {
-            $screen = 'exam-home';
         } else {
             $screen = in_array($request->get('screen'), $allowedScreens, true)
                 ? $request->get('screen')

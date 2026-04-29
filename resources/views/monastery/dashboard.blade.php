@@ -1603,10 +1603,9 @@
 
 <nav class="monastery-portal-bottom-nav" role="navigation" aria-label="{{ t('monastery_portal') }}">
     <div class="monastery-portal-bottom-nav__inner">
-        <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'main-home']) }}" class="monastery-portal-bottom-nav__tab {{ $tab === 'main' ? 'monastery-portal-bottom-nav__tab--active' : '' }}" @if($tab === 'main') aria-current="page" @endif>{{ t('monastery_nav_sangha_tab', 'Sangha') }}</a>
-        <a href="{{ route('monastery.dashboard', ['tab' => 'exam', 'exam_type_id' => $examTypeId ?: null]) }}" class="monastery-portal-bottom-nav__tab {{ $tab === 'exam' ? 'monastery-portal-bottom-nav__tab--active' : '' }}" @if($tab === 'exam') aria-current="page" @endif>{{ t('monastery_nav_exam_form', 'Exam Form') }}</a>
+        <a href="{{ route('monastery.dashboard', ['tab' => 'main', 'screen' => 'main-home']) }}" class="monastery-portal-bottom-nav__tab {{ $tab === 'main' ? 'monastery-portal-bottom-nav__tab--active' : '' }}" @if($tab === 'main') aria-current="page" @endif>{{ t('main', 'Main') }}</a>
         <a href="{{ route('monastery.dashboard', ['tab' => 'results', 'screen' => 'results-home']) }}" class="monastery-portal-bottom-nav__tab {{ $tab === 'results' ? 'monastery-portal-bottom-nav__tab--active' : '' }}" @if($tab === 'results') aria-current="page" @endif>{{ t('results', 'Results') }}</a>
-        <a href="{{ route('monastery.dashboard', ['tab' => 'chat']) }}" class="monastery-portal-bottom-nav__tab {{ $tab === 'chat' ? 'monastery-portal-bottom-nav__tab--active' : '' }}" @if($tab === 'chat') aria-current="page" @endif>{{ t('chat', 'Chat') }}</a>
+        <!-- <a href="{{ route('monastery.dashboard', ['tab' => 'chat']) }}" class="monastery-portal-bottom-nav__tab {{ $tab === 'chat' ? 'monastery-portal-bottom-nav__tab--active' : '' }}" @if($tab === 'chat') aria-current="page" @endif>{{ t('chat', 'Chat') }}</a> -->
     </div>
 </nav>
 @endsection

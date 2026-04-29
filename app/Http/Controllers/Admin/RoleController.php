@@ -36,9 +36,17 @@ class RoleController extends Controller
             'permissions' => 'nullable|array',
             'permissions.*' => [Rule::in($allowed)],
         ]);
-        $permissions = $request->input('permissions', []);
+        $name = trim((string) $request->input('name'));
+        $isSuperAdmin = strcasecmp($name, Role::SUPER_ADMIN_NAME) === 0;
+        $permissions = $isSuperAdmin
+            ? $allowed
+            : $request->input('permissions', []);
         $permissions = is_array($permissions) ? array_values(array_filter($permissions)) : [];
-        Role::create(['name' => $request->input('name'), 'permissions' => $permissions]);
+        Role::create([
+            'name' => $isSuperAdmin ? Role::SUPER_ADMIN_NAME : $name,
+            'permissions' => $permissions,
+        ]);
+
         return redirect()->route('admin.roles.index')->with('success', t('role_created'));
     }
 
@@ -56,14 +64,25 @@ class RoleController extends Controller
             'permissions' => 'nullable|array',
             'permissions.*' => [Rule::in($allowed)],
         ]);
-        $permissions = $request->input('permissions', []);
+        $name = trim((string) $request->input('name'));
+        $isSuperAdmin = $role->isSuperAdmin() || strcasecmp($name, Role::SUPER_ADMIN_NAME) === 0;
+        $permissions = $isSuperAdmin
+            ? $allowed
+            : $request->input('permissions', []);
         $permissions = is_array($permissions) ? array_values(array_filter($permissions)) : [];
-        $role->update(['name' => $request->input('name'), 'permissions' => $permissions]);
+        $role->update([
+            'name' => $isSuperAdmin ? Role::SUPER_ADMIN_NAME : $name,
+            'permissions' => $permissions,
+        ]);
+
         return redirect()->route('admin.roles.index')->with('success', t('role_updated'));
     }
 
     public function destroy(Role $role): RedirectResponse
     {
+        if ($role->isSuperAdmin()) {
+            return redirect()->route('admin.roles.index')->with('error', t('cannot_delete_super_admin', 'SuperAdmin role cannot be deleted.'));
+        }
         if ($role->users()->exists()) {
             return redirect()->route('admin.roles.index')->with('error', t('role_has_users'));
         }

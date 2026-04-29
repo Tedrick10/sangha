@@ -15,9 +15,6 @@ function shouldSkipSelect(el) {
     if (name === 'is_active' || name === 'is_published') {
         return true;
     }
-    if (name === 'exam_type_id') {
-        return true;
-    }
     if (name === 'status' && el.id === 'mr_status') {
         return true;
     }

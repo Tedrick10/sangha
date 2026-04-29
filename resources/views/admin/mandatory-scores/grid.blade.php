@@ -1,10 +1,10 @@
 @extends('admin.layout')
 
-@section('title', t('mandatory_scores_grid_title', 'Exam desk score grid'))
+@section('title', t('mandatory_scores_grid_title', 'Exam Mark Entry'))
 
 @section('content')
 <div class="admin-page-header">
-    <h1>{{ t('mandatory_scores_grid_title', 'Exam desk score grid') }}</h1>
+    <h1>{{ t('mandatory_scores_grid_title', 'Exam Mark Entry') }}</h1>
 </div>
 
 <p class="mb-6 max-w-3xl text-sm text-slate-600 dark:text-slate-400">
@@ -24,6 +24,15 @@
                 @endforeach
             </select>
         </div>
+        <div class="admin-form-group mb-0 min-w-[200px] flex-1">
+            <label for="grid_exam_type_id" class="admin-form-label">{{ t('mandatory_scores_grid_exam_type', 'Exam type') }}</label>
+            <select name="exam_type_id" id="grid_exam_type_id" class="admin-select-input w-full">
+                <option value="">{{ t('all', 'All') }}</option>
+                @foreach($examTypes as $et)
+                    <option value="{{ $et->id }}" {{ (string) ($examTypeId ?? '') === (string) $et->id ? 'selected' : '' }}>{{ $et->name }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="admin-form-group mb-0 min-w-[240px] flex-1">
             <label for="grid_exam_id" class="admin-form-label">{{ t('exams', 'Exam') }}</label>
             <select name="exam_id" id="grid_exam_id" class="admin-select-input w-full">
@@ -36,7 +45,7 @@
             </select>
         </div>
         <div class="flex gap-2 shrink-0">
-            <button type="submit" name="apply" value="1" class="admin-btn-filter inline-flex items-center gap-2">@include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4']) {{ t('filter', 'Filter') }}</button>
+            <button type="submit" name="apply" value="1" class="admin-btn-filter inline-flex items-center gap-2 min-h-11">@include('partials.icon', ['name' => 'funnel', 'class' => 'w-4 h-4']) {{ t('filter', 'Filter') }}</button>
         </div>
     </form>
 </div>
@@ -54,14 +63,19 @@
 @if($examModel && $subjects->isNotEmpty())
     @php
         $deskPrefix = $examModel->desk_number_prefix ?? '';
-        $yearLabel = $examModel->examType?->name;
+        $calendarYearLabel = $examModel->exam_date?->format('Y');
+        $examTypeLabel = $examModel->examType?->name;
         $examTitle = $examModel->name . ($examModel->exam_date ? ' — ' . $examModel->exam_date->format('M j, Y') : '');
     @endphp
 
     <div class="mb-4 flex flex-wrap gap-x-10 gap-y-2 rounded-lg border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm dark:border-slate-600 dark:bg-slate-800/50">
         <div>
             <span class="font-semibold text-slate-500 dark:text-slate-400">{{ t('mandatory_scores_grid_year', 'Year') }}:</span>
-            <span class="ml-2 text-slate-900 dark:text-slate-100">{{ $yearLabel ?? '—' }}</span>
+            <span class="ml-2 text-slate-900 dark:text-slate-100">{{ $calendarYearLabel ?? '—' }}</span>
+        </div>
+        <div>
+            <span class="font-semibold text-slate-500 dark:text-slate-400">{{ t('mandatory_scores_grid_exam_type', 'Exam type') }}:</span>
+            <span class="ml-2 text-slate-900 dark:text-slate-100">{{ $examTypeLabel ?? '—' }}</span>
         </div>
         <div>
             <span class="font-semibold text-slate-500 dark:text-slate-400">{{ t('exams', 'Exam') }}:</span>
@@ -71,7 +85,7 @@
 
     @if($rows->isEmpty())
         <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-            {{ t('mandatory_scores_grid_no_desks', 'No candidates have an assigned desk for this exam yet. Use Examinations → Exam → Entrances to seat candidates first.') }}
+            {{ t('mandatory_scores_grid_no_desks', 'No candidates have an assigned desk for this exam yet. Approve sanghas for this exam and assign hall desk numbers as needed.') }}
         </div>
     @else
         <div class="hidden" aria-hidden="true">
@@ -81,6 +95,9 @@
                     @csrf
                     <input type="hidden" name="exam_id" value="{{ $examModel->id }}">
                     <input type="hidden" name="sangha_id" value="{{ $formSangha->id }}">
+                    @if($examTypeId)
+                        <input type="hidden" name="exam_type_id" value="{{ $examTypeId }}">
+                    @endif
                 </form>
             @endforeach
         </div>
@@ -95,6 +112,7 @@
                         @foreach($subjects as $subject)
                             <th class="whitespace-nowrap px-2 py-2.5 text-center" title="{{ $subject->name }}">{{ \Illuminate\Support\Str::limit($subject->name, 14) }}</th>
                         @endforeach
+                        <th class="w-28 px-2 py-2.5 text-center">{{ t('total', 'Total') }}</th>
                         <th class="w-28 px-2 py-2.5 text-center">{{ t('mandatory_scores_grid_confirm', 'Confirm') }}</th>
                     </tr>
                 </thead>
@@ -142,9 +160,22 @@
                                         class="score-grid-input w-full min-w-[4.5rem] rounded border border-slate-200 bg-white px-2 py-1.5 text-center text-sm tabular-nums text-slate-900 shadow-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                                         placeholder="0"
                                         autocomplete="off"
+                                        data-row-score
                                         aria-label="{{ $subject->name }}">
                                 </td>
                             @endforeach
+                            @php
+                                $total = 0.0;
+                                foreach ($subjects as $subject) {
+                                    $existing = $scoresBySubject->get($subject->id);
+                                    $oldKey = 'scores.'.$subject->id;
+                                    $val = old($oldKey, $existing ? $existing->value : null);
+                                    if ($val !== null && $val !== '' && is_numeric((string) $val)) {
+                                        $total += (float) $val;
+                                    }
+                                }
+                            @endphp
+                            <td class="px-2 py-2 text-center align-middle font-semibold tabular-nums text-slate-800 dark:text-slate-200" data-row-total>{{ format_number_display($total) }}</td>
                             <td class="p-1 align-middle text-center">
                                 <button type="submit" form="{{ $formId }}" class="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200 dark:hover:bg-amber-900/50">
                                     {{ t('mandatory_scores_grid_confirm', 'Confirm') }}
@@ -163,7 +194,9 @@
 <script>
 (function () {
     var MSG_SELECT_EXAM = @json(t('mandatory_scores_select_exam', 'Select exam'));
+    var ALL_LABEL = @json(t('all', 'All'));
     var examOptionsUrl = @json(route('admin.mandatory-scores.exam-options'));
+    var yearOptionsUrl = @json(route('admin.mandatory-scores.year-options'));
 
     function clearExamSelect(examSelect) {
         if (!examSelect) return;
@@ -179,6 +212,20 @@
         return yearSelect.tomselect ? yearSelect.tomselect.getValue() : yearSelect.value;
     }
 
+    function setYearValue(yearSelect, y) {
+        if (!yearSelect) return;
+        if (yearSelect.tomselect) {
+            yearSelect.tomselect.setValue(y ? String(y) : '', true);
+        } else {
+            yearSelect.value = y ? String(y) : '';
+        }
+    }
+
+    function examTypeValue(examTypeSelect) {
+        if (!examTypeSelect) return '';
+        return examTypeSelect.tomselect ? examTypeSelect.tomselect.getValue() : examTypeSelect.value;
+    }
+
     function syncSelectTomSelect(selectEl) {
         if (selectEl && selectEl.tomselect) {
             try {
@@ -190,8 +237,42 @@
     document.addEventListener('DOMContentLoaded', function () {
         queueMicrotask(function initGridYearExamFilters() {
             var yearSelect = document.getElementById('grid_year_id');
+            var examTypeSelect = document.getElementById('grid_exam_type_id');
             var examSelect = document.getElementById('grid_exam_id');
-            if (!yearSelect || !examSelect) return;
+            if (!yearSelect || !examSelect || !examTypeSelect) return;
+
+            function rebuildYearOptionsFromJson(years) {
+                var prev = yearValue(yearSelect);
+                if (yearSelect.tomselect) {
+                    try {
+                        yearSelect.tomselect.destroy();
+                    } catch (e) {}
+                }
+                yearSelect.innerHTML = '';
+                var allOpt = document.createElement('option');
+                allOpt.value = '';
+                allOpt.textContent = ALL_LABEL;
+                yearSelect.appendChild(allOpt);
+                (years || []).forEach(function (yr) {
+                    var o = document.createElement('option');
+                    o.value = String(yr);
+                    o.textContent = String(yr);
+                    yearSelect.appendChild(o);
+                });
+                if (typeof window.sanghaInitSearchableSelects === 'function') {
+                    window.sanghaInitSearchableSelects(document);
+                }
+                var allowed = {};
+                (years || []).forEach(function (yr) {
+                    allowed[String(yr)] = true;
+                });
+                if (prev && allowed[prev]) {
+                    setYearValue(yearSelect, prev);
+                } else {
+                    setYearValue(yearSelect, '');
+                }
+                syncSelectTomSelect(yearSelect);
+            }
 
             function rebuildExamOptionsFromJson(exams) {
                 if (examSelect.tomselect) {
@@ -213,17 +294,20 @@
                 syncSelectTomSelect(examSelect);
             }
 
-            function onYearChanged() {
+            function fetchExamOptions() {
                 clearExamSelect(examSelect);
                 var y = yearValue(yearSelect);
-                fetch(examOptionsUrl + '?year_id=' + encodeURIComponent(y || ''), {
+                var et = examTypeValue(examTypeSelect);
+                var q = [];
+                if (y) q.push('year_id=' + encodeURIComponent(y));
+                if (et) q.push('exam_type_id=' + encodeURIComponent(et));
+                var url = examOptionsUrl + (q.length ? '?' + q.join('&') : '');
+                fetch(url, {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     credentials: 'same-origin'
                 })
                     .then(function (r) {
-                        if (!r.ok) {
-                            throw new Error('bad response');
-                        }
+                        if (!r.ok) throw new Error('bad response');
                         return r.json();
                     })
                     .then(function (data) {
@@ -234,7 +318,53 @@
                     });
             }
 
+            function onExamTypeChanged() {
+                var et = examTypeValue(examTypeSelect);
+                fetch(yearOptionsUrl + (et ? '?exam_type_id=' + encodeURIComponent(et) : ''), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                })
+                    .then(function (r) {
+                        if (!r.ok) throw new Error('bad response');
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        rebuildYearOptionsFromJson(data.years || []);
+                        fetchExamOptions();
+                    })
+                    .catch(function () {
+                        rebuildYearOptionsFromJson([]);
+                        fetchExamOptions();
+                    });
+            }
+
+            function onYearChanged() {
+                fetchExamOptions();
+            }
+
+            examTypeSelect.addEventListener('change', onExamTypeChanged);
             yearSelect.addEventListener('change', onYearChanged);
+
+            function recalcRowTotal(tr) {
+                if (!tr) return;
+                var totalEl = tr.querySelector('[data-row-total]');
+                if (!totalEl) return;
+                var sum = 0;
+                tr.querySelectorAll('input[data-row-score]').forEach(function (input) {
+                    var raw = (input.value || '').trim();
+                    var n = Number(raw);
+                    if (raw !== '' && Number.isFinite(n)) sum += n;
+                });
+                var rounded = Math.round(sum * 100) / 100;
+                totalEl.textContent = Number.isInteger(rounded) ? String(rounded) : String(rounded);
+            }
+
+            document.querySelectorAll('table.mandatory-score-grid-table tbody tr').forEach(function (tr) {
+                recalcRowTotal(tr);
+                tr.querySelectorAll('input[data-row-score]').forEach(function (input) {
+                    input.addEventListener('input', function () { recalcRowTotal(tr); });
+                });
+            });
         });
     });
 })();

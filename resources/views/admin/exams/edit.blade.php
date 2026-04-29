@@ -6,7 +6,6 @@
 <div class="admin-form-page-header">
     <a href="{{ route('admin.exams.index') }}" class="admin-back-link">@include('partials.icon', ['name' => 'arrow-left', 'class' => 'w-4 h-4 shrink-0']) Exams</a>
     <h1 class="admin-page-title">Edit Exam</h1>
-    <p class="mt-2"><a href="{{ route('admin.exams.entrances', $exam) }}" class="text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">{{ t('exam_entrance_manage_link', 'Entrance & desk numbers →') }}</a></p>
 </div>
 
 <form action="{{ route('admin.exams.update', $exam) }}" method="POST" enctype="multipart/form-data" class="admin-form-card">

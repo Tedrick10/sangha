@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AppearanceController;
+use App\Http\Controllers\Admin\CleanPassController;
 use App\Http\Controllers\Admin\CustomFieldController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExamController;
@@ -76,7 +77,7 @@ Route::middleware('admin.locale')->group(function () {
 });
 
 // Admin panel - must be before website catch-all /{slug}
-Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth', 'admin.permission'])->group(function () {
     Route::bind('user', fn (string $value) => User::findOrFail($value));
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('notifications/recent', [AdminNotificationController::class, 'recent'])->name('notifications.recent');
@@ -92,26 +93,28 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.locale', 'admin.auth'
     Route::put('monastery-requests/{monasteryFormRequest}/status', [MonasteryFormRequestController::class, 'updateStatus'])->name('monastery-requests.update-status');
     Route::delete('monastery-requests/{monasteryFormRequest}', [MonasteryFormRequestController::class, 'destroy'])->name('monastery-requests.destroy');
     Route::get('sanghas/{sangha}/exams/{exam}', [SanghaController::class, 'examScores'])->name('sanghas.exam-scores');
+    Route::post('sanghas/generate-eligible-list', [SanghaController::class, 'generateEligibleList'])->name('sanghas.generate-eligible-list');
     Route::resource('sanghas', SanghaController::class);
     Route::get('sanghas/{sangha}/custom-fields/{customField}/file', [SanghaController::class, 'customFieldFile'])->name('sanghas.custom-field-file');
     Route::resource('custom-fields', CustomFieldController::class);
     Route::post('custom-fields/reorder', [CustomFieldController::class, 'reorder'])->name('custom-fields.reorder');
     Route::resource('subjects', SubjectController::class);
+    Route::get('mandatory-scores/year-options', [MandatoryScoreEntryController::class, 'yearOptions'])->name('mandatory-scores.year-options');
     Route::get('mandatory-scores/exam-options', [MandatoryScoreEntryController::class, 'examOptions'])->name('mandatory-scores.exam-options');
     Route::get('mandatory-scores/desk-options', [MandatoryScoreEntryController::class, 'deskOptions'])->name('mandatory-scores.desk-options');
     Route::post('mandatory-scores/grid-row', [MandatoryScoreEntryController::class, 'storeGridRow'])->name('mandatory-scores.grid-row');
     Route::get('mandatory-scores/grid', [MandatoryScoreEntryController::class, 'grid'])->name('mandatory-scores.grid');
+    Route::get('score-moderation', [MandatoryScoreEntryController::class, 'moderation'])->name('score-moderation.index');
+    Route::post('score-moderation/control', [MandatoryScoreEntryController::class, 'storeModerationControl'])->name('score-moderation.control');
     Route::post('mandatory-scores', [MandatoryScoreEntryController::class, 'store'])->name('mandatory-scores.store');
     Route::get('mandatory-scores', [MandatoryScoreEntryController::class, 'index'])->name('mandatory-scores.index');
-    Route::resource('scores', ScoreController::class);
+    Route::get('clean-pass', [CleanPassController::class, 'index'])->name('clean-pass.index');
+    Route::post('clean-pass/generate', [CleanPassController::class, 'generate'])->name('clean-pass.generate');
+    Route::post('clean-pass/reorder', [CleanPassController::class, 'reorder'])->name('clean-pass.reorder');
     Route::post('scores/generate-pass-list', [ScoreController::class, 'generatePassList'])->name('scores.generate-pass-list');
     Route::post('scores/{score}/decision', [ScoreController::class, 'updateDecision'])->name('scores.decision');
     Route::post('scores/top20/reorder', [ScoreController::class, 'reorderTop20'])->name('scores.top20.reorder');
     Route::resource('exam-types', ExamTypeController::class);
-    Route::get('exams/{exam}/entrances', [ExamController::class, 'entrances'])->name('exams.entrances');
-    Route::post('exams/{exam}/entrances/confirm', [ExamController::class, 'confirmEntrance'])->name('exams.entrances.confirm');
-    Route::post('exams/{exam}/entrances/confirm-bulk', [ExamController::class, 'confirmEntranceBulk'])->name('exams.entrances.confirm-bulk');
-    Route::post('exams/{exam}/entrances/unseat', [ExamController::class, 'unseatEntrance'])->name('exams.entrances.unseat');
     Route::patch('exams/{exam}/desk-number-prefix', [ExamController::class, 'updateDeskNumberPrefix'])->name('exams.desk-number-prefix');
     Route::post('exams/{exam}/generate-eligible-list', [ExamController::class, 'generateEligibleList'])->name('exams.generate-eligible-list');
     Route::resource('exams', ExamController::class);

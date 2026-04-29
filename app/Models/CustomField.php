@@ -42,7 +42,6 @@ class CustomField extends Model
             'monastery' => 'Monastery',
             'sangha' => 'Sangha',
             'request' => 'Transfer',
-            'monastery_exam' => 'Monastery exam',
             'exam' => 'Exam',
             'programme_primary' => 'Primary',
             'programme_intermediate' => 'Intermediate',

@@ -25,24 +25,13 @@ class MonasteryFormRequestController extends Controller
             $requestStatus = null;
         }
 
-        $formScope = $request->query('form_scope', 'general');
-        if (! in_array($formScope, ['general', 'exam'], true)) {
-            $formScope = 'general';
-        }
+        $formScope = 'general';
 
         $query = MonasteryFormRequest::query()
             ->with(['monastery', 'examType'])
             ->latest();
 
-        if ($formScope === 'exam') {
-            $query->whereNotNull('exam_type_id');
-        } else {
-            $query->whereNull('exam_type_id');
-        }
-
-        if ($formScope === 'exam' && $request->filled('exam_type_id')) {
-            $query->where('exam_type_id', (int) $request->exam_type_id);
-        }
+        $query->whereNull('exam_type_id');
 
         if ($request->filled('search')) {
             $search = $request->search;

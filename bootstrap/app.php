@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAdminAuthenticated;
+use App\Http\Middleware\EnsureAdminHasPermission;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetWebsiteLocale;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->alias([
             'admin.auth' => EnsureAdminAuthenticated::class,
+            'admin.permission' => EnsureAdminHasPermission::class,
             'admin.locale' => SetAdminLocale::class,
             'website.locale' => SetWebsiteLocale::class,
         ]);

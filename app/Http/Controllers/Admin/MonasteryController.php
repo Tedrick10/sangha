@@ -59,6 +59,14 @@ class MonasteryController extends Controller
         return view('admin.monasteries.create', compact('customFields'));
     }
 
+    public function show(Monastery $monastery): View
+    {
+        $customFieldValues = $monastery->getCustomFieldValuesArray();
+        $sanghaCount = $monastery->sanghas()->count();
+
+        return view('admin.monasteries.show', compact('monastery', 'customFieldValues', 'sanghaCount'));
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate($this->monasteryValidationRules());

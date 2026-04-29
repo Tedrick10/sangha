@@ -107,7 +107,7 @@
     </div>
     <div class="admin-form-actions flex flex-wrap items-center gap-2">
         <button type="submit" class="admin-btn-primary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'check', 'class' => 'w-5 h-5']) Update Monastery</button>
-        <a href="{{ route('admin.monasteries.chat', $monastery) }}" class="admin-btn-secondary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('monastery_chat_open', 'Open chat') }}</a>
+        <!-- <a href="{{ route('admin.monasteries.chat', $monastery) }}" class="admin-btn-secondary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'view', 'class' => 'w-4 h-4']) {{ t('monastery_chat_open', 'Open chat') }}</a> -->
         <a href="{{ route('admin.monasteries.index') }}" class="admin-btn-secondary inline-flex items-center gap-2">@include('partials.icon', ['name' => 'x', 'class' => 'w-4 h-4']) Cancel</a>
     </div>
 </form>

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
+    public const SUPER_ADMIN_NAME = 'SuperAdmin';
+
     protected $fillable = ['name', 'permissions'];
 
     protected $casts = [
@@ -20,8 +22,18 @@ class Role extends Model
 
     public function hasPermission(string $permission): bool
     {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
         $permissions = $this->permissions ?? [];
+
         return in_array($permission, $permissions, true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return trim((string) $this->name) === self::SUPER_ADMIN_NAME;
     }
 
     public static function availablePermissions(): array

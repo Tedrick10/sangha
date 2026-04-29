@@ -82,7 +82,6 @@
                         @endif
                     </td>
                     <td class="text-right whitespace-nowrap">
-                        <a href="{{ route('admin.exams.entrances', $exam) }}" class="admin-action-link admin-action-view">{{ t('exam_entrance_short', 'Entrance') }}</a>
                         <a href="{{ route('admin.exams.edit', $exam) }}" class="admin-action-link admin-action-edit">@include('partials.icon', ['name' => 'pencil', 'class' => 'w-4 h-4']) Edit</a>
                         <form action="{{ route('admin.exams.destroy', $exam) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('Delete this exam?');">
                             @csrf

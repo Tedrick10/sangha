@@ -26,6 +26,10 @@
                     <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required class="admin-input" placeholder="email@example.com">
                     @error('email')<p class="admin-form-error">{{ $message }}</p>@enderror
                 </div>
+                <div class="admin-form-group">
+                    <label for="role_display" class="admin-form-label">{{ t('role_name', 'Role') }}</label>
+                    <input type="text" id="role_display" value="{{ $user->role?->name ?? t('not_assigned', 'Not assigned') }}" class="admin-input" readonly>
+                </div>
             </div>
         </div>
         <div class="admin-form-section">

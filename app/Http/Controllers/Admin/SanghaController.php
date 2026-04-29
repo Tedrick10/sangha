@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Exam;
+use App\Models\ExamType;
 use App\Models\Monastery;
 use App\Models\Sangha;
 use App\Notifications\Monastery\SanghaApplicationDecidedNotification;
+use App\Support\ExamEligibleSnapshot;
 use App\Support\EligibleRollNumberGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +52,12 @@ class SanghaController extends Controller
         if ($request->filled('exam_id')) {
             $query->where('exam_id', $request->exam_id);
         }
+        if ($request->filled('exam_type_id')) {
+            $typeId = (int) $request->exam_type_id;
+            if ($typeId > 0) {
+                $query->whereHas('exam', fn ($q) => $q->where('exam_type_id', $typeId));
+            }
+        }
         if ($request->filled('moderation_status')) {
             if ($request->moderation_status === 'approved') {
                 $query->where('sanghas.workflow_status', Sangha::STATUS_APPROVED);
@@ -83,8 +91,34 @@ class SanghaController extends Controller
         $sanghas = $query->paginate(admin_per_page(10))->withQueryString();
         $monasteries = Monastery::orderBy('name')->get();
         $exams = Exam::orderBy('exam_date', 'desc')->orderBy('name')->get();
+        $examTypes = ExamType::query()
+            ->whereIn('name', ExamType::CANONICAL_NAME_ORDER)
+            ->orderByCanonical()
+            ->get();
 
-        return view('admin.sanghas.index', compact('sanghas', 'monasteries', 'exams'));
+        return view('admin.sanghas.index', compact('sanghas', 'monasteries', 'exams', 'examTypes'));
+    }
+
+    public function generateEligibleList(Request $request): RedirectResponse
+    {
+        $examQuery = Exam::query();
+
+        if ($request->filled('exam_id')) {
+            $examQuery->where('id', (int) $request->input('exam_id'));
+        } elseif ($request->filled('exam_type_id')) {
+            $examQuery->where('exam_type_id', (int) $request->input('exam_type_id'));
+        }
+
+        $exams = $examQuery->get();
+        $generated = 0;
+        foreach ($exams as $exam) {
+            ExamEligibleSnapshot::upsertFromExam($exam);
+            $generated++;
+        }
+
+        return redirect()
+            ->route('admin.sanghas.index', $request->except('_token'))
+            ->with('success', "Generated eligible list for {$generated} exam(s).");
     }
 
     public function show(Sangha $sangha): View

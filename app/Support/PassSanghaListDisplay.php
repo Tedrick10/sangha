@@ -151,6 +151,7 @@ class PassSanghaListDisplay
                 ?? self::nonEmptyString($rowArr['latest_score_nrc_number'] ?? null);
 
             return array_merge($rowArr, [
+                'exam_type_id' => $rowArr['exam_type_id'] ?? $latestScore?->exam?->exam_type_id ?? $sangha->exam?->exam_type_id,
                 'name' => $sangha->name,
                 'monastery_name' => $sangha->monastery->name ?? ($rowArr['monastery_name'] ?? '—'),
                 'exam_id' => $finalExamId,
@@ -166,6 +167,45 @@ class PassSanghaListDisplay
                 'nrc_number' => self::nonEmptyString($meta['nrc_number'] ?? null) ?? $nrcSnap,
             ]);
         });
+    }
+
+    /**
+     * Remove duplicate rows by exam + roll number while preserving order.
+     *
+     * @param  Collection<int, array<string, mixed>>  $rows
+     * @return Collection<int, array<string, mixed>>
+     */
+    public static function uniqueByExamRoll(Collection $rows): Collection
+    {
+        if ($rows->isEmpty()) {
+            return collect();
+        }
+
+        $seen = [];
+
+        return $rows->filter(function (array $row) use (&$seen): bool {
+            $roll = self::nonEmptyString($row['eligible_roll_number'] ?? null)
+                ?? self::nonEmptyString($row['roll_display'] ?? null);
+            if ($roll === null) {
+                return true;
+            }
+
+            $examId = (int) ($row['exam_id'] ?? 0);
+            $examTypeId = (int) ($row['exam_type_id'] ?? 0);
+            $examYear = self::nonEmptyString($row['exam_year'] ?? null) ?? '';
+            $scope = $examId > 0
+                ? 'exam:'.$examId
+                : ('type:'.$examTypeId.'|year:'.$examYear);
+            $key = $scope.'|roll:'.mb_strtolower($roll);
+
+            if (isset($seen[$key])) {
+                return false;
+            }
+
+            $seen[$key] = true;
+
+            return true;
+        })->values();
     }
 
     /**

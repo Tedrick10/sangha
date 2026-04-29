@@ -11,9 +11,9 @@ class ExamEligibleSnapshot
     public const SETTING_KEY = 'exam_eligible_snapshots';
 
     /**
-     * Capture seated candidates (desk assigned) for this exam and store for the public site.
+     * Capture seated approved candidates for this exam and store for the public site.
      *
-     * @return array{exam_id: int, exam_name: string, exam_date: ?string, generated_at: string, candidates: list<array{desk_number: int, user_id: string, name: string, monastery_name: string}>}
+     * @return array{exam_id: int, exam_name: string, exam_date: ?string, generated_at: string, candidates: list<array{desk_number: int, user_id: string, eligible_roll_number: string, name: string, father_name: string, nrc_number: string, monastery_name: string}>}
      */
     public static function upsertFromExam(Exam $exam): array
     {
@@ -21,6 +21,7 @@ class ExamEligibleSnapshot
 
         $sanghas = Sangha::query()
             ->where('exam_id', $exam->id)
+            ->where('workflow_status', Sangha::STATUS_APPROVED)
             ->whereNotNull('desk_number')
             ->with('monastery')
             ->orderBy('desk_number')
@@ -37,7 +38,10 @@ class ExamEligibleSnapshot
                 return [
                     'desk_number' => (int) $s->desk_number,
                     'user_id' => (string) $s->username,
+                    'eligible_roll_number' => (string) ($s->eligible_roll_number ?? ''),
                     'name' => (string) $s->name,
+                    'father_name' => (string) ($s->father_name ?? ''),
+                    'nrc_number' => (string) ($s->nrc_number ?? ''),
                     'monastery_name' => $s->monastery?->name ?? '—',
                 ];
             })->values()->all(),
