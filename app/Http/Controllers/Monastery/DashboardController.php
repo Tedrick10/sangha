@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -154,7 +155,16 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $exams = Exam::where('is_active', true)->orderBy('exam_date', 'desc')->orderBy('name')->get();
+        $registerExamTypeId = $this->examTypeIdFromProgrammeScreen($programmeContext);
+        $exams = Exam::query()
+            ->where('is_active', true)
+            ->when(
+                $screen === 'register' && $registerExamTypeId > 0,
+                fn (Builder $query) => $query->where('exam_type_id', $registerExamTypeId)
+            )
+            ->orderBy('exam_date', 'desc')
+            ->orderBy('name')
+            ->get();
         $sanghaFieldMeta = CustomField::sanghaDefinitionsBySlug();
         $sanghaCustomFields = CustomField::forEntity('sangha')
             ->where('is_built_in', false)
@@ -420,12 +430,25 @@ class DashboardController extends Controller
             ->get();
         $programmeFields = $programmeEntityType ? CustomField::forEntity($programmeEntityType)->get() : collect();
         $bySlug = CustomField::sanghaDefinitionsBySlug();
+        $forcedIdentityRules = [];
+        if (! CustomField::isBuiltInSlugSuppressed('sangha', 'father_name')) {
+            $forcedIdentityRules['father_name'] = ['required', 'string', 'max:255'];
+        }
+        if (! CustomField::isBuiltInSlugSuppressed('sangha', 'nrc_number')) {
+            $forcedIdentityRules['nrc_number'] = ['required', 'string', 'max:100'];
+        }
 
         $validated = $request->validate(array_merge(
             CustomField::sanghaCoreValidationRules($bySlug, ['exam_id', 'name', 'father_name', 'nrc_number', 'description']),
+            $forcedIdentityRules,
+            ['exam_id' => ['required', 'exists:exams,id']],
             $this->customFieldRules($customFields, $request),
             $this->customFieldRules($programmeFields, $request)
         ));
+        $this->ensureExamMatchesProgramme(
+            examId: isset($validated['exam_id']) ? (int) $validated['exam_id'] : null,
+            programmeScreen: $programmeScreen
+        );
 
         $name = trim((string) ($validated['name'] ?? ''));
         if ($name === '') {
@@ -474,12 +497,25 @@ class DashboardController extends Controller
             ->get();
         $programmeFields = $programmeEntityType ? CustomField::forEntity($programmeEntityType)->get() : collect();
         $bySlug = CustomField::sanghaDefinitionsBySlug();
+        $forcedIdentityRules = [];
+        if (! CustomField::isBuiltInSlugSuppressed('sangha', 'father_name')) {
+            $forcedIdentityRules['father_name'] = ['required', 'string', 'max:255'];
+        }
+        if (! CustomField::isBuiltInSlugSuppressed('sangha', 'nrc_number')) {
+            $forcedIdentityRules['nrc_number'] = ['required', 'string', 'max:100'];
+        }
 
         $validated = $request->validate(array_merge(
             CustomField::sanghaCoreValidationRules($bySlug, ['exam_id', 'name', 'father_name', 'nrc_number', 'description']),
+            $forcedIdentityRules,
+            ['exam_id' => ['required', 'exists:exams,id']],
             $this->customFieldRules($customFields, $request, $sangha),
             $this->customFieldRules($programmeFields, $request)
         ));
+        $this->ensureExamMatchesProgramme(
+            examId: isset($validated['exam_id']) ? (int) $validated['exam_id'] : null,
+            programmeScreen: $programmeScreen
+        );
 
         $name = trim((string) ($validated['name'] ?? ''));
         if ($name === '') {
@@ -784,6 +820,50 @@ class DashboardController extends Controller
             'Level 3' => 'level-3',
             default => null,
         };
+    }
+
+    private function examTypeIdFromProgrammeScreen(?string $programmeScreen): int
+    {
+        if (! is_string($programmeScreen) || $programmeScreen === '') {
+            return 0;
+        }
+
+        $expectedExamTypeName = match ($programmeScreen) {
+            'primary' => 'Primary',
+            'intermediate' => 'Intermediate',
+            'level-1' => 'Level 1',
+            'level-2' => 'Level 2',
+            'level-3' => 'Level 3',
+            default => null,
+        };
+        if ($expectedExamTypeName === null) {
+            return 0;
+        }
+
+        return (int) (ExamType::query()->where('name', $expectedExamTypeName)->value('id') ?? 0);
+    }
+
+    private function ensureExamMatchesProgramme(?int $examId, ?string $programmeScreen): void
+    {
+        if (! $examId || $examId <= 0) {
+            return;
+        }
+        $expectedExamTypeId = $this->examTypeIdFromProgrammeScreen($programmeScreen);
+        if ($expectedExamTypeId <= 0) {
+            return;
+        }
+
+        $isMatch = Exam::query()
+            ->whereKey($examId)
+            ->where('is_active', true)
+            ->where('exam_type_id', $expectedExamTypeId)
+            ->exists();
+
+        if (! $isMatch) {
+            throw ValidationException::withMessages([
+                'exam_id' => t('validation_exam_must_match_programme', 'The selected exam does not belong to the current programme.'),
+            ]);
+        }
     }
 
     private function applyProgrammeScope(HasMany|Builder $query, ?string $programmeScreen): HasMany|Builder

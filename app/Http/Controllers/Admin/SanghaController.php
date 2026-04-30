@@ -175,6 +175,7 @@ class SanghaController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $bySlug = CustomField::sanghaDefinitionsBySlug();
+        $forcedAdminCore = $this->adminSanghaForcedCoreRules();
         $validated = $request->validate(array_merge(
             CustomField::sanghaCoreValidationRules($bySlug, [
                 'monastery_id',
@@ -185,6 +186,7 @@ class SanghaController extends Controller
                 'username',
                 'description',
             ], null, 'any'),
+            $forcedAdminCore,
             [
                 'monastery_id' => ['required', Rule::exists('monasteries', 'id')],
             ]
@@ -234,6 +236,7 @@ class SanghaController extends Controller
         $bySlug = CustomField::sanghaDefinitionsBySlug();
         $programmeEntityType = $this->programmeEntityTypeForSangha($sangha);
         $programmeCustomFields = $programmeEntityType ? CustomField::forEntity($programmeEntityType)->get() : collect();
+        $forcedAdminCore = $this->adminSanghaForcedCoreRules();
         $validated = $request->validate(array_merge(
             CustomField::sanghaCoreValidationRules($bySlug, [
                 'monastery_id',
@@ -244,6 +247,7 @@ class SanghaController extends Controller
                 'username',
                 'description',
             ], $sangha->id, 'any'),
+            $forcedAdminCore,
             [
                 'monastery_id' => ['required', Rule::exists('monasteries', 'id')],
                 'moderation_status' => 'nullable|in:eligible,pending,approved,needed_update,rejected',
@@ -289,6 +293,27 @@ class SanghaController extends Controller
         $sangha->delete();
 
         return redirect()->route('admin.sanghas.index')->with('success', 'Sangha deleted successfully.');
+    }
+
+    /**
+     * Admin add/edit: require Father name, NRC, and Exam unless a built-in slug is suppressed in Custom Fields.
+     *
+     * @return array<string, array<int, string>>
+     */
+    private function adminSanghaForcedCoreRules(): array
+    {
+        $rules = [];
+        if (! CustomField::isBuiltInSlugSuppressed('sangha', 'father_name')) {
+            $rules['father_name'] = ['required', 'string', 'max:255'];
+        }
+        if (! CustomField::isBuiltInSlugSuppressed('sangha', 'nrc_number')) {
+            $rules['nrc_number'] = ['required', 'string', 'max:100'];
+        }
+        if (! CustomField::isBuiltInSlugSuppressed('sangha', 'exam_id')) {
+            $rules['exam_id'] = ['required', 'exists:exams,id'];
+        }
+
+        return $rules;
     }
 
     /**

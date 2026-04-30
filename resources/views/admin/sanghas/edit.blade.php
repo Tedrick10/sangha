@@ -15,6 +15,15 @@
     $metaNrc = $sanghaFieldMeta->get('nrc_number');
     $metaExam = $sanghaFieldMeta->get('exam_id');
     $metaDesc = $sanghaFieldMeta->get('description');
+    $optionalPlaceholderLabel = t('score_optional_placeholder', 'Optional');
+    $adminFatherPlaceholder = $metaFather?->placeholder;
+    if ($adminFatherPlaceholder === null || $adminFatherPlaceholder === '' || $adminFatherPlaceholder === 'Optional' || $adminFatherPlaceholder === $optionalPlaceholderLabel) {
+        $adminFatherPlaceholder = t('enter_father_name', 'Enter father name');
+    }
+    $adminNrcPlaceholder = $metaNrc?->placeholder;
+    if ($adminNrcPlaceholder === null || $adminNrcPlaceholder === '' || $adminNrcPlaceholder === 'Optional' || $adminNrcPlaceholder === $optionalPlaceholderLabel) {
+        $adminNrcPlaceholder = t('enter_nrc_number', 'Enter NRC number');
+    }
 @endphp
 <form action="{{ route('admin.sanghas.update', $sangha) }}" method="POST" enctype="multipart/form-data" class="admin-form-card">
     @csrf
@@ -40,15 +49,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'father_name'))
             <div class="admin-form-group mb-0">
-                <label for="father_name" class="admin-form-label">{{ $metaFather?->name ?? t('score_father_name_label', 'Father name') }}{{ ($metaFather?->required ?? false) ? ' *' : '' }}</label>
-                <input type="text" name="father_name" id="father_name" value="{{ old('father_name', $sangha->father_name) }}" maxlength="255" class="admin-input" placeholder="{{ $metaFather?->placeholder ?? t('score_optional_placeholder', 'Optional') }}" @if($metaFather?->required ?? false) required @endif>
+                <label for="father_name" class="admin-form-label">{{ $metaFather?->name ?? t('score_father_name_label', 'Father name') }} *</label>
+                <input type="text" name="father_name" id="father_name" value="{{ old('father_name', $sangha->father_name) }}" maxlength="255" class="admin-input" placeholder="{{ $adminFatherPlaceholder }}" required>
                 @error('father_name')<p class="admin-form-error">{{ $message }}</p>@enderror
             </div>
             @endif
             @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'nrc_number'))
             <div class="admin-form-group mb-0">
-                <label for="nrc_number" class="admin-form-label">{{ $metaNrc?->name ?? t('score_nrc_label', 'NRC number') }}{{ ($metaNrc?->required ?? false) ? ' *' : '' }}</label>
-                <input type="text" name="nrc_number" id="nrc_number" value="{{ old('nrc_number', $sangha->nrc_number) }}" maxlength="100" class="admin-input" placeholder="{{ $metaNrc?->placeholder ?? t('score_optional_placeholder', 'Optional') }}" @if($metaNrc?->required ?? false) required @endif>
+                <label for="nrc_number" class="admin-form-label">{{ $metaNrc?->name ?? t('score_nrc_label', 'NRC number') }} *</label>
+                <input type="text" name="nrc_number" id="nrc_number" value="{{ old('nrc_number', $sangha->nrc_number) }}" maxlength="100" class="admin-input" placeholder="{{ $adminNrcPlaceholder }}" required>
                 @error('nrc_number')<p class="admin-form-error">{{ $message }}</p>@enderror
             </div>
             @endif
@@ -60,9 +69,9 @@
         </div>
         @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'exam_id'))
         <div class="admin-form-group">
-            <label for="exam_id" class="admin-form-label">{{ $metaExam?->name ?? t('exam') }}{{ ($metaExam?->required ?? false) ? ' *' : '' }}</label>
-            <select name="exam_id" id="exam_id" class="admin-select-input" @if($metaExam?->required ?? false) required @endif>
-                <option value="">{{ $metaExam?->placeholder ?: (($metaExam?->required ?? false) ? t('select_exam', 'Select exam') : t('select_exam_optional', 'Select exam (optional)')) }}</option>
+            <label for="exam_id" class="admin-form-label">{{ $metaExam?->name ?? t('exam') }} *</label>
+            <select name="exam_id" id="exam_id" class="admin-select-input" required>
+                <option value="">{{ t('select_exam', 'Select Exam') }}</option>
                 @foreach($exams as $exam)
                     <option value="{{ $exam->id }}" {{ old('exam_id', $sangha->exam_id) == $exam->id ? 'selected' : '' }}>{{ $exam->name }}{{ $exam->exam_date ? ' (' . $exam->exam_date->format('M d, Y') . ')' : '' }}</option>
                 @endforeach

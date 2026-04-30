@@ -656,24 +656,24 @@
                     @endif
                     @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'father_name'))
                     <div>
-                        <label for="father_name" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{{ $mpMetaFather?->name ?? t('score_father_name_label', 'Father name') }}{{ ($mpMetaFather?->required ?? false) ? ' *' : '' }}</label>
-                        <input type="text" id="father_name" name="father_name" value="{{ old('father_name', $editingFeedback?->father_name ?? '') }}" maxlength="255" class="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-3 py-2.5 text-sm" placeholder="{{ $mpMetaFather?->placeholder }}" @if($mpMetaFather?->required ?? false) required @endif>
+                        <label for="father_name" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{{ $mpMetaFather?->name ?? t('score_father_name_label', 'Father name') }} *</label>
+                        <input type="text" id="father_name" name="father_name" value="{{ old('father_name', $editingFeedback?->father_name ?? '') }}" maxlength="255" class="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-3 py-2.5 text-sm" placeholder="{{ $mpMetaFather?->placeholder }}" required>
                         @error('father_name')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>
                     @endif
                     @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'nrc_number'))
                     <div>
-                        <label for="nrc_number" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{{ $mpMetaNrc?->name ?? t('score_nrc_label', 'NRC number') }}{{ ($mpMetaNrc?->required ?? false) ? ' *' : '' }}</label>
-                        <input type="text" id="nrc_number" name="nrc_number" value="{{ old('nrc_number', $editingFeedback?->nrc_number ?? '') }}" maxlength="100" class="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-3 py-2.5 text-sm" placeholder="{{ $mpMetaNrc?->placeholder }}" @if($mpMetaNrc?->required ?? false) required @endif>
+                        <label for="nrc_number" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{{ $mpMetaNrc?->name ?? t('score_nrc_label', 'NRC number') }} *</label>
+                        <input type="text" id="nrc_number" name="nrc_number" value="{{ old('nrc_number', $editingFeedback?->nrc_number ?? '') }}" maxlength="100" class="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-3 py-2.5 text-sm" placeholder="{{ $mpMetaNrc?->placeholder }}" required>
                         @error('nrc_number')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>
                     @endif
                 </div>
                 @if(!\App\Models\CustomField::isBuiltInSlugSuppressed('sangha', 'exam_id'))
                 <div>
-                    <label for="exam_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{{ $mpMetaExam?->name ?? t('exam') }}{{ ($mpMetaExam?->required ?? false) ? ' *' : '' }}</label>
-                    <select id="exam_id" name="exam_id" class="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-3 py-2.5 text-sm" @if($mpMetaExam?->required ?? false) required @endif>
-                        <option value="">{{ $mpMetaExam?->placeholder ?: (($mpMetaExam?->required ?? false) ? t('select_exam', 'Select exam') : t('select_exam_optional', 'Select exam (optional)')) }}</option>
+                    <label for="exam_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{{ $mpMetaExam?->name ?? t('exam') }} *</label>
+                    <select id="exam_id" name="exam_id" class="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-3 py-2.5 text-sm" required>
+                        <option value="">{{ t('select_exam', 'Select Exam') }}</option>
                         @foreach($exams as $exam)
                             <option value="{{ $exam->id }}" {{ (string) old('exam_id', $editingFeedback?->exam_id ?? '') === (string) $exam->id ? 'selected' : '' }}>{{ $exam->name }}{{ $exam->exam_date ? ' (' . $exam->exam_date->format('M d, Y') . ')' : '' }}</option>
                         @endforeach
